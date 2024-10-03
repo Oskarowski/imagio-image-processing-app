@@ -55,19 +55,19 @@ func adjustBrightness(img image.Image, brightness int) *image.RGBA {
 	bounds := img.Bounds()
 	newImg := image.NewRGBA(bounds)
 
-	factor := float64(brightness) / 100.0
+	factor := (brightness * 255) / 100
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			r, g, b, a := img.At(x, y).RGBA()
 
-			r8 := r >> 8
-			g8 := g >> 8
-			b8 := b >> 8
+			r8 := int(r >> 8)
+			g8 := int(g >> 8)
+			b8 := int(b >> 8)
 
-			newR := clampUint8(int(float64(r8) + (255 * factor)))
-			newG := clampUint8(int(float64(g8) + (255 * factor)))
-			newB := clampUint8(int(float64(b8) + (255 * factor)))
+			newR := clampUint8(r8 + factor)
+			newG := clampUint8(g8 + factor)
+			newB := clampUint8(b8 + factor)
 
 			newImg.Set(x, y, color.RGBA{newR, newG, newB, uint8(a >> 8)})
 		}
@@ -95,7 +95,7 @@ func main() {
 	case "--brightness":
 		brightness, err := strconv.Atoi(value)
 		if err != nil {
-			log.Fatalf("Brightness value must be number: %v", err)
+			log.Fatalf("Brightness value must be int number: %v", err)
 		}
 
 		newImg := adjustBrightness(img, brightness)
