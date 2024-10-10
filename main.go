@@ -161,12 +161,17 @@ func verticalFlip(img image.Image) *image.RGBA {
 }
 
 func diagonalFlip(img image.Image) *image.RGBA {
-	bounds := img.Bounds()
-	newImg := image.NewRGBA(bounds)
+	// easy way to do it but, why should you make it easy when you can make it difficult?
+	// return horizontalFlip(verticalFlip(img))
 
-	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			newImg.Set(y, x, img.At(x, y))
+	bounds := img.Bounds()
+	width := bounds.Dx()
+	height := bounds.Dy()
+	newImg := image.NewRGBA(image.Rect(0, 0, height, width))
+
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			newImg.Set(width-x-1, height-y-1, img.At(x, y))
 		}
 	}
 
