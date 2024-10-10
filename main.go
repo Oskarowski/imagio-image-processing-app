@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"log"
 	"os"
+	"path/filepath"
 	"strconv"
 
 	"golang.org/x/image/bmp"
@@ -91,21 +92,45 @@ func main() {
 		log.Fatalf("Error opening file: %v", err)
 	}
 
+	originalName := filepath.Base(imagePath)
+	originalNameWithoutExt := originalName[:len(originalName)-len(filepath.Ext(originalName))]
+
+	var outputFileName string
+	var newImg *image.RGBA
+
 	switch command {
+
 	case "--brightness":
 		brightness, err := strconv.Atoi(value)
 		if err != nil {
 			log.Fatalf("Brightness value must be int number: %v", err)
 		}
 
-		newImg := adjustBrightness(img, brightness)
-		err = saveBmpImage(newImg, "output.bmp")
+		newImg = adjustBrightness(img, brightness)
+		outputFileName = fmt.Sprintf("%s_altered_brightness.bmp", originalNameWithoutExt)
+
+	case "--contrast":
+		contrast, err := strconv.Atoi(value)
 		if err != nil {
-			log.Fatalf("Error saving file: %v", err)
-		} else {
-			fmt.Printf("Brightness adjusted successfully and saved to: %s", "output.bmp")
+			log.Fatalf("Contrast value must be int number: %v", err)
 		}
+
+		if contrast < -255 || contrast > 255 {
+			log.Fatalf("Contrast value must be in the range of -255 to 255")
+		}
+
+		newImg = adjustContrast(img, contrast)
+		outputFileName = fmt.Sprintf("%s_altered_contrast.bmp", originalNameWithoutExt)
+
 	default:
 		fmt.Println("Unknown commend")
+		return
+	}
+
+	err = saveBmpImage(newImg, outputFileName)
+	if err != nil {
+		log.Fatalf("Error saving file: %v", err)
+	} else {
+		fmt.Printf("Image saved successfully as: %s\n", outputFileName)
 	}
 }
