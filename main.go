@@ -115,6 +115,25 @@ func adjustContrast(img image.Image, contrast int) *image.RGBA {
 	return newImg
 }
 
+func negativeImage(img image.Image) *image.RGBA {
+	bounds := img.Bounds()
+	newImg := image.NewRGBA(bounds)
+
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			r, g, b, a := img.At(x, y).RGBA()
+
+			newR := 255 - uint8(r>>8)
+			newG := 255 - uint8(g>>8)
+			newB := 255 - uint8(b>>8)
+
+			newImg.Set(x, y, color.RGBA{newR, newG, newB, uint8(a >> 8)})
+		}
+	}
+
+	return newImg
+}
+
 func main() {
 	if len(os.Args) < 4 {
 		fmt.Println("Usage: go run main.go <command> <value> <bmp_image_path>")
@@ -159,6 +178,10 @@ func main() {
 
 		newImg = adjustContrast(img, contrast)
 		outputFileName = fmt.Sprintf("%s_altered_contrast.bmp", originalNameWithoutExt)
+
+	case "--negative":
+		newImg = negativeImage(img)
+		outputFileName = fmt.Sprintf("%s_negative.bmp", originalNameWithoutExt)
 
 	default:
 		fmt.Println("Unknown commend")
