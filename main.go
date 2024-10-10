@@ -134,6 +134,85 @@ func negativeImage(img image.Image) *image.RGBA {
 	return newImg
 }
 
+func horizontalFlip(img image.Image) *image.RGBA {
+	bounds := img.Bounds()
+	newImg := image.NewRGBA(bounds)
+
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			newImg.Set(bounds.Max.X-x-1, y, img.At(x, y))
+		}
+	}
+
+	return newImg
+}
+
+func verticalFlip(img image.Image) *image.RGBA {
+	bounds := img.Bounds()
+	newImg := image.NewRGBA(bounds)
+
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			newImg.Set(x, bounds.Max.Y-y-1, img.At(x, y))
+		}
+	}
+
+	return newImg
+}
+
+func diagonalFlip(img image.Image) *image.RGBA {
+	bounds := img.Bounds()
+	newImg := image.NewRGBA(bounds)
+
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			newImg.Set(y, x, img.At(x, y))
+		}
+	}
+
+	return newImg
+}
+
+func shrinkImage(img image.Image, factor int) (*image.RGBA, error) {
+	if factor <= 0 {
+		return nil, fmt.Errorf("factor must be greater than 0")
+	}
+
+	bounds := img.Bounds()
+	newWidth := bounds.Dx() / factor
+	newHeight := bounds.Dy() / factor
+
+	newImg := image.NewRGBA(image.Rect(0, 0, newWidth, newHeight))
+
+	for y := 0; y < newHeight; y++ {
+		for x := 0; x < newWidth; x++ {
+			newImg.Set(x, y, img.At(x*factor, y*factor))
+		}
+	}
+
+	return newImg, nil
+}
+
+func enlargeImage(img image.Image, factor int) (*image.RGBA, error) {
+	if factor <= 0 {
+		return nil, fmt.Errorf("factor must be greater than 0")
+	}
+
+	bounds := img.Bounds()
+	newWidth := bounds.Dx() * factor
+	newHeight := bounds.Dy() * factor
+
+	newImg := image.NewRGBA(image.Rect(0, 0, newWidth, newHeight))
+
+	for y := 0; y < newHeight; y++ {
+		for x := 0; x < newWidth; x++ {
+			newImg.Set(x, y, img.At(x/factor, y/factor))
+		}
+	}
+
+	return newImg, nil
+}
+
 func main() {
 	if len(os.Args) < 3 {
 		fmt.Println("Usage: go run main.go <command> [<value>] <bmp_image_path>")
@@ -189,6 +268,52 @@ func main() {
 	case "--negative":
 		newImg = negativeImage(img)
 		outputFileName = fmt.Sprintf("%s_negative.bmp", originalNameWithoutExt)
+
+	case "--hflip":
+		newImg = horizontalFlip(img)
+		outputFileName = fmt.Sprintf("%s_horizontal_flip.bmp", originalNameWithoutExt)
+
+	case "--vflip":
+		newImg = verticalFlip(img)
+		outputFileName = fmt.Sprintf("%s_vertical_flip.bmp", originalNameWithoutExt)
+
+	case "--dflip":
+		newImg = diagonalFlip(img)
+		outputFileName = fmt.Sprintf("%s_diagonal_flip.bmp", originalNameWithoutExt)
+
+	case "--shrink":
+		if len(os.Args) < 4 {
+			log.Fatal("Shrink command requires a shrink factor value")
+		}
+
+		factor, err := strconv.Atoi(os.Args[2])
+		if err != nil {
+			log.Fatalf("Shrink factor value must be int number: %v", err)
+		}
+
+		newImg, err = shrinkImage(img, factor)
+		if err != nil {
+			log.Fatalf("Error shrinking image: %v", err)
+		}
+
+		outputFileName = fmt.Sprintf("%s_shrunk_by_%dx.bmp", originalNameWithoutExt, factor)
+
+	case "--enlarge":
+		if len(os.Args) < 4 {
+			log.Fatal("Enlarge command requires a enlargement factor value")
+		}
+
+		factor, err := strconv.Atoi(os.Args[2])
+		if err != nil {
+			log.Fatalf("Enlarge factor value must be int number: %v", err)
+		}
+
+		newImg, err = enlargeImage(img, factor)
+		if err != nil {
+			log.Fatalf("Error enlarging image: %v", err)
+		}
+
+		outputFileName = fmt.Sprintf("%s_enlarged_by_%dx.bmp", originalNameWithoutExt, factor)
 
 	default:
 		fmt.Println("Unknown commend")
