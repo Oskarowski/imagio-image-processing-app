@@ -135,14 +135,13 @@ func negativeImage(img image.Image) *image.RGBA {
 }
 
 func main() {
-	if len(os.Args) < 4 {
-		fmt.Println("Usage: go run main.go <command> <value> <bmp_image_path>")
+	if len(os.Args) < 3 {
+		fmt.Println("Usage: go run main.go <command> [<value>] <bmp_image_path>")
 		return
 	}
 
 	command := os.Args[1]
-	value := os.Args[2]
-	imagePath := os.Args[3]
+	imagePath := os.Args[len(os.Args)-1]
 
 	img, err := openBmpImage(imagePath)
 	if err != nil {
@@ -158,7 +157,11 @@ func main() {
 	switch command {
 
 	case "--brightness":
-		brightness, err := strconv.Atoi(value)
+		if len(os.Args) < 4 {
+			log.Fatalf("Brightness command requires a value.")
+		}
+
+		brightness, err := strconv.Atoi(os.Args[2])
 		if err != nil {
 			log.Fatalf("Brightness value must be int number: %v", err)
 		}
@@ -167,7 +170,11 @@ func main() {
 		outputFileName = fmt.Sprintf("%s_altered_brightness.bmp", originalNameWithoutExt)
 
 	case "--contrast":
-		contrast, err := strconv.Atoi(value)
+		if len(os.Args) < 4 {
+			log.Fatalf("Contrast command requires a value.")
+		}
+
+		contrast, err := strconv.Atoi(os.Args[2])
 		if err != nil {
 			log.Fatalf("Contrast value must be int number: %v", err)
 		}
