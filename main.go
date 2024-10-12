@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 )
 
 func main() {
@@ -47,12 +48,13 @@ func main() {
 
 	var outputFileName string
 	var newImg *image.RGBA
+	var durationSum time.Duration
 
 	for _, cmd := range commands {
+		startTime := time.Now()
+
 		switch cmd.Name {
 		case "brightness":
-			fmt.Println("Adjusting Brightness")
-
 			brightness, err := strconv.Atoi(cmd.Args["value"])
 			if err != nil {
 				log.Fatalf("Brightness value must be int number: %v", err)
@@ -62,7 +64,6 @@ func main() {
 			outputFileName = fmt.Sprintf("%s_altered_brightness.bmp", originalNameWithoutExt)
 
 		case "contrast":
-			fmt.Println("Contrast")
 			contrast, err := strconv.Atoi(cmd.Args["value"])
 
 			if err != nil {
@@ -144,8 +145,6 @@ func main() {
 			outputFileName = fmt.Sprintf("%s_max_filter.bmp", originalNameWithoutExt)
 
 		case "mse":
-			fmt.Println("Calculating Mean square error")
-
 			if comparisonImage == nil {
 				log.Fatalf("Comparison image is required for MSE.")
 			}
@@ -154,52 +153,48 @@ func main() {
 			fmt.Printf("MSE: %v\n", mse)
 
 		case "pmse":
-			fmt.Println("Calculating Peak mean square error")
-
 			if comparisonImage == nil {
 				log.Fatalf("Comparison image is required for PMSE.")
 			}
 
-			mse := analysis.PeakMeanSquareError(img, comparisonImage)
-			fmt.Printf("PMSE: %v\n", mse)
+			pmse := analysis.PeakMeanSquareError(img, comparisonImage)
+			fmt.Printf("PMSE: %v\n", pmse)
 
 		case "snr":
-			fmt.Println("Calculating Signal to noise ratio [dB]")
-
 			if comparisonImage == nil {
 				log.Fatalf("Comparison image is required for SNR.")
 			}
 
-			mse := analysis.SignalToNoiseRatio(img, comparisonImage)
-			fmt.Printf("SNR: %v\n", mse)
+			snr := analysis.SignalToNoiseRatio(img, comparisonImage)
+			fmt.Printf("SNR: %v\n", snr)
 
 		case "psnr":
-			fmt.Println("Calculating Peak signal to noise ratio [dB]")
-
 			if comparisonImage == nil {
 				log.Fatalf("Comparison image is required for PSNR.")
 			}
 
-			mse := analysis.PeakSignalToNoiseRatio(img, comparisonImage)
-			fmt.Printf("PSNR: %v\n", mse)
+			psnr := analysis.PeakSignalToNoiseRatio(img, comparisonImage)
+			fmt.Printf("PSNR: %v\n", psnr)
 
 		case "md":
-			fmt.Println("Calculating Maximum difference")
-
 			if comparisonImage == nil {
 				log.Fatalf("Comparison image is required for MD.")
 			}
 
-			mse := analysis.PeakSignalToNoiseRatio(img, comparisonImage)
-			fmt.Printf("PSNR: %v\n", mse)
+			md := analysis.PeakSignalToNoiseRatio(img, comparisonImage)
+			fmt.Printf("Maximum Difference: %v\n", md)
 
 		default:
 			fmt.Println("Unknown commend")
 			return
 		}
+
+		duration := time.Since(startTime)
+		durationSum += duration
+		fmt.Printf("Operation '%s' took: %v\n", cmd.Name, duration)
 	}
 
-	if newImg != nil && comparisonImagePath == "" {
+	if newImg != nil {
 		err = imageio.SaveBmpImage(newImg, outputFileName)
 		if err != nil {
 			log.Fatalf("Error saving file: %v", err)
@@ -208,5 +203,5 @@ func main() {
 		}
 	}
 
-	fmt.Println("Done")
+	fmt.Printf("Total operation time: %v\n", durationSum)
 }
