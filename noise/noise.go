@@ -49,6 +49,7 @@ func applyAdaptiveMedian(A1, A2, B1, B2, zMed, zxy int) int {
 }
 
 func AdaptiveMedianFilter(img image.Image, sMax int) *image.RGBA {
+	// https://www.irjet.net/archives/V6/i10/IRJET-V6I10148.pdf
 	bounds := img.Bounds()
 	newImg := image.NewRGBA(bounds)
 
