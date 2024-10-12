@@ -30,21 +30,21 @@ func pixelDifference(img1, img2 image.Image) (diffR, diffG, diffB float64) {
 	return diffR, diffG, diffB
 }
 
-func meanSquareError(img1, img2 image.Image) float64 {
+func MeanSquareError(img1, img2 image.Image) float64 {
 	diffR, diffG, diffB := pixelDifference(img1, img2)
 
 	return (diffR + diffG + diffB) / 3
 }
 
-func peakMeanSquareError(img1, img2 image.Image) float64 {
+func PeakMeanSquareError(img1, img2 image.Image) float64 {
 	maxVal := 255.0
 
-	msaValue := meanSquareError(img1, img2)
+	msaValue := MeanSquareError(img1, img2)
 
 	return msaValue / (maxVal * maxVal)
 }
 
-func signalToNoiseRatio(img1, img2 image.Image) float64 {
+func SignalToNoiseRatio(img1, img2 image.Image) float64 {
 	bounds := img1.Bounds()
 
 	var signalSum, noiseSum float64
@@ -74,9 +74,9 @@ func signalToNoiseRatio(img1, img2 image.Image) float64 {
 	return 10 * math.Log10(signalSum/noiseSum)
 }
 
-func peakSignalToNoiseRatio(img1, img2 image.Image) float64 {
+func PeakSignalToNoiseRatio(img1, img2 image.Image) float64 {
 	maxValue := 255.0
-	mseValue := meanSquareError(img1, img2)
+	mseValue := MeanSquareError(img1, img2)
 
 	if mseValue == 0 {
 		return math.Inf(1)
@@ -85,7 +85,7 @@ func peakSignalToNoiseRatio(img1, img2 image.Image) float64 {
 	return 10 * math.Log10(maxValue*maxValue/mseValue)
 }
 
-func maxDifference(img1, img2 image.Image) float64 {
+func MaxDifference(img1, img2 image.Image) float64 {
 	bounds := img1.Bounds()
 
 	var maxDiff float64
