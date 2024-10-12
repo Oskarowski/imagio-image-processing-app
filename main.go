@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image"
+	"image-processing/noise"
 	"image/color"
 	"log"
 	"os"
@@ -319,6 +320,27 @@ func main() {
 		}
 
 		outputFileName = fmt.Sprintf("%s_enlarged_by_%dx.bmp", originalNameWithoutExt, factor)
+
+	case "--adaptive":
+		newImg = noise.AdaptiveMedianFilter(img, 30)
+
+		outputFileName = fmt.Sprintf("%s_adaptive_median_filter.bmp", originalNameWithoutExt)
+
+	case "--min":
+		windowSize, err := strconv.Atoi(os.Args[2])
+		if err != nil {
+			log.Fatalf("Window size must be an int: %v", err)
+		}
+		newImg = noise.MinFilter(img, windowSize)
+		outputFileName = fmt.Sprintf("%s_min_filter.bmp", originalNameWithoutExt)
+
+	case "--max":
+		windowSize, err := strconv.Atoi(os.Args[2])
+		if err != nil {
+			log.Fatalf("Window size must be an int: %v", err)
+		}
+		newImg = noise.MaxFilter(img, windowSize)
+		outputFileName = fmt.Sprintf("%s_max_filter.bmp", originalNameWithoutExt)
 
 	default:
 		fmt.Println("Unknown commend")
