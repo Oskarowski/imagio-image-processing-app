@@ -114,7 +114,9 @@ func SignalToNoiseRatio(img1, img2 image.Image) float64 {
 }
 
 func PeakSignalToNoiseRatio(img1, img2 image.Image) float64 {
-	maxValue := 255.0
+	// calculate the max pixel value in the original image rather than hardcoding it to 255
+	maxValue := float64(maxPixelValue(img1))
+
 	mseValue := MeanSquareError(img1, img2)
 
 	if mseValue == 0 {
