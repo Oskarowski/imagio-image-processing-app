@@ -15,6 +15,12 @@ import (
 	"time"
 )
 
+type commandInvocation struct {
+	Name        string
+	Description string
+	Result      string
+}
+
 func main() {
 	if len(os.Args) < 3 {
 		fmt.Println("Usage: go run main.go <command> [-argument=value [...]] <bmp_image_path> [<second_image_path>]")
@@ -51,6 +57,7 @@ func main() {
 	var durationSum time.Duration
 
 	for _, cmd := range commands {
+		cmdResult := commandInvocation{Name: cmd.Name}
 		startTime := time.Now()
 
 		switch cmd.Name {
@@ -62,6 +69,7 @@ func main() {
 
 			newImg = manipulations.AdjustBrightness(img, brightness)
 			outputFileName = fmt.Sprintf("%s_altered_brightness.bmp", originalNameWithoutExt)
+			cmdResult.Description = fmt.Sprintf("Brightness adjusted by %d", brightness)
 
 		case "contrast":
 			contrast, err := strconv.Atoi(cmd.Args["value"])
@@ -76,22 +84,27 @@ func main() {
 
 			newImg = manipulations.AdjustContrast(img, contrast)
 			outputFileName = fmt.Sprintf("%s_altered_contrast.bmp", originalNameWithoutExt)
+			cmdResult.Description = fmt.Sprintf("Contrast adjusted by %d", contrast)
 
 		case "negative":
 			newImg = manipulations.NegativeImage(img)
 			outputFileName = fmt.Sprintf("%s_negative.bmp", originalNameWithoutExt)
+			cmdResult.Description = "Negative image created"
 
 		case "hflip":
 			newImg = manipulations.HorizontalFlip(img)
 			outputFileName = fmt.Sprintf("%s_horizontal_flip.bmp", originalNameWithoutExt)
+			cmdResult.Description = "Image horizontally flipped"
 
 		case "vflip":
 			newImg = manipulations.VerticalFlip(img)
 			outputFileName = fmt.Sprintf("%s_vertical_flip.bmp", originalNameWithoutExt)
+			cmdResult.Description = "Image vertically flipped"
 
 		case "dflip":
 			newImg = manipulations.DiagonalFlip(img)
 			outputFileName = fmt.Sprintf("%s_diagonal_flip.bmp", originalNameWithoutExt)
+			cmdResult.Description = "Image diagonally flipped"
 
 		case "shrink":
 			factor, err := strconv.Atoi(cmd.Args["value"])
@@ -106,12 +119,14 @@ func main() {
 			}
 
 			outputFileName = fmt.Sprintf("%s_shrunk_by_%dx.bmp", originalNameWithoutExt, factor)
+			cmdResult.Description = fmt.Sprintf("Image shrunk by a factor of %d", factor)
 
 		case "enlarge":
 			factor, err := strconv.Atoi(cmd.Args["value"])
 
 			if err != nil {
 				log.Fatalf("Enlarge factor value must be int number: %v", err)
+
 			}
 
 			newImg, err = manipulations.EnlargeImage(img, factor)
@@ -120,11 +135,13 @@ func main() {
 			}
 
 			outputFileName = fmt.Sprintf("%s_enlarged_by_%dx.bmp", originalNameWithoutExt, factor)
+			cmdResult.Description = fmt.Sprintf("Image enlarged by a factor of %d", factor)
 
 		case "adaptive":
 			newImg = noise.AdaptiveMedianFilter(img, 30)
 
 			outputFileName = fmt.Sprintf("%s_adaptive_median_filter.bmp", originalNameWithoutExt)
+			cmdResult.Description = "Adaptive median filter applied"
 
 		case "min":
 			windowSize, err := strconv.Atoi(cmd.Args["value"])
@@ -134,6 +151,7 @@ func main() {
 			}
 			newImg = noise.MinFilter(img, windowSize)
 			outputFileName = fmt.Sprintf("%s_min_filter.bmp", originalNameWithoutExt)
+			cmdResult.Description = fmt.Sprintf("Min filter applied with window size %d", windowSize)
 
 		case "max":
 			windowSize, err := strconv.Atoi(cmd.Args["value"])
@@ -143,46 +161,87 @@ func main() {
 			}
 			newImg = noise.MaxFilter(img, windowSize)
 			outputFileName = fmt.Sprintf("%s_max_filter.bmp", originalNameWithoutExt)
+			cmdResult.Description = fmt.Sprintf("Max filter applied with window size %d", windowSize)
 
 		case "mse":
-			if comparisonImage == nil {
+			if newImg == nil && comparisonImage == nil {
 				log.Fatalf("Comparison image is required for MSE.")
 			}
 
-			mse := analysis.MeanSquareError(img, comparisonImage)
-			fmt.Printf("MSE: %v\n", mse)
+			var mse float64
+
+			if newImg != nil && comparisonImage == nil {
+				mse = analysis.MeanSquareError(img, newImg)
+			} else if comparisonImage != nil {
+				mse = analysis.MeanSquareError(img, comparisonImage)
+			}
+
+			cmdResult.Description = "Mean Square Error calculated"
+			cmdResult.Result = fmt.Sprintf("MSE: %f", mse)
 
 		case "pmse":
-			if comparisonImage == nil {
+			if newImg == nil && comparisonImage == nil {
 				log.Fatalf("Comparison image is required for PMSE.")
 			}
 
-			pmse := analysis.PeakMeanSquareError(img, comparisonImage)
-			fmt.Printf("PMSE: %v\n", pmse)
+			var pmse float64
+
+			if newImg != nil && comparisonImage == nil {
+				pmse = analysis.PeakMeanSquareError(img, newImg)
+			} else if comparisonImage != nil {
+				pmse = analysis.PeakMeanSquareError(img, comparisonImage)
+			}
+
+			cmdResult.Description = "Peak Mean Square Error calculated"
+			cmdResult.Result = fmt.Sprintf("PMSE: %f", pmse)
 
 		case "snr":
-			if comparisonImage == nil {
+			if newImg == nil && comparisonImage == nil {
 				log.Fatalf("Comparison image is required for SNR.")
 			}
 
-			snr := analysis.SignalToNoiseRatio(img, comparisonImage)
-			fmt.Printf("SNR: %v\n", snr)
+			var snr float64
+
+			if newImg != nil && comparisonImage == nil {
+				snr = analysis.SignalToNoiseRatio(img, newImg)
+			} else if comparisonImage != nil {
+				snr = analysis.SignalToNoiseRatio(img, comparisonImage)
+			}
+
+			cmdResult.Description = "Signal to Noise Ratio calculated"
+			cmdResult.Result = fmt.Sprintf("SNR: %f", snr)
 
 		case "psnr":
-			if comparisonImage == nil {
+			if newImg == nil && comparisonImage == nil {
 				log.Fatalf("Comparison image is required for PSNR.")
 			}
 
-			psnr := analysis.PeakSignalToNoiseRatio(img, comparisonImage)
-			fmt.Printf("PSNR: %v\n", psnr)
+			var psnr float64
+
+			if newImg != nil && comparisonImage == nil {
+				psnr = analysis.PeakSignalToNoiseRatio(img, newImg)
+			} else if comparisonImage != nil {
+				psnr = analysis.PeakSignalToNoiseRatio(img, comparisonImage)
+			}
+
+			cmdResult.Description = "Peak Signal to Noise Ratio calculated"
+			cmdResult.Result = fmt.Sprintf("PSNR: %f", psnr)
 
 		case "md":
-			if comparisonImage == nil {
+			if newImg == nil && comparisonImage == nil {
 				log.Fatalf("Comparison image is required for MD.")
 			}
 
-			md := analysis.PeakSignalToNoiseRatio(img, comparisonImage)
-			fmt.Printf("Maximum Difference: %v\n", md)
+			var md int
+
+			if newImg != nil && comparisonImage == nil {
+				md = analysis.MaxDifference(img, newImg)
+			} else if comparisonImage != nil {
+				md = analysis.MaxDifference(img, comparisonImage)
+			}
+
+			cmdResult.Description = "Max Difference calculated"
+			cmdResult.Result = fmt.Sprintf("Max Difference: %d", md)
 
 		default:
 			fmt.Println("Unknown commend")
@@ -191,7 +250,11 @@ func main() {
 
 		duration := time.Since(startTime)
 		durationSum += duration
-		fmt.Printf("Operation '%s' took: %v\n", cmd.Name, duration)
+
+		fmt.Printf("Operation '%s' took: %v and the %s\n", cmdResult.Name, duration, cmdResult.Description)
+		if cmdResult.Result != "" {
+			fmt.Printf("Result: %s\n", cmdResult.Result)
+		}
 	}
 
 	if newImg != nil {
