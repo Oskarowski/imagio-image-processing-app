@@ -27,6 +27,10 @@ func getWindowPixelsRGB(img image.Image, x, y, windowSize int) ([]int, []int, []
 }
 
 func minMaxMedian(pixels []int) (int, int, int) {
+	if len(pixels) == 0 {
+		return 0, 0, 0
+	}
+
 	sort.Ints(pixels)
 
 	min := pixels[0]
@@ -41,10 +45,8 @@ func applyAdaptiveMedian(A1, A2, B1, B2, zMed, zxy int) int {
 		if B1 > 0 && B2 < 0 {
 			return zxy
 		}
-	} else {
 		return zMed
 	}
-
 	return zxy
 }
 
@@ -67,29 +69,40 @@ func AdaptiveMedianFilter(img image.Image, sMax int) *image.RGBA {
 				gMin, gMax, gMed := minMaxMedian(greens)
 				bMin, bMax, bMed := minMaxMedian(blues)
 
-				// Red channel
+				// Stage A - Red Channel
 				A1r, A2r := rMed-rMin, rMed-rMax
-				B1r, B2r := int(rxy)-rMin, int(rxy)-rMax
-				newR := applyAdaptiveMedian(A1r, A2r, B1r, B2r, rMed, int(rxy))
+				if A1r > 0 && A2r < 0 {
+					// Stage B - Red Channel
+					B1r, B2r := int(rxy)-rMin, int(rxy)-rMax
+					newR := applyAdaptiveMedian(A1r, A2r, B1r, B2r, rMed, int(rxy))
 
-				// Green channel
-				A1g, A2g := gMed-gMin, gMed-gMax
-				B1g, B2g := int(gxy)-gMin, int(gxy)-gMax
-				newG := applyAdaptiveMedian(A1g, A2g, B1g, B2g, gMed, int(gxy))
+					// Stage A - Green Channel
+					A1g, A2g := gMed-gMin, gMed-gMax
 
-				// Blue channel
-				A1b, A2b := bMed-bMin, bMed-bMax
-				B1b, B2b := int(bxy)-bMin, int(bxy)-bMax
-				newB := applyAdaptiveMedian(A1b, A2b, B1b, B2b, bMed, int(bxy))
+					if A1g > 0 && A2g < 0 {
+						// Stage B - Green Channel
+						B1g, B2g := int(gxy)-gMin, int(gxy)-gMax
+						newG := applyAdaptiveMedian(A1g, A2g, B1g, B2g, gMed, int(gxy))
 
-				newImg.Set(x, y, color.RGBA{uint8(newR), uint8(newG), uint8(newB), 255})
-				break
+						// Stage A - Blue Channel
+						A1b, A2b := bMed-bMin, bMed-bMax
+						if A1b > 0 && A2b < 0 {
+							// Stage B - Blue Channel
+							B1b, B2b := int(bxy)-bMin, int(bxy)-bMax
+							newB := applyAdaptiveMedian(A1b, A2b, B1b, B2b, bMed, int(bxy))
+
+							newImg.Set(x, y, color.RGBA{uint8(newR), uint8(newG), uint8(newB), 255})
+							break
+						}
+					}
+				}
+
+				windowSize += 2
 			}
 
 			if windowSize > sMax {
 				newImg.Set(x, y, img.At(x, y))
 			}
-
 		}
 	}
 
