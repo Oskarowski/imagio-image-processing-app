@@ -138,7 +138,7 @@ func main() {
 			cmdResult.Description = fmt.Sprintf("Image enlarged by a factor of %d", factor)
 
 		case "adaptive":
-			newImg = noise.AdaptiveMedianFilter(img, 30)
+			newImg = noise.AdaptiveMedianFilter(img, 7)
 
 			outputFileName = fmt.Sprintf("%s_adaptive_median_filter.bmp", originalNameWithoutExt)
 			cmdResult.Description = "Adaptive median filter applied"
@@ -164,15 +164,15 @@ func main() {
 			cmdResult.Description = fmt.Sprintf("Max filter applied with window size %d", windowSize)
 
 		case "mse":
-			if newImg == nil && comparisonImage == nil {
+			if comparisonImage == nil {
 				log.Fatalf("Comparison image is required for MSE.")
 			}
 
 			var mse float64
 
-			if newImg != nil && comparisonImage == nil {
-				mse = analysis.MeanSquareError(img, newImg)
-			} else if comparisonImage != nil {
+			if newImg != nil {
+				mse = analysis.MeanSquareError(newImg, comparisonImage)
+			} else {
 				mse = analysis.MeanSquareError(img, comparisonImage)
 			}
 
@@ -180,15 +180,15 @@ func main() {
 			cmdResult.Result = fmt.Sprintf("MSE: %f", mse)
 
 		case "pmse":
-			if newImg == nil && comparisonImage == nil {
+			if comparisonImage == nil {
 				log.Fatalf("Comparison image is required for PMSE.")
 			}
 
 			var pmse float64
 
-			if newImg != nil && comparisonImage == nil {
-				pmse = analysis.PeakMeanSquareError(img, newImg)
-			} else if comparisonImage != nil {
+			if newImg != nil {
+				pmse = analysis.PeakMeanSquareError(newImg, comparisonImage)
+			} else {
 				pmse = analysis.PeakMeanSquareError(img, comparisonImage)
 			}
 
@@ -196,15 +196,15 @@ func main() {
 			cmdResult.Result = fmt.Sprintf("PMSE: %f", pmse)
 
 		case "snr":
-			if newImg == nil && comparisonImage == nil {
+			if comparisonImage == nil {
 				log.Fatalf("Comparison image is required for SNR.")
 			}
 
 			var snr float64
 
-			if newImg != nil && comparisonImage == nil {
-				snr = analysis.SignalToNoiseRatio(img, newImg)
-			} else if comparisonImage != nil {
+			if newImg != nil {
+				snr = analysis.SignalToNoiseRatio(newImg, comparisonImage)
+			} else {
 				snr = analysis.SignalToNoiseRatio(img, comparisonImage)
 			}
 
@@ -212,15 +212,15 @@ func main() {
 			cmdResult.Result = fmt.Sprintf("SNR: %f", snr)
 
 		case "psnr":
-			if newImg == nil && comparisonImage == nil {
+			if comparisonImage == nil {
 				log.Fatalf("Comparison image is required for PSNR.")
 			}
 
 			var psnr float64
 
-			if newImg != nil && comparisonImage == nil {
-				psnr = analysis.PeakSignalToNoiseRatio(img, newImg)
-			} else if comparisonImage != nil {
+			if newImg != nil {
+				psnr = analysis.PeakSignalToNoiseRatio(newImg, comparisonImage)
+			} else {
 				psnr = analysis.PeakSignalToNoiseRatio(img, comparisonImage)
 			}
 
@@ -228,15 +228,15 @@ func main() {
 			cmdResult.Result = fmt.Sprintf("PSNR: %f", psnr)
 
 		case "md":
-			if newImg == nil && comparisonImage == nil {
+			if comparisonImage == nil {
 				log.Fatalf("Comparison image is required for MD.")
 			}
 
 			var md int
 
-			if newImg != nil && comparisonImage == nil {
-				md = analysis.MaxDifference(img, newImg)
-			} else if comparisonImage != nil {
+			if newImg != nil {
+				md = analysis.MaxDifference(newImg, comparisonImage)
+			} else {
 				md = analysis.MaxDifference(img, comparisonImage)
 			}
 
