@@ -5,35 +5,34 @@ import (
 	"math"
 )
 
-func pixelDifference(img1, img2 image.Image) (diffR, diffG, diffB float64) {
+func pixelSquaredDifference(img1, img2 image.Image) (totalR, totalG, totalB float64) {
 	bounds := img1.Bounds()
-
-	var totalR, totalG, totalB float64
-
-	numPixels := bounds.Dx() * bounds.Dy()
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+
 			r1, g1, b1, _ := img1.At(x, y).RGBA()
 			r2, g2, b2, _ := img2.At(x, y).RGBA()
 
-			totalR += float64(r1>>8) - float64(r2>>8)
-			totalG += float64(g1>>8) - float64(g2>>8)
-			totalB += float64(b1>>8) - float64(b2>>8)
+			diffR := float64(r1>>8) - float64(r2>>8)
+			diffG := float64(g1>>8) - float64(g2>>8)
+			diffB := float64(b1>>8) - float64(b2>>8)
+
+			totalR += diffR * diffR
+			totalG += diffG * diffG
+			totalB += diffB * diffB
 		}
 	}
 
-	diffR = totalR / float64(numPixels)
-	diffG = totalG / float64(numPixels)
-	diffB = totalB / float64(numPixels)
-
-	return diffR, diffG, diffB
+	return totalR, totalG, totalB
 }
 
 func MeanSquareError(img1, img2 image.Image) float64 {
-	diffR, diffG, diffB := pixelDifference(img1, img2)
+	totalR, totalG, totalB := pixelSquaredDifference(img1, img2)
 
-	return (diffR + diffG + diffB) / 3
+	pixelsInTotal := float64(img1.Bounds().Dx() * img1.Bounds().Dy())
+
+	return (totalR + totalG + totalB) / (3 * pixelsInTotal)
 }
 
 func PeakMeanSquareError(img1, img2 image.Image) float64 {
