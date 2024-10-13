@@ -61,7 +61,7 @@ func PeakMeanSquareError(img1, img2 image.Image) float64 {
 	maxVal := float64(maxPixelValue(img1))
 	maxValSquared := maxVal * maxVal
 
-	// Loop over all pixels to calculate the squared error normalized by the max pixel value squared.
+	// calculate the squared error normalized by the max pixel value squared.
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			r1, g1, b1, _ := img1.At(x, y).RGBA()
@@ -71,7 +71,6 @@ func PeakMeanSquareError(img1, img2 image.Image) float64 {
 			diffG := float64(int(g1>>8) - int(g2>>8))
 			diffB := float64(int(b1>>8) - int(b2>>8))
 
-			// Sum of squared differences, normalized by the max value squared.
 			totalError += (diffR * diffR) / maxValSquared
 			totalError += (diffG * diffG) / maxValSquared
 			totalError += (diffB * diffB) / maxValSquared
@@ -93,20 +92,21 @@ func SignalToNoiseRatio(img1, img2 image.Image) float64 {
 			r1, g1, b1, _ := img1.At(x, y).RGBA()
 			r2, g2, b2, _ := img2.At(x, y).RGBA()
 
-			fr1 := float64(r1 >> 8)
-			fg1 := float64(g1 >> 8)
-			fb1 := float64(b1 >> 8)
-
-			fr2 := float64(r2 >> 8)
-			fg2 := float64(g2 >> 8)
-			fb2 := float64(b2 >> 8)
+			fr1, fg1, fb1 := float64(r1>>8), float64(g1>>8), float64(b1>>8)
+			fr2, fg2, fb2 := float64(r2>>8), float64(g2>>8), float64(b2>>8)
 
 			signalSum += math.Pow(fr1, 2) + math.Pow(fg1, 2) + math.Pow(fb1, 2)
+
 			noiseSum += math.Pow(fr1-fr2, 2) + math.Pow(fg1-fg2, 2) + math.Pow(fb1-fb2, 2)
 		}
 	}
 
 	if signalSum == 0 {
+		return math.Inf(1)
+	}
+
+	// (no noise) ergo images are identical
+	if noiseSum == 0 {
 		return math.Inf(1)
 	}
 
