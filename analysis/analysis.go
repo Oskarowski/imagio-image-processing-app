@@ -85,30 +85,47 @@ func PeakSignalToNoiseRatio(img1, img2 image.Image) float64 {
 	return 10 * math.Log10(maxValue*maxValue/mseValue)
 }
 
-func MaxDifference(img1, img2 image.Image) float64 {
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func MaxDifference(img1, img2 image.Image) int {
 	bounds := img1.Bounds()
 
-	var maxDiff float64
+	var maxDiff int
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			r1, g1, b1, _ := img1.At(x, y).RGBA()
 			r2, g2, b2, _ := img2.At(x, y).RGBA()
 
-			fr1 := float64(r1 >> 8)
-			fg1 := float64(g1 >> 8)
-			fb1 := float64(b1 >> 8)
+			fr1 := int(r1 >> 8)
+			fg1 := int(g1 >> 8)
+			fb1 := int(b1 >> 8)
 
-			fr2 := float64(r2 >> 8)
-			fg2 := float64(g2 >> 8)
-			fb2 := float64(b2 >> 8)
+			fr2 := int(r2 >> 8)
+			fg2 := int(g2 >> 8)
+			fb2 := int(b2 >> 8)
 
-			diffR := math.Abs(fr1 - fr2)
-			diffG := math.Abs(fg1 - fg2)
-			diffB := math.Abs(fb1 - fb2)
+			diffR := abs(fr1 - fr2)
+			diffG := abs(fg1 - fg2)
+			diffB := abs(fb1 - fb2)
 
-			maxDiffForPixel := math.Max(diffR, math.Max(diffG, diffB))
-			maxDiff = math.Max(maxDiff, maxDiffForPixel)
+			maxDiffForPixel := max(diffR, max(diffG, diffB))
+
+			if maxDiffForPixel > maxDiff {
+				maxDiff = maxDiffForPixel
+			}
 		}
 	}
 
