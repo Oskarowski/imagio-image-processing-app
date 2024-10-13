@@ -35,12 +35,52 @@ func MeanSquareError(img1, img2 image.Image) float64 {
 	return (totalR + totalG + totalB) / (3 * pixelsInTotal)
 }
 
+// Helper function to get the maximum pixel value in an image.
+func maxPixelValue(img image.Image) int {
+	maxVal := 0
+	bounds := img.Bounds()
+
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			r, g, b, _ := img.At(x, y).RGBA()
+
+			maxVal = max(maxVal, int(r>>8))
+			maxVal = max(maxVal, int(g>>8))
+			maxVal = max(maxVal, int(b>>8))
+		}
+	}
+
+	return maxVal
+}
+
 func PeakMeanSquareError(img1, img2 image.Image) float64 {
-	maxVal := 255.0
+	bounds := img1.Bounds()
+	totalError := 0.0
 
-	msaValue := MeanSquareError(img1, img2)
+	// calculate the max pixel value in the original image rather than hardcoding it to 255
+	maxVal := float64(maxPixelValue(img1))
+	maxValSquared := maxVal * maxVal
 
-	return msaValue / (maxVal * maxVal)
+	// Loop over all pixels to calculate the squared error normalized by the max pixel value squared.
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			r1, g1, b1, _ := img1.At(x, y).RGBA()
+			r2, g2, b2, _ := img2.At(x, y).RGBA()
+
+			diffR := float64(int(r1>>8) - int(r2>>8))
+			diffG := float64(int(g1>>8) - int(g2>>8))
+			diffB := float64(int(b1>>8) - int(b2>>8))
+
+			// Sum of squared differences, normalized by the max value squared.
+			totalError += (diffR * diffR) / maxValSquared
+			totalError += (diffG * diffG) / maxValSquared
+			totalError += (diffB * diffB) / maxValSquared
+		}
+	}
+
+	pixelsInTotal := float64(img1.Bounds().Dx() * img1.Bounds().Dy())
+
+	return totalError / (3 * pixelsInTotal)
 }
 
 func SignalToNoiseRatio(img1, img2 image.Image) float64 {
