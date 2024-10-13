@@ -22,7 +22,7 @@ func runCommand(command string, args []string) (string, error) {
 
 func main() {
 	// base images
-	// lenac := "../imgs/lenac.bmp"
+	lenac := "../imgs/lenac.bmp"
 	lenac_small := "../imgs/lenac_small.bmp"
 	// lenag := "../imgs/lenag.bmp"
 
@@ -50,48 +50,50 @@ func main() {
 	// lenag_uniform_2_small := "../imgs/noise_with_uniform_distribution/lenag_uniform2_small.bmp"
 	// lenag_uniform_3_small := "../imgs/noise_with_uniform_distribution/lenag_uniform3_small.bmp"
 
+	lenac_noise_25_25 := "../imgs/lenac_noise_25_25.bmp"
+
 	commands := [][]string{
 		// {"--contrast", "-value=30", lenac_impulse_2_small},
 		// {"--negative", lenac_impulse_3_small},
 
 		// Adaptive median filters
-		{"--adaptive", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_impulse_1_small},
-		{"--adaptive", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_impulse_2_small},
-		{"--adaptive", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_impulse_3_small},
+		{"--adaptive", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_impulse_1_small},
+		{"--adaptive", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_impulse_2_small},
+		{"--adaptive", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_impulse_3_small},
 
-		{"--adaptive", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_normal_1_small},
-		{"--adaptive", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_normal_2_small},
-		{"--adaptive", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_normal_3_small},
+		{"--adaptive", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_normal_1_small},
+		{"--adaptive", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_normal_2_small},
+		{"--adaptive", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_normal_3_small},
 
-		{"--adaptive", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_uniform_1_small},
-		{"--adaptive", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_uniform_2_small},
-		{"--adaptive", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_uniform_3_small},
+		{"--adaptive", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_uniform_1_small},
+		{"--adaptive", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_uniform_2_small},
+		{"--adaptive", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_uniform_3_small},
 
 		// Max filters
-		{"--max", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_impulse_1_small},
-		{"--max", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_impulse_2_small},
-		{"--max", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_impulse_3_small},
+		{"--max", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_impulse_1_small},
+		{"--max", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_impulse_2_small},
+		{"--max", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_impulse_3_small},
 
-		{"--max", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_normal_1_small},
-		{"--max", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_normal_2_small},
-		{"--max", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_normal_3_small},
+		{"--max", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_normal_1_small},
+		{"--max", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_normal_2_small},
+		{"--max", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_normal_3_small},
 
-		{"--max", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_uniform_1_small},
-		{"--max", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_uniform_2_small},
-		{"--max", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_uniform_3_small},
+		{"--max", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_uniform_1_small},
+		{"--max", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_uniform_2_small},
+		{"--max", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_uniform_3_small},
 
 		// Min filters
-		{"--min", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_impulse_1_small},
-		{"--min", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_impulse_2_small},
-		{"--min", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_impulse_3_small},
+		{"--min", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_impulse_1_small},
+		{"--min", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_impulse_2_small},
+		{"--min", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_impulse_3_small},
 
-		{"--min", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_normal_1_small},
-		{"--min", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_normal_2_small},
-		{"--min", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_normal_3_small},
+		{"--min", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_normal_1_small},
+		{"--min", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_normal_2_small},
+		{"--min", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_normal_3_small},
 
-		{"--min", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_uniform_1_small},
-		{"--min", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_uniform_2_small},
-		{"--min", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_uniform_3_small},
+		{"--min", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_uniform_1_small},
+		{"--min", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_uniform_2_small},
+		{"--min", "-value=5", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac_small, lenac_uniform_3_small},
 
 		// General analysis for provided images
 		{"--mse", "--pmse", "--snr", "--psnr", "--md", lenac_impulse_1_small, lenac_small},
@@ -105,6 +107,12 @@ func main() {
 		{"--mse", "--pmse", "--snr", "--psnr", "--md", lenac_uniform_1_small, lenac_small},
 		{"--mse", "--pmse", "--snr", "--psnr", "--md", lenac_uniform_2_small, lenac_small},
 		{"--mse", "--pmse", "--snr", "--psnr", "--md", lenac_uniform_3_small, lenac_small},
+
+		// General analysis for my test images
+		{"--mse", "--pmse", "--snr", "--psnr", "--md", lenac, lenac_noise_25_25},
+		{"--adaptive", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac, lenac_noise_25_25},
+		{"--max", "-value=3", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac, lenac_noise_25_25},
+		{"--min", "-value=3", "--mse", "--pmse", "--snr", "--psnr", "--md", lenac, lenac_noise_25_25},
 	}
 
 	command := "go"
