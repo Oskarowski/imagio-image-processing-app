@@ -109,8 +109,8 @@ func main() {
 
 	command := "go"
 
-	currentTime := time.Now()
-	timestamp := currentTime.Format("20060102150405") // Format: YYYYMMDDHHMMSS
+	startReportTime := time.Now()
+	timestamp := startReportTime.Format("20060102150405") // Format: YYYYMMDDHHMMSS
 	outputFileName := fmt.Sprintf("command_output_%s.txt", timestamp)
 
 	outputFile, err := os.Create(outputFileName)
@@ -138,5 +138,8 @@ func main() {
 		}
 	}
 
+	totalDuration := time.Since(startReportTime)
+
 	fmt.Printf("Command execution results saved to %v\n", outputFileName)
+	fmt.Printf("Total execution time for all commands: %v\n", totalDuration)
 }
