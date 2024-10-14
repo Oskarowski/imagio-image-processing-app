@@ -23,7 +23,12 @@ type commandInvocation struct {
 
 func main() {
 	if len(os.Args) < 3 {
-		fmt.Println("Usage: go run main.go <command> [-argument=value [...]] <bmp_image_path> [<second_image_path>]")
+		cmd.PrintHelp()
+		return
+	}
+
+	if os.Args[1] == "--help" {
+		cmd.PrintHelp()
 		return
 	}
 
