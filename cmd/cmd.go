@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -67,7 +68,7 @@ var availableCommands = []commandInfo{
 	{"dflip", "--dflip <bmp_image_path>", "Flip the image diagonally.", []string{}},
 	{"shrink", "--shrink -value=2 <bmp_image_path>", "Shrink the image by a factor.", []string{"-value=(int): Shrink factor."}},
 	{"enlarge", "--enlarge -value=2 <bmp_image_path>", "Enlarge the image by a factor.", []string{"-value=(int): Enlarge factor."}},
-	{"adaptive", "--adaptive <bmp_image_path>", "Apply adaptive median noise removal filter to the image.", []string{}},
+	{"adaptive", "--adaptive <bmp_image_path>", "Apply adaptive median noise removal filter to the image.", []string{"-min=(int): Minimal size of window size for filter defaults, to 3.", "-max=(int): Maximal size of window size for filter defaults, to 7."}},
 	{"min", "--min -value=3 <bmp_image_path>", "Apply min noise removal filter.", []string{"-value=(int): Window size."}},
 	{"max", "--max -value=3 <bmp_image_path>", "Apply max noise removal filter.", []string{"-value=(int): Window size."}},
 	{"mse", "--mse <comparison_image_path> <bmp_image_path>", "Calculate Mean Square Error with a comparison image.", []string{}},
@@ -94,4 +95,17 @@ func PrintHelp() {
 		}
 		fmt.Println()
 	}
+}
+
+func AtoiOrDefault(val string, defaultValue int) int {
+	if val == "" {
+		return defaultValue
+	}
+
+	num, err := strconv.Atoi(val)
+	if err != nil {
+		return defaultValue
+	}
+
+	return num
 }

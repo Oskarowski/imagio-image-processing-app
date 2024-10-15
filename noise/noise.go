@@ -50,7 +50,7 @@ func applyAdaptiveMedian(A1, A2, B1, B2, zMed, zxy int) int {
 	return zxy
 }
 
-func AdaptiveMedianFilter(img image.Image, sMax int) *image.RGBA {
+func AdaptiveMedianFilter(img image.Image, sMin, sMax int) *image.RGBA {
 	// https://www.irjet.net/archives/V6/i10/IRJET-V6I10148.pdf
 	bounds := img.Bounds()
 	newImg := image.NewRGBA(bounds)
@@ -58,7 +58,7 @@ func AdaptiveMedianFilter(img image.Image, sMax int) *image.RGBA {
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 
-			windowSize := 3
+			windowSize := sMin
 			rxy, gxy, bxy, _ := img.At(x, y).RGBA()
 			rxy, gxy, bxy = rxy>>8, gxy>>8, bxy>>8
 

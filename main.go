@@ -19,6 +19,7 @@ type commandInvocation struct {
 	Name        string
 	Description string
 	Result      string
+	Duration    time.Duration
 }
 
 func main() {
@@ -61,13 +62,15 @@ func main() {
 	var newImg *image.RGBA
 	var durationSum time.Duration
 
-	for _, cmd := range commands {
-		cmdResult := commandInvocation{Name: cmd.Name}
+	var commandResults []commandInvocation
+
+	for _, command := range commands {
+		cmdResult := commandInvocation{Name: command.Name}
 		startTime := time.Now()
 
-		switch cmd.Name {
+		switch command.Name {
 		case "brightness":
-			brightness, err := strconv.Atoi(cmd.Args["value"])
+			brightness, err := strconv.Atoi(command.Args["value"])
 			if err != nil {
 				log.Fatalf("Brightness value must be int number: %v", err)
 			}
@@ -77,7 +80,7 @@ func main() {
 			cmdResult.Description = fmt.Sprintf("Brightness adjusted by %d", brightness)
 
 		case "contrast":
-			contrast, err := strconv.Atoi(cmd.Args["value"])
+			contrast, err := strconv.Atoi(command.Args["value"])
 
 			if err != nil {
 				log.Fatalf("Contrast value must be int number: %v", err)
@@ -112,7 +115,7 @@ func main() {
 			cmdResult.Description = "Image diagonally flipped"
 
 		case "shrink":
-			factor, err := strconv.Atoi(cmd.Args["value"])
+			factor, err := strconv.Atoi(command.Args["value"])
 
 			if err != nil {
 				log.Fatalf("Shrink factor value must be int number: %v", err)
@@ -127,7 +130,7 @@ func main() {
 			cmdResult.Description = fmt.Sprintf("Image shrunk by a factor of %d", factor)
 
 		case "enlarge":
-			factor, err := strconv.Atoi(cmd.Args["value"])
+			factor, err := strconv.Atoi(command.Args["value"])
 
 			if err != nil {
 				log.Fatalf("Enlarge factor value must be int number: %v", err)
@@ -143,13 +146,21 @@ func main() {
 			cmdResult.Description = fmt.Sprintf("Image enlarged by a factor of %d", factor)
 
 		case "adaptive":
-			newImg = noise.AdaptiveMedianFilter(img, 7)
+
+			minWindowSize := cmd.AtoiOrDefault(command.Args["min"], 3)
+			maxWindowSize := cmd.AtoiOrDefault(command.Args["max"], 7)
+
+			if maxWindowSize < minWindowSize {
+				log.Fatal("Max window size must be greater than min window size")
+			}
+
+			newImg = noise.AdaptiveMedianFilter(img, minWindowSize, maxWindowSize)
 
 			outputFileName = fmt.Sprintf("%s_adaptive_median_filter.bmp", originalNameWithoutExt)
 			cmdResult.Description = "Adaptive median filter applied"
 
 		case "min":
-			windowSize, err := strconv.Atoi(cmd.Args["value"])
+			windowSize, err := strconv.Atoi(command.Args["value"])
 
 			if err != nil {
 				log.Fatalf("Window size must be an int: %v", err)
@@ -159,7 +170,7 @@ func main() {
 			cmdResult.Description = fmt.Sprintf("Min filter applied with window size %d", windowSize)
 
 		case "max":
-			windowSize, err := strconv.Atoi(cmd.Args["value"])
+			windowSize, err := strconv.Atoi(command.Args["value"])
 
 			if err != nil {
 				log.Fatalf("Window size must be an int: %v", err)
@@ -253,13 +264,10 @@ func main() {
 			return
 		}
 
-		duration := time.Since(startTime)
-		durationSum += duration
+		cmdResult.Duration = time.Since(startTime)
+		commandResults = append(commandResults, cmdResult)
 
-		fmt.Printf("Operation '%s' took: %v and the %s\n", cmdResult.Name, duration, cmdResult.Description)
-		if cmdResult.Result != "" {
-			fmt.Printf("Result: %s\n", cmdResult.Result)
-		}
+		durationSum += cmdResult.Duration
 	}
 
 	if newImg != nil {
@@ -269,6 +277,16 @@ func main() {
 		} else {
 			fmt.Printf("Image saved successfully as: %s\n", outputFileName)
 		}
+	}
+
+	fmt.Println("Execution Report:")
+	for _, result := range commandResults {
+		fmt.Printf("Command: %s\n", result.Name)
+		fmt.Printf("Description: %s\n", result.Description)
+		if result.Result != "" {
+			fmt.Printf("Result: %s\n", result.Result)
+		}
+		fmt.Printf("Duration: %v\n\n", result.Duration)
 	}
 
 	fmt.Printf("Total operation time: %v\n", durationSum)
