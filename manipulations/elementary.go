@@ -5,7 +5,7 @@ import (
 	"image/color"
 )
 
-func clampUint8(value int) uint8 {
+func ClampUint8(value int) uint8 {
 	if value > 255 {
 		return 255
 	}
@@ -39,9 +39,9 @@ func AdjustBrightness(img image.Image, brightness int) *image.RGBA {
 			g8 := int(g >> 8)
 			b8 := int(b >> 8)
 
-			newR := clampUint8(r8 + factor)
-			newG := clampUint8(g8 + factor)
-			newB := clampUint8(b8 + factor)
+			newR := ClampUint8(r8 + factor)
+			newG := ClampUint8(g8 + factor)
+			newB := ClampUint8(b8 + factor)
 
 			newImg.Set(x, y, color.RGBA{newR, newG, newB, uint8(a >> 8)})
 		}
@@ -77,9 +77,9 @@ func AdjustContrast(img image.Image, contrast int) *image.RGBA {
 			g8 := float64(g >> 8)
 			b8 := float64(b >> 8)
 
-			newR := clampUint8(int(contrastCorrectionFactor*(r8-128) + 128))
-			newG := clampUint8(int(contrastCorrectionFactor*(g8-128) + 128))
-			newB := clampUint8(int(contrastCorrectionFactor*(b8-128) + 128))
+			newR := ClampUint8(int(contrastCorrectionFactor*(r8-128) + 128))
+			newG := ClampUint8(int(contrastCorrectionFactor*(g8-128) + 128))
+			newB := ClampUint8(int(contrastCorrectionFactor*(b8-128) + 128))
 
 			newImg.Set(x, y, color.RGBA{newR, newG, newB, uint8(a >> 8)})
 		}

@@ -2,15 +2,18 @@ package noise
 
 import (
 	"image"
+	"image-processing/manipulations"
 	"image/color"
-	"sort"
+	"slices"
 )
 
 func getWindowPixelsRGB(img image.Image, x, y, windowSize int) ([]int, []int, []int) {
 	bounds := img.Bounds()
-	var reds, greens, blues []int
 
 	halfSize := windowSize / 2
+
+	size := (2*halfSize + 1) * (2*halfSize + 1)
+	reds, greens, blues := make([]int, 0, size), make([]int, 0, size), make([]int, 0, size)
 
 	for j := y - halfSize; j <= y+halfSize; j++ {
 		for i := x - halfSize; i <= x+halfSize; i++ {
@@ -31,7 +34,7 @@ func minMaxMedian(pixels []int) (int, int, int) {
 		return 0, 0, 0
 	}
 
-	sort.Ints(pixels)
+	slices.Sort(pixels)
 
 	min := pixels[0]
 	max := pixels[len(pixels)-1]
@@ -40,14 +43,20 @@ func minMaxMedian(pixels []int) (int, int, int) {
 	return min, max, median
 }
 
-func applyAdaptiveMedian(A1, A2, B1, B2, zMed, zxy int) int {
-	if A1 > 0 && A2 < 0 {
-		if B1 > 0 && B2 < 0 {
-			return zxy
-		}
-		return zMed
+func applyAdaptiveMedian(B1, B2, zMed, zxy int) int {
+	if B1 > 0 && B2 < 0 {
+		return zxy
 	}
-	return zxy
+	return zMed
+
+}
+func adaptiveChannel(newVal, xyVal, min, max, med int) int {
+	A1, A2 := med-min, med-max
+	if A1 > 0 && A2 < 0 {
+		B1, B2 := xyVal-min, xyVal-max
+		return applyAdaptiveMedian(B1, B2, med, xyVal)
+	}
+	return newVal
 }
 
 func AdaptiveMedianFilter(img image.Image, sMin, sMax int) *image.RGBA {
@@ -59,8 +68,11 @@ func AdaptiveMedianFilter(img image.Image, sMin, sMax int) *image.RGBA {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 
 			windowSize := sMin
-			rxy, gxy, bxy, _ := img.At(x, y).RGBA()
-			rxy, gxy, bxy = rxy>>8, gxy>>8, bxy>>8
+			var newR, newG, newB = 0, 0, 0
+
+			urxy, ugxy, ubxy, _ := img.At(x, y).RGBA()
+			rxy, gxy, bxy := int(urxy>>8), int(ugxy>>8), int(ubxy>>8)
+			newR, newG, newB = rxy, gxy, bxy
 
 			for windowSize <= sMax {
 				reds, greens, blues := getWindowPixelsRGB(img, x, y, windowSize)
@@ -69,40 +81,18 @@ func AdaptiveMedianFilter(img image.Image, sMin, sMax int) *image.RGBA {
 				gMin, gMax, gMed := minMaxMedian(greens)
 				bMin, bMax, bMed := minMaxMedian(blues)
 
-				// Stage A - Red Channel
-				A1r, A2r := rMed-rMin, rMed-rMax
-				if A1r > 0 && A2r < 0 {
-					// Stage B - Red Channel
-					B1r, B2r := int(rxy)-rMin, int(rxy)-rMax
-					newR := applyAdaptiveMedian(A1r, A2r, B1r, B2r, rMed, int(rxy))
+				newR = adaptiveChannel(newR, rxy, rMin, rMax, rMed)
+				newG = adaptiveChannel(newG, gxy, gMin, gMax, gMed)
+				newB = adaptiveChannel(newB, bxy, bMin, bMax, bMed)
 
-					// Stage A - Green Channel
-					A1g, A2g := gMed-gMin, gMed-gMax
-
-					if A1g > 0 && A2g < 0 {
-						// Stage B - Green Channel
-						B1g, B2g := int(gxy)-gMin, int(gxy)-gMax
-						newG := applyAdaptiveMedian(A1g, A2g, B1g, B2g, gMed, int(gxy))
-
-						// Stage A - Blue Channel
-						A1b, A2b := bMed-bMin, bMed-bMax
-						if A1b > 0 && A2b < 0 {
-							// Stage B - Blue Channel
-							B1b, B2b := int(bxy)-bMin, int(bxy)-bMax
-							newB := applyAdaptiveMedian(A1b, A2b, B1b, B2b, bMed, int(bxy))
-
-							newImg.Set(x, y, color.RGBA{uint8(newR), uint8(newG), uint8(newB), 255})
-							break
-						}
-					}
+				if newR != rxy || newG != gxy || newB != bxy {
+					break
 				}
 
 				windowSize += 2
 			}
 
-			if windowSize > sMax {
-				newImg.Set(x, y, img.At(x, y))
-			}
+			newImg.Set(x, y, color.RGBA{manipulations.ClampUint8(newR), manipulations.ClampUint8(newG), manipulations.ClampUint8(newB), 255})
 		}
 	}
 
