@@ -1,6 +1,12 @@
 {
     "cSpell.words": [
+        "Bmax",
+        "Bmed",
+        "Bmin",
         "dflip",
+        "Gmax",
+        "Gmed",
+        "Gmin",
         "hflip",
         "imageio",
         "imgs",
@@ -8,6 +14,9 @@
         "lenag",
         "PMSE",
         "PSNR",
+        "Rmax",
+        "Rmed",
+        "Rmin",
         "ubxy",
         "ugxy",
         "urxy",
