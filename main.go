@@ -159,6 +159,20 @@ func main() {
 			outputFileName = fmt.Sprintf("%s_adaptive_median_filter.bmp", originalNameWithoutExt)
 			cmdResult.Description = "Adaptive median filter applied"
 
+		case "adaptive-parallel":
+
+			minWindowSize := cmd.AtoiOrDefault(command.Args["min"], 3)
+			maxWindowSize := cmd.AtoiOrDefault(command.Args["max"], 7)
+
+			if maxWindowSize < minWindowSize {
+				log.Fatal("Max window size must be greater than min window size")
+			}
+
+			newImg = noise.AdaptiveMedianFilterParallel(img, minWindowSize, maxWindowSize)
+
+			outputFileName = fmt.Sprintf("%s_adaptive_parallel_median_filter.bmp", originalNameWithoutExt)
+			cmdResult.Description = "Adaptive parallel median filter applied"
+
 		case "min":
 			windowSize, err := strconv.Atoi(command.Args["value"])
 
