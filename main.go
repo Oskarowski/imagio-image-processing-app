@@ -273,6 +273,15 @@ func main() {
 			cmdResult.Description = "Max Difference calculated"
 			cmdResult.Result = fmt.Sprintf("Max Difference: %d", md)
 
+		case "histogram":
+
+			for channel, color := range []string{"red", "green", "blue"} {
+				outputFileName = fmt.Sprintf("%s_histogram_%s.bmp", originalNameWithoutExt, color)
+				histogram := manipulations.CalculateHistogram(img, channel)
+				imageio.SaveBmpImage(histogram, outputFileName)
+			}
+			cmdResult.Description = "Histograms for Red, Green, and Blue channels saved as images"
+
 		default:
 			fmt.Println("Unknown commend")
 			return
