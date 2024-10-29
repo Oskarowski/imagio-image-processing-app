@@ -275,12 +275,9 @@ func main() {
 
 		case "histogram":
 
-			for channel, color := range []string{"red", "green", "blue"} {
-				outputFileName = fmt.Sprintf("%s_histogram_%s.bmp", originalNameWithoutExt, color)
-				histogram := manipulations.CalculateHistogram(img, channel)
-				imageio.SaveBmpImage(histogram, outputFileName)
-			}
-			cmdResult.Description = "Histograms for Red, Green, and Blue channels saved as images"
+			outputFileName = fmt.Sprintf("%s_histogram.bmp", originalNameWithoutExt)
+			newImg = manipulations.CalculateValueHistogram(img)
+			cmdResult.Description = "Histogram computed"
 
 		default:
 			fmt.Println("Unknown commend")
