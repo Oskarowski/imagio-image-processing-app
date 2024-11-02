@@ -30,12 +30,7 @@ type ImageQueueItem struct {
 }
 
 func main() {
-	if len(os.Args) < 3 {
-		cmd.PrintHelp()
-		return
-	}
-
-	if os.Args[1] == "--help" {
+	if len(os.Args) < 3 || os.Args[1] == "--help" {
 		cmd.PrintHelp()
 		return
 	}
