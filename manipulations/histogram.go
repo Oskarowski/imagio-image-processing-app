@@ -5,7 +5,6 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
-	"math"
 
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/basicfont"
@@ -22,7 +21,7 @@ const (
 	isYAxis       = false
 )
 
-func CalculateValueHistogram(img image.Image) *image.RGBA {
+func CalculateHistogram(img image.Image) [256]int {
 	var histogram [256]int
 	bounds := img.Bounds()
 
@@ -30,7 +29,7 @@ func CalculateValueHistogram(img image.Image) *image.RGBA {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			pixel := color.RGBAModel.Convert(img.At(x, y)).(color.RGBA)
 
-			_, _, value := rGBToHSV(pixel.R, pixel.G, pixel.B)
+			_, _, value := RGBToHSV(pixel.R, pixel.G, pixel.B)
 
 			intensity := uint8(value * 255)
 
@@ -38,6 +37,10 @@ func CalculateValueHistogram(img image.Image) *image.RGBA {
 		}
 	}
 
+	return histogram
+}
+
+func GenerateGraphicalRepresentationOfHistogram(histogram [256]int) *image.RGBA {
 	maxFrequency := 0
 	for _, freq := range histogram {
 		if freq > maxFrequency {
@@ -118,44 +121,16 @@ func labelValue(img *image.RGBA, value int, y int, col color.Color, isXAxis bool
 	drawer.DrawString(str)
 }
 
-// rGBToHSV converts RGB color values to the HSV (Hue, Saturation, Value) color model.
-//
-// Parameters:
-// - r, g, b: RGB color values ranging from 0 to 255.
-//
-// Returns:
-// - h: Hue, in degrees [0, 360].
-// - s: Saturation, as a fraction [0, 1].
-// - v: Value (intensitivity), as a fraction [0, 1].
-//
-// The algorithm follows a common RGB-to-HSV conversion method.
-// Reference: https://math.stackexchange.com/questions/556341/rgb-to-hsv-color-conversion-algorithm
-func rGBToHSV(r, g, b uint8) (h, s, v float64) {
-	rf, gf, bf := float64(r)/255.0, float64(g)/255.0, float64(b)/255.0
-	ColorMax := math.Max(rf, math.Max(gf, bf))
-	ColorMin := math.Min(rf, math.Min(gf, bf))
-	delta := ColorMax - ColorMin
-
-	v = ColorMax
-
-	if delta == 0 {
-		return 0, 0, v
+// findMinMax calculates the minimum and maximum brightness levels in the histogram
+func FindMinMax(hist []int) (int, int) {
+	fmin, fmax := -1, -1
+	for i := 0; i < len(hist); i++ {
+		if hist[i] > 0 {
+			if fmin == -1 {
+				fmin = i
+			}
+			fmax = i
+		}
 	}
-
-	h, s = 0, 0
-	s = delta / ColorMax
-	switch ColorMax {
-	case rf:
-		h = (gf - bf) / delta
-	case gf:
-		h = 2 + (bf-rf)/delta
-	case bf:
-		h = 4 + (rf-gf)/delta
-	}
-	h *= 60
-	if h < 0 {
-		h += 360
-	}
-
-	return h, s, v
+	return fmin, fmax
 }

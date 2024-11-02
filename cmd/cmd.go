@@ -77,6 +77,8 @@ var availableCommands = []commandInfo{
 	{"snr", "--snr <comparison_image_path> <bmp_image_path>", "Calculate Signal to Noise Ratio with a comparison image.", []string{}},
 	{"psnr", "--psnr <comparison_image_path> <bmp_image_path>", "Calculate Peak Signal to Noise Ratio with a comparison image.", []string{}},
 	{"md", "--md <comparison_image_path> <bmp_image_path>", "Calculate Max Difference with a comparison image.", []string{}},
+	{"histogram", "--histogram <bmp_image_path>", "Generate and save a graphical representation of the histogram of the image.", []string{}},
+	{"hrayleigh", "--hrayleigh -min=0 -max=255 <bmp_image_path>", "Apply Rayleigh transformation to the image.", []string{"-min=(int): Minimum value in the range [0, 255].", "-max=(int): Maximum value in the range [0, 255], must be greater than min."}},
 	{"help", "--help", "Show this help message.", []string{}},
 }
 
@@ -125,4 +127,13 @@ func GetOrDefault[T int | string | float64](val string, defaultValue T) T {
 	}
 
 	return result.(T)
+}
+
+func (commands Commands) Includes(name string) bool {
+	for _, cmd := range commands {
+		if cmd.Name == name {
+			return true
+		}
+	}
+	return false
 }
