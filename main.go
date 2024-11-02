@@ -22,6 +22,13 @@ type commandInvocation struct {
 	Duration    time.Duration
 }
 
+type ImageQueueItem struct {
+	Image       *image.RGBA
+	Filename    string
+	Denoised    bool
+	IsHistogram bool
+}
+
 func main() {
 	if len(os.Args) < 3 {
 		cmd.PrintHelp()
@@ -58,11 +65,10 @@ func main() {
 	originalName := filepath.Base(imagePath)
 	originalNameWithoutExt := originalName[:len(originalName)-len(filepath.Ext(originalName))]
 
-	var outputFileName string
-	var newImg *image.RGBA
 	var durationSum time.Duration
 
 	var commandResults []commandInvocation
+	var imageQueue []ImageQueueItem
 
 	for _, command := range commands {
 		cmdResult := commandInvocation{Name: command.Name}
@@ -75,8 +81,11 @@ func main() {
 				log.Fatalf("Brightness value must be int number: %v", err)
 			}
 
-			newImg = manipulations.AdjustBrightness(img, brightness)
-			outputFileName = fmt.Sprintf("%s_altered_brightness.bmp", originalNameWithoutExt)
+			newImg := manipulations.AdjustBrightness(img, brightness)
+			outputFileName := fmt.Sprintf("%s_altered_brightness.bmp", originalNameWithoutExt)
+
+			imageQueue = append(imageQueue, ImageQueueItem{Image: newImg, Filename: outputFileName})
+
 			cmdResult.Description = fmt.Sprintf("Brightness adjusted by %d", brightness)
 
 		case "contrast":
@@ -90,28 +99,47 @@ func main() {
 				log.Fatalf("Contrast value must be in the range of -255 to 255")
 			}
 
-			newImg = manipulations.AdjustContrast(img, contrast)
-			outputFileName = fmt.Sprintf("%s_altered_contrast.bmp", originalNameWithoutExt)
+			newImg := manipulations.AdjustContrast(img, contrast)
+			outputFileName := fmt.Sprintf("%s_altered_contrast.bmp", originalNameWithoutExt)
+
+			imageQueue = append(imageQueue, ImageQueueItem{Image: newImg, Filename: outputFileName})
+
 			cmdResult.Description = fmt.Sprintf("Contrast adjusted by %d", contrast)
 
 		case "negative":
-			newImg = manipulations.NegativeImage(img)
-			outputFileName = fmt.Sprintf("%s_negative.bmp", originalNameWithoutExt)
+
+			outputFileName := fmt.Sprintf("%s_negative.bmp", originalNameWithoutExt)
+			newImg := manipulations.NegativeImage(img)
+
+			imageQueue = append(imageQueue, ImageQueueItem{Image: newImg, Filename: outputFileName})
+
 			cmdResult.Description = "Negative image created"
 
 		case "hflip":
-			newImg = manipulations.HorizontalFlip(img)
-			outputFileName = fmt.Sprintf("%s_horizontal_flip.bmp", originalNameWithoutExt)
+
+			newImg := manipulations.HorizontalFlip(img)
+			outputFileName := fmt.Sprintf("%s_horizontal_flip.bmp", originalNameWithoutExt)
+
+			imageQueue = append(imageQueue, ImageQueueItem{Image: newImg, Filename: outputFileName})
+
 			cmdResult.Description = "Image horizontally flipped"
 
 		case "vflip":
-			newImg = manipulations.VerticalFlip(img)
-			outputFileName = fmt.Sprintf("%s_vertical_flip.bmp", originalNameWithoutExt)
+
+			newImg := manipulations.VerticalFlip(img)
+			outputFileName := fmt.Sprintf("%s_vertical_flip.bmp", originalNameWithoutExt)
+
+			imageQueue = append(imageQueue, ImageQueueItem{Image: newImg, Filename: outputFileName})
+
 			cmdResult.Description = "Image vertically flipped"
 
 		case "dflip":
-			newImg = manipulations.DiagonalFlip(img)
-			outputFileName = fmt.Sprintf("%s_diagonal_flip.bmp", originalNameWithoutExt)
+
+			newImg := manipulations.DiagonalFlip(img)
+			outputFileName := fmt.Sprintf("%s_diagonal_flip.bmp", originalNameWithoutExt)
+
+			imageQueue = append(imageQueue, ImageQueueItem{Image: newImg, Filename: outputFileName})
+
 			cmdResult.Description = "Image diagonally flipped"
 
 		case "shrink":
@@ -121,12 +149,15 @@ func main() {
 				log.Fatalf("Shrink factor value must be int number: %v", err)
 			}
 
-			newImg, err = manipulations.ShrinkImage(img, factor)
+			newImg, err := manipulations.ShrinkImage(img, factor)
 			if err != nil {
 				log.Fatalf("Error shrinking image: %v", err)
 			}
 
-			outputFileName = fmt.Sprintf("%s_shrunk_by_%dx.bmp", originalNameWithoutExt, factor)
+			outputFileName := fmt.Sprintf("%s_shrunk_by_%dx.bmp", originalNameWithoutExt, factor)
+
+			imageQueue = append(imageQueue, ImageQueueItem{Image: newImg, Filename: outputFileName})
+
 			cmdResult.Description = fmt.Sprintf("Image shrunk by a factor of %d", factor)
 
 		case "enlarge":
@@ -137,12 +168,15 @@ func main() {
 
 			}
 
-			newImg, err = manipulations.EnlargeImage(img, factor)
+			newImg, err := manipulations.EnlargeImage(img, factor)
 			if err != nil {
 				log.Fatalf("Error enlarging image: %v", err)
 			}
 
-			outputFileName = fmt.Sprintf("%s_enlarged_by_%dx.bmp", originalNameWithoutExt, factor)
+			outputFileName := fmt.Sprintf("%s_enlarged_by_%dx.bmp", originalNameWithoutExt, factor)
+
+			imageQueue = append(imageQueue, ImageQueueItem{Image: newImg, Filename: outputFileName})
+
 			cmdResult.Description = fmt.Sprintf("Image enlarged by a factor of %d", factor)
 
 		case "adaptive":
@@ -154,9 +188,11 @@ func main() {
 				log.Fatal("Max window size must be greater than min window size")
 			}
 
-			newImg = noise.AdaptiveMedianFilter(img, minWindowSize, maxWindowSize)
+			newImg := noise.AdaptiveMedianFilter(img, minWindowSize, maxWindowSize)
+			outputFileName := fmt.Sprintf("%s_adaptive_median_filter.bmp", originalNameWithoutExt)
 
-			outputFileName = fmt.Sprintf("%s_adaptive_median_filter.bmp", originalNameWithoutExt)
+			imageQueue = append(imageQueue, ImageQueueItem{Image: newImg, Filename: outputFileName, Denoised: true})
+
 			cmdResult.Description = "Adaptive median filter applied"
 
 		case "adaptive-parallel":
@@ -168,9 +204,11 @@ func main() {
 				log.Fatal("Max window size must be greater than min window size")
 			}
 
-			newImg = noise.AdaptiveMedianFilterParallel(img, minWindowSize, maxWindowSize)
+			newImg := noise.AdaptiveMedianFilterParallel(img, minWindowSize, maxWindowSize)
+			outputFileName := fmt.Sprintf("%s_adaptive_parallel_median_filter.bmp", originalNameWithoutExt)
 
-			outputFileName = fmt.Sprintf("%s_adaptive_parallel_median_filter.bmp", originalNameWithoutExt)
+			imageQueue = append(imageQueue, ImageQueueItem{Image: newImg, Filename: outputFileName, Denoised: true})
+
 			cmdResult.Description = fmt.Sprintf("Adaptive median filter applied with min window size %d and max window size %d", minWindowSize, maxWindowSize)
 
 		case "min":
@@ -179,8 +217,11 @@ func main() {
 			if err != nil {
 				log.Fatalf("Window size must be an int: %v", err)
 			}
-			newImg = noise.MinFilter(img, windowSize)
-			outputFileName = fmt.Sprintf("%s_min_filter.bmp", originalNameWithoutExt)
+			newImg := noise.MinFilter(img, windowSize)
+			outputFileName := fmt.Sprintf("%s_min_filter.bmp", originalNameWithoutExt)
+
+			imageQueue = append(imageQueue, ImageQueueItem{Image: newImg, Filename: outputFileName, Denoised: true})
+
 			cmdResult.Description = fmt.Sprintf("Min filter applied with window size %d", windowSize)
 
 		case "max":
@@ -189,8 +230,11 @@ func main() {
 			if err != nil {
 				log.Fatalf("Window size must be an int: %v", err)
 			}
-			newImg = noise.MaxFilter(img, windowSize)
-			outputFileName = fmt.Sprintf("%s_max_filter.bmp", originalNameWithoutExt)
+			newImg := noise.MaxFilter(img, windowSize)
+			outputFileName := fmt.Sprintf("%s_max_filter.bmp", originalNameWithoutExt)
+
+			imageQueue = append(imageQueue, ImageQueueItem{Image: newImg, Filename: outputFileName, Denoised: true})
+
 			cmdResult.Description = fmt.Sprintf("Max filter applied with window size %d", windowSize)
 
 		case "mse":
@@ -199,9 +243,10 @@ func main() {
 			}
 
 			var mse float64
+			lastDenoisedImage := getLastDenoisedImage(imageQueue)
 
-			if newImg != nil {
-				mse = analysis.MeanSquareError(newImg, comparisonImage)
+			if lastDenoisedImage != nil {
+				mse = analysis.MeanSquareError(lastDenoisedImage, comparisonImage)
 			} else {
 				mse = analysis.MeanSquareError(img, comparisonImage)
 			}
@@ -215,9 +260,10 @@ func main() {
 			}
 
 			var pmse float64
+			lastDenoisedImage := getLastDenoisedImage(imageQueue)
 
-			if newImg != nil {
-				pmse = analysis.PeakMeanSquareError(newImg, comparisonImage)
+			if lastDenoisedImage != nil {
+				pmse = analysis.PeakMeanSquareError(lastDenoisedImage, comparisonImage)
 			} else {
 				pmse = analysis.PeakMeanSquareError(img, comparisonImage)
 			}
@@ -231,9 +277,10 @@ func main() {
 			}
 
 			var snr float64
+			lastDenoisedImage := getLastDenoisedImage(imageQueue)
 
-			if newImg != nil {
-				snr = analysis.SignalToNoiseRatio(newImg, comparisonImage)
+			if lastDenoisedImage != nil {
+				snr = analysis.SignalToNoiseRatio(lastDenoisedImage, comparisonImage)
 			} else {
 				snr = analysis.SignalToNoiseRatio(img, comparisonImage)
 			}
@@ -247,9 +294,10 @@ func main() {
 			}
 
 			var psnr float64
+			lastDenoisedImage := getLastDenoisedImage(imageQueue)
 
-			if newImg != nil {
-				psnr = analysis.PeakSignalToNoiseRatio(newImg, comparisonImage)
+			if lastDenoisedImage != nil {
+				psnr = analysis.PeakSignalToNoiseRatio(lastDenoisedImage, comparisonImage)
 			} else {
 				psnr = analysis.PeakSignalToNoiseRatio(img, comparisonImage)
 			}
@@ -263,9 +311,10 @@ func main() {
 			}
 
 			var md int
+			lastDenoisedImage := getLastDenoisedImage(imageQueue)
 
-			if newImg != nil {
-				md = analysis.MaxDifference(newImg, comparisonImage)
+			if lastDenoisedImage != nil {
+				md = analysis.MaxDifference(lastDenoisedImage, comparisonImage)
 			} else {
 				md = analysis.MaxDifference(img, comparisonImage)
 			}
@@ -290,12 +339,12 @@ func main() {
 		durationSum += cmdResult.Duration
 	}
 
-	if newImg != nil {
-		err = imageio.SaveBmpImage(newImg, outputFileName)
+	for _, imgItem := range imageQueue {
+		err = imageio.SaveBmpImage(imgItem.Image, imgItem.Filename)
 		if err != nil {
-			log.Fatalf("Error saving file: %v", err)
+			log.Fatalf("\nError saving file: %v", err)
 		} else {
-			fmt.Printf("Image saved successfully as: %s\n", outputFileName)
+			fmt.Printf("\nImage saved successfully as: %s\n", imgItem.Filename)
 		}
 	}
 
@@ -310,4 +359,13 @@ func main() {
 	}
 
 	fmt.Printf("Total operation time: %v\n", durationSum)
+}
+
+func getLastDenoisedImage(queue []ImageQueueItem) *image.RGBA {
+	for i := len(queue) - 1; i >= 0; i-- {
+		if queue[i].Denoised {
+			return queue[i].Image
+		}
+	}
+	return nil
 }

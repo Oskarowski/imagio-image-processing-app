@@ -16,8 +16,9 @@ type Command struct {
 	Name string
 	Args map[string]string
 }
+type Commands []Command
 
-func ParseCommands(args []string) []Command {
+func ParseCommands(args []string) Commands {
 	var commands []Command
 	var currentCommand *Command
 
