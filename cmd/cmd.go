@@ -97,15 +97,31 @@ func PrintHelp() {
 	}
 }
 
-func AtoiOrDefault(val string, defaultValue int) int {
+func GetOrDefault[T int | string | float64](val string, defaultValue T) T {
 	if val == "" {
 		return defaultValue
 	}
 
-	num, err := strconv.Atoi(val)
-	if err != nil {
-		return defaultValue
+	var result any
+	switch any(defaultValue).(type) {
+	case int:
+		if num, err := strconv.Atoi(val); err == nil {
+			result = num
+		} else {
+			result = defaultValue
+		}
+	case float64:
+		if num, err := strconv.ParseFloat(val, 64); err == nil {
+			result = num
+		} else {
+			result = defaultValue
+		}
+	case string:
+		result = val
+
+	default:
+		result = defaultValue
 	}
 
-	return num
+	return result.(T)
 }

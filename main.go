@@ -147,8 +147,8 @@ func main() {
 
 		case "adaptive":
 
-			minWindowSize := cmd.AtoiOrDefault(command.Args["min"], 3)
-			maxWindowSize := cmd.AtoiOrDefault(command.Args["max"], 7)
+			minWindowSize := cmd.GetOrDefault(command.Args["min"], 3)
+			maxWindowSize := cmd.GetOrDefault(command.Args["max"], 7)
 
 			if maxWindowSize < minWindowSize {
 				log.Fatal("Max window size must be greater than min window size")
@@ -161,8 +161,8 @@ func main() {
 
 		case "adaptive-parallel":
 
-			minWindowSize := cmd.AtoiOrDefault(command.Args["min"], 3)
-			maxWindowSize := cmd.AtoiOrDefault(command.Args["max"], 7)
+			minWindowSize := cmd.GetOrDefault(command.Args["min"], 3)
+			maxWindowSize := cmd.GetOrDefault(command.Args["max"], 7)
 
 			if maxWindowSize < minWindowSize {
 				log.Fatal("Max window size must be greater than min window size")
@@ -171,7 +171,7 @@ func main() {
 			newImg = noise.AdaptiveMedianFilterParallel(img, minWindowSize, maxWindowSize)
 
 			outputFileName = fmt.Sprintf("%s_adaptive_parallel_median_filter.bmp", originalNameWithoutExt)
-			cmdResult.Description = "Adaptive parallel median filter applied"
+			cmdResult.Description = fmt.Sprintf("Adaptive median filter applied with min window size %d and max window size %d", minWindowSize, maxWindowSize)
 
 		case "min":
 			windowSize, err := strconv.Atoi(command.Args["value"])
