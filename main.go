@@ -322,9 +322,63 @@ func main() {
 			outputFileName := fmt.Sprintf("%s_histogram.bmp", originalNameWithoutExt)
 			newImg := manipulations.GenerateGraphicalRepresentationOfHistogram(manipulations.CalculateHistogram(img))
 
-			imageQueue = append(imageQueue, ImageQueueItem{Image: newImg, Filename: outputFileName})
+			imageQueue = append(imageQueue, ImageQueueItem{Image: newImg, Filename: outputFileName, IsHistogram: true})
 
 			cmdResult.Description = "Computed Graphical Representation of Histogram"
+
+		case "cmean":
+
+			var histogramImg *image.RGBA
+			var histogramImgFilename string
+
+			for i := 0; i < len(imageQueue); i++ {
+				if imageQueue[i].IsHistogram {
+					histogramImg = imageQueue[i].Image
+					histogramImgFilename = imageQueue[i].Filename
+					break
+				}
+			}
+
+			var histogram [256]int
+
+			if histogramImg == nil {
+				histogram = manipulations.CalculateHistogram(img)
+				histogramImgFilename = fmt.Sprintf("%s_histogram.bmp", originalNameWithoutExt)
+			} else {
+				histogram = manipulations.CalculateHistogram(histogramImg)
+			}
+
+			mean := analysis.CalculateMean(histogram[:])
+
+			cmdResult.Description = fmt.Sprintf("Calculated Mean intensity for %s", histogramImgFilename)
+			cmdResult.Result = fmt.Sprintf("Mean: %f", mean)
+
+		case "cvariance":
+
+			var histogramImg *image.RGBA
+			var histogramImgFilename string
+
+			for i := 0; i < len(imageQueue); i++ {
+				if imageQueue[i].IsHistogram {
+					histogramImg = imageQueue[i].Image
+					histogramImgFilename = imageQueue[i].Filename
+					break
+				}
+			}
+
+			var histogram [256]int
+
+			if histogramImg == nil {
+				histogram = manipulations.CalculateHistogram(img)
+				histogramImgFilename = fmt.Sprintf("%s_histogram.bmp", originalNameWithoutExt)
+			} else {
+				histogram = manipulations.CalculateHistogram(histogramImg)
+			}
+
+			variance := analysis.CalculateVariance(histogram[:])
+
+			cmdResult.Description = fmt.Sprintf("Calculated Variance intensity for %s", histogramImgFilename)
+			cmdResult.Result = fmt.Sprintf("Variance: %f", variance)
 
 		case "hrayleigh":
 
