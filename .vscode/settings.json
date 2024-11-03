@@ -4,6 +4,8 @@
         "Bmax",
         "Bmed",
         "Bmin",
+        "cmean",
+        "cvariance",
         "dflip",
         "fmax",
         "fmin",
