@@ -348,7 +348,7 @@ func main() {
 				histogram = manipulations.CalculateHistogram(histogramImg)
 			}
 
-			mean := analysis.CalculateMean(histogram[:])
+			mean := analysis.CalculateMean(histogram)
 
 			cmdResult.Description = fmt.Sprintf("Calculated Mean intensity for %s", histogramImgFilename)
 			cmdResult.Result = fmt.Sprintf("Mean: %f", mean)
@@ -375,7 +375,7 @@ func main() {
 				histogram = manipulations.CalculateHistogram(histogramImg)
 			}
 
-			variance := analysis.CalculateVariance(histogram[:])
+			variance := analysis.CalculateVariance(histogram)
 
 			cmdResult.Description = fmt.Sprintf("Calculated Variance intensity for %s", histogramImgFilename)
 			cmdResult.Result = fmt.Sprintf("Variance: %f", variance)
