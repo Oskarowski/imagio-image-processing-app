@@ -27,48 +27,48 @@ func calculateHistogram(img *image.Gray) []int {
 	return histogram
 }
 
-func rayleighTransform(hist []int, fmin, fmax, gmin, gmax, totalPixels int) []float64 {
-	transformed := make([]float64, 256)
+func calculateCumulativeHistogram(histogram []int) [256]float64 {
+	var cumulativeHistogram [256]float64
+	cumulativeHistogram[0] = float64(histogram[0])
 
-	cumulativeHist := make([]int, 256)
-	cumulativeSum := 0
-	for f := 0; f < len(hist); f++ {
-		cumulativeSum += hist[f]
-		cumulativeHist[f] = cumulativeSum
+	for i := 1; i < 256; i++ {
+		cumulativeHistogram[i] = cumulativeHistogram[i-1] + float64(histogram[i])
 	}
 
-	// TODO: how to calculate alpha? + completely different formula: https://www.sciencedirect.com/science/article/pii/S2092678216302588?ref=pdf_download&fr=RR-2&rr=8dc38c4dada6bf3f
-	alpha := float64(gmax-gmin) / math.Sqrt(2)
+	return cumulativeHistogram
+}
 
-	// Apply the Rayleigh formula
-	for f := fmin; f <= fmax; f++ {
-		cumulativeSum := cumulativeHist[f]
-		prob := float64(cumulativeSum) / float64(totalPixels)
-		logTerm := 1 - prob
-		if logTerm <= 0 {
-			logTerm = 1e-10 // Avoid log(0) error by using a small positive value
-		}
-		term := math.Log(logTerm)
-		transformed[f] = float64(gmin) + math.Sqrt(-2*alpha*alpha*term)
-	}
+func rayleighTransform(img image.Gray, baseHistogram []int, fmin, fmax, gmin, gmax, totalPixels int, alpha float64) *image.Gray {
+	cumulativeHistogram := calculateCumulativeHistogram(baseHistogram)
 
-	// Find min and max of the transformed values for normalization
-	minVal, maxVal := transformed[fmin], transformed[fmin]
-	for f := fmin; f <= fmax; f++ {
-		if transformed[f] < minVal {
-			minVal = transformed[f]
-		}
-		if transformed[f] > maxVal {
-			maxVal = transformed[f]
+	transform := make([]float64, 256)
+
+	for f := 0; f < 256; f++ {
+		cumulativeProbability := cumulativeHistogram[f] / float64(totalPixels)
+		if cumulativeProbability > 0 {
+			alphaPow := math.Pow(alpha, 2)
+			transform[f] = float64(gmin) + math.Sqrt(2*alphaPow*math.Log(1/cumulativeProbability)-1)
+			if transform[f] < float64(gmin) {
+				transform[f] = float64(gmin)
+			} else if transform[f] > float64(gmax) {
+				transform[f] = float64(gmax)
+			}
+		} else {
+			transform[f] = float64(gmin)
 		}
 	}
 
-	// Normalize transformed values to ensure they fit within [gmin, gmax]
-	for f := fmin; f <= fmax; f++ {
-		transformed[f] = float64(gmin) + (transformed[f]-minVal)*(float64(gmax-gmin)/(maxVal-minVal))
+	bounds := img.Bounds()
+	newImg := image.NewGray(bounds)
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			oldPixel := color.GrayModel.Convert(img.At(x, y)).(color.Gray)
+			newBrightness := uint8(transform[oldPixel.Y])
+			newImg.SetGray(x, y, color.Gray{Y: newBrightness})
+		}
 	}
 
-	return transformed
+	return newImg
 }
 
 func applyHistogramTransform(img *image.Gray, transform []float64) *image.RGBA {
@@ -94,10 +94,11 @@ func applyHistogramTransform(img *image.Gray, transform []float64) *image.RGBA {
 //   - img: The input image to be transformed.
 //   - gMin: The minimum value for the output image.
 //   - gMax: The maximum value for the output image.
+//   - alpha: Parameter alpha for Rayleigh formula.
 //
 // Returns:
 //   - *image.RGBA: The transformed image with enhanced contrast.
-func ApplyRayleighTransform(img image.Image, gMin int, gMax int) *image.RGBA {
+func ApplyRayleighTransform(img image.Image, gMin int, gMax int, alpha float64) *image.RGBA {
 
 	// TODO: make it work for color images.
 	grayImg := toGrayscale(img)
@@ -106,10 +107,13 @@ func ApplyRayleighTransform(img image.Image, gMin int, gMax int) *image.RGBA {
 
 	fMin, fMax := FindMinMax(histogram)
 
-	transform := rayleighTransform(histogram, fMin, fMax, gMin, gMax, totalPixels)
+	transformedImg := rayleighTransform(*grayImg, histogram, fMin, fMax, gMin, gMax, totalPixels, alpha)
 
-	outputImg := applyHistogramTransform(grayImg, transform)
+	transformedRGBAImg := image.NewRGBA(transformedImg.Bounds())
+	draw.Draw(transformedRGBAImg, transformedRGBAImg.Bounds(), transformedImg, transformedImg.Bounds().Min, draw.Src)
 
-	return outputImg
+	// outputImg := applyHistogramTransform(grayImg, transform)
+
+	return transformedRGBAImg
 
 }
