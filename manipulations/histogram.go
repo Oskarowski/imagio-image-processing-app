@@ -33,6 +33,9 @@ func CalculateHistogram(img image.Image) [256]int {
 
 			intensity := uint8(value * 255)
 
+			//  Convert to grayscale
+			// intensity := uint8(0.299*float64(pixel.R) + 0.587*float64(pixel.G) + 0.114*float64(pixel.B))
+
 			histogram[intensity]++
 		}
 	}

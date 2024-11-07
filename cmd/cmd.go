@@ -78,7 +78,7 @@ var availableCommands = []commandInfo{
 	{"psnr", "--psnr <comparison_image_path> <bmp_image_path>", "Calculate Peak Signal to Noise Ratio with a comparison image.", []string{}},
 	{"md", "--md <comparison_image_path> <bmp_image_path>", "Calculate Max Difference with a comparison image.", []string{}},
 	{"histogram", "--histogram <bmp_image_path>", "Generate and save a graphical representation of the histogram of the image.", []string{}},
-	{"hrayleigh", "--hrayleigh -min=0 -max=255 <bmp_image_path>", "Apply Rayleigh transformation to the image.", []string{"-min=(int): Minimum value in the range [0, 255].", "-max=(int): Maximum value in the range [0, 255], must be greater than min."}},
+	{"hrayleigh", "--hrayleigh -min=0 -max=255 -alpha=\"0.2\" <bmp_image_path>", "Apply Rayleigh transformation to the image.", []string{"-min=(int): Minimum value in the range [0, 255].", "-max=(int): Maximum value in the range [0, 255], must be greater than min.", "-alpha=(float): Alpha value for transformation. Note: Quote float values (e.g., -alpha=\"0.5\")."}},
 	{"cmean", "--cmean <bmp_image_path>", "Calculate the mean intensity from the histogram of the image.", []string{}},
 	{"cvariance", "--cvariance <bmp_image_path>", "Calculate the variance intensity from the histogram of the image.", []string{}},
 	{"help", "--help", "Show this help message.", []string{}},

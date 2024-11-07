@@ -384,22 +384,27 @@ func main() {
 
 			gMin := cmd.GetOrDefault(command.Args["min"], 0)
 			gMax := cmd.GetOrDefault(command.Args["max"], 255)
+			alpha := cmd.GetOrDefault(command.Args["alpha"], 0.2)
 
 			if gMin < 0 || gMax > 255 || gMin >= gMax {
 				log.Fatal("gMin and gMax must be in the range [0, 255] with gMin < gMax")
 			}
 
-			outputFileName := fmt.Sprintf("%s_rayleigh_improvement.bmp", originalNameWithoutExt)
-			newImg := manipulations.ApplyRayleighTransform(img, gMin, gMax)
+			outputFileName := fmt.Sprintf("%s_rayleigh_min%d_max%d_alpha%.2f.bmp", originalNameWithoutExt, gMin, gMax, alpha)
+
+			// newImg := manipulations.ApplyRayleighTransform(img, gMin, gMax, alpha)
+			newImg := manipulations.EnhanceImageWithRayleigh(img, float64(gMin), float64(gMax), alpha)
 
 			if commands.Includes("histogram") {
 				histogramImgAfterTransformation := manipulations.GenerateGraphicalRepresentationOfHistogram(manipulations.CalculateHistogram(newImg))
-				imageQueue = append(imageQueue, ImageQueueItem{Image: histogramImgAfterTransformation, Filename: fmt.Sprintf("%s_histogram_after_rayleigh.bmp", originalNameWithoutExt), IsHistogram: true})
+				histogramFilename := fmt.Sprintf("%s_histogram_after_rayleigh_min%d_max%d_alpha%.2f.bmp", originalNameWithoutExt, gMin, gMax, alpha)
+
+				imageQueue = append(imageQueue, ImageQueueItem{Image: histogramImgAfterTransformation, Filename: histogramFilename, IsHistogram: true})
 			}
 
 			imageQueue = append(imageQueue, ImageQueueItem{Image: newImg, Filename: outputFileName})
 
-			cmdResult.Description = fmt.Sprintf("Rayleigh transformation applied with gMin: %v, gMax: %v", gMin, gMax)
+			cmdResult.Description = fmt.Sprintf("Rayleigh transformation applied with gMin: %v, gMax: %v, and alpha: %.3f", gMin, gMax, alpha)
 
 		default:
 			fmt.Println("Unknown commend")
