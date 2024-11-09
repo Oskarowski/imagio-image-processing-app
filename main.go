@@ -326,7 +326,7 @@ func main() {
 
 			cmdResult.Description = "Computed Graphical Representation of Histogram"
 
-		case "cmean":
+		case "cmean", "cvariance", "cstdev", "cvarcoi", "casyco", "cflatco", "cvarcoii", "centropy":
 
 			var histogramImg *image.RGBA
 			var histogramImgFilename string
@@ -348,37 +348,7 @@ func main() {
 				histogram = manipulations.CalculateHistogram(histogramImg)
 			}
 
-			mean := analysis.CalculateMean(histogram)
-
-			cmdResult.Description = fmt.Sprintf("Calculated Mean intensity for %s", histogramImgFilename)
-			cmdResult.Result = fmt.Sprintf("Mean: %f", mean)
-
-		case "cvariance":
-
-			var histogramImg *image.RGBA
-			var histogramImgFilename string
-
-			for i := 0; i < len(imageQueue); i++ {
-				if imageQueue[i].IsHistogram {
-					histogramImg = imageQueue[i].Image
-					histogramImgFilename = imageQueue[i].Filename
-					break
-				}
-			}
-
-			var histogram [256]int
-
-			if histogramImg == nil {
-				histogram = manipulations.CalculateHistogram(img)
-				histogramImgFilename = fmt.Sprintf("%s_histogram.bmp", originalNameWithoutExt)
-			} else {
-				histogram = manipulations.CalculateHistogram(histogramImg)
-			}
-
-			variance := analysis.CalculateVariance(histogram)
-
-			cmdResult.Description = fmt.Sprintf("Calculated Variance intensity for %s", histogramImgFilename)
-			cmdResult.Result = fmt.Sprintf("Variance: %f", variance)
+			cmdResult.Result, cmdResult.Description = analysis.CalculateHistogramCharacteristic(command.Name, histogram, histogramImgFilename)
 
 		case "hrayleigh":
 
