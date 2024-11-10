@@ -57,6 +57,11 @@ func main() {
 
 	commands := cmd.ParseCommands(os.Args[1 : len(os.Args)-1])
 
+	loadedMasks, err := manipulations.LoadMasksFromJSON("masks.json")
+	if err != nil {
+		log.Fatalf("Error loading masks: %v", err)
+	}
+
 	originalName := filepath.Base(imagePath)
 	originalNameWithoutExt := originalName[:len(originalName)-len(filepath.Ext(originalName))]
 
@@ -362,7 +367,6 @@ func main() {
 
 			outputFileName := fmt.Sprintf("%s_rayleigh_min%d_max%d_alpha%.2f.bmp", originalNameWithoutExt, gMin, gMax, alpha)
 
-			// newImg := manipulations.ApplyRayleighTransform(img, gMin, gMax, alpha)
 			newImg := manipulations.EnhanceImageWithRayleigh(img, float64(gMin), float64(gMax), alpha)
 
 			if commands.Includes("histogram") {
@@ -375,6 +379,22 @@ func main() {
 			imageQueue = append(imageQueue, ImageQueueItem{Image: newImg, Filename: outputFileName})
 
 			cmdResult.Description = fmt.Sprintf("Rayleigh transformation applied with gMin: %v, gMax: %v, and alpha: %.3f", gMin, gMax, alpha)
+
+		case "sedgesharp":
+
+			chosenMask := cmd.GetOrDefault(command.Args["mask"], "mask1")
+
+			mask, err := manipulations.GetMask(loadedMasks, chosenMask)
+
+			if err != nil {
+				log.Fatalf("Error getting mask: %v", err)
+			}
+
+			outputFileName := fmt.Sprintf("%s_sharpened_edges_%s.bmp", originalNameWithoutExt, chosenMask)
+
+			newImg := manipulations.ApplyConvolutionUniversal(img, mask)
+
+			imageQueue = append(imageQueue, ImageQueueItem{Image: newImg, Filename: outputFileName})
 
 		default:
 			fmt.Println("Unknown commend")

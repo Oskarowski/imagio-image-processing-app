@@ -25,14 +25,12 @@ func EnhanceImageWithRayleigh(img image.Image, gmin, gmax, alpha float64) *image
 	bounds := img.Bounds()
 	N := float64(bounds.Dx() * bounds.Dy())
 
-	// Calculate cumulative histogram
 	var cumulativeHistogram [256]float64
 	cumulativeHistogram[0] = float64(baseHistogram[0]) / N
 	for i := 1; i < 256; i++ {
 		cumulativeHistogram[i] = cumulativeHistogram[i-1] + float64(baseHistogram[i])/N
 	}
 
-	// Transform brightness levels using the Rayleigh PDF formula
 	output := image.NewGray(bounds)
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
