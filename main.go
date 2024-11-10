@@ -396,6 +396,14 @@ func main() {
 
 			imageQueue = append(imageQueue, ImageQueueItem{Image: newImg, Filename: outputFileName})
 
+		case "okirsf":
+
+			outputFileName := fmt.Sprintf("%s_kirsh_edge_detection.bmp", originalNameWithoutExt)
+
+			newImg := manipulations.ApplyKirshEdgeDetection(img)
+
+			imageQueue = append(imageQueue, ImageQueueItem{Image: newImg, Filename: outputFileName})
+
 		default:
 			fmt.Println("Unknown commend")
 			return
