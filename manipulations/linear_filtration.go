@@ -68,23 +68,35 @@ func ApplyConvolutionOptimized(img image.Image) *image.RGBA {
 	rgbaImg := image.NewRGBA(bounds)
 	draw.Draw(rgbaImg, bounds, img, bounds.Min, draw.Src)
 
+	grayValues := make([]uint8, width*height)
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			grayValues[y*width+x] = color.GrayModel.Convert(img.At(x, y)).(color.Gray).Y
+		}
+	}
+
 	for y := offset; y < height-offset; y++ {
 		for x := offset; x < width-offset; x++ {
 
-			centerGray := color.GrayModel.Convert(img.At(x, y)).(color.Gray).Y
-			sum := int(centerGray) * 9
+			centerIndex := y*width + x
+			sum := int(grayValues[centerIndex]) * 9
 
-			sum -= int(color.GrayModel.Convert(img.At(x-1, y)).(color.Gray).Y)   // left
-			sum -= int(color.GrayModel.Convert(img.At(x+1, y)).(color.Gray).Y)   // right
-			sum -= int(color.GrayModel.Convert(img.At(x, y-1)).(color.Gray).Y)   // top
-			sum -= int(color.GrayModel.Convert(img.At(x, y+1)).(color.Gray).Y)   // bottom
-			sum -= int(color.GrayModel.Convert(img.At(x-1, y-1)).(color.Gray).Y) // top-left
-			sum -= int(color.GrayModel.Convert(img.At(x+1, y-1)).(color.Gray).Y) // top-right
-			sum -= int(color.GrayModel.Convert(img.At(x-1, y+1)).(color.Gray).Y) // bottom-left
-			sum -= int(color.GrayModel.Convert(img.At(x+1, y+1)).(color.Gray).Y) // bottom-right
+			sum -= int(grayValues[centerIndex-1])       // left
+			sum -= int(grayValues[centerIndex+1])       // right
+			sum -= int(grayValues[centerIndex-width])   // top
+			sum -= int(grayValues[centerIndex+width])   // bottom
+			sum -= int(grayValues[centerIndex-width-1]) // top-left
+			sum -= int(grayValues[centerIndex-width+1]) // top-right
+			sum -= int(grayValues[centerIndex+width-1]) // bottom-left
+			sum -= int(grayValues[centerIndex+width+1]) // bottom-right
 
 			clampedValue := ClampUint8(sum)
-			rgbaImg.Set(x, y, color.RGBA{clampedValue, clampedValue, clampedValue, 255})
+
+			idx := (y*width + x) * 4
+			rgbaImg.Pix[idx] = clampedValue   // R
+			rgbaImg.Pix[idx+1] = clampedValue // G
+			rgbaImg.Pix[idx+2] = clampedValue // B
+			rgbaImg.Pix[idx+3] = 255          // A
 		}
 	}
 
