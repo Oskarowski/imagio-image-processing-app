@@ -81,6 +81,14 @@ var availableCommands = []commandInfo{
 	{"hrayleigh", "--hrayleigh -min=0 -max=255 -alpha=\"0.2\" <bmp_image_path>", "Apply Rayleigh transformation to the image.", []string{"-min=(int): Minimum value in the range [0, 255].", "-max=(int): Maximum value in the range [0, 255], must be greater than min.", "-alpha=(float): Alpha value for transformation. Note: Quote float values (e.g., -alpha=\"0.5\")."}},
 	{"cmean", "--cmean <bmp_image_path>", "Calculate the mean intensity from the histogram of the image.", []string{}},
 	{"cvariance", "--cvariance <bmp_image_path>", "Calculate the variance intensity from the histogram of the image.", []string{}},
+	{"cstdev", "--cstdev <bmp_image_path>", "Calculate the standard deviation from the histogram of the image.", []string{}},
+	{"cvarcoi", "--cvarcoi <bmp_image_path>", "Calculate the coefficient of variation (type I) from the histogram.", []string{}},
+	{"casyco", "--casyco <bmp_image_path>", "Calculate the asymmetry coefficient from the histogram.", []string{}},
+	{"cflatco", "--cflatco <bmp_image_path>", "Calculate the flattening coefficient from the histogram.", []string{}},
+	{"cvarcoii", "--cvarcoii <bmp_image_path>", "Calculate the coefficient of variation (type II) from the histogram.", []string{}},
+	{"centropy", "--centropy <bmp_image_path>", "Calculate the entropy from the histogram of the image.", []string{}},
+	{"sedgesharp", "--sedgesharp -mask=\"edge1\" <bmp_image_path>", "Apply edge sharpening with the specified mask.", []string{"-mask=(string): The name of the mask to use."}},
+	{"okirsf", "--okirsf <bmp_image_path>", "Apply Kirsch edge detection to the image.", []string{}},
 	{"help", "--help", "Show this help message.", []string{}},
 }
 
