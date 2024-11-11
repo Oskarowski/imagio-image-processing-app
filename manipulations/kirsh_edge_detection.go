@@ -7,42 +7,48 @@ import (
 	"math"
 )
 
-// source of the masks: https://www.tutorialspoint.com/dip/krisch_compass_mask.htm
-var kirschDirections = [][]int{
-	{-3, -3, 5, -3, 0, 5, -3, -3, 5}, // North
-	{-3, 5, 5, -3, 0, 5, -3, -3, -3}, // Northwest
-	{5, 5, 5, -3, 0, -3, -3, -3, -3}, // West
-	{5, 5, -3, 5, 0, -3, -3, -3, -3}, // Southwest
-	{5, -3, -3, 5, 0, -3, 5, -3, -3}, // South
-	{-3, -3, -3, 5, 0, -3, 5, 5, -3}, // Southeast
-	{-3, -3, -3, -3, 0, -3, 5, 5, 5}, // East
-	{-3, -3, -3, -3, 0, 5, -3, 5, 5}, // Northeast
-}
-
 func ApplyKirshEdgeDetection(img image.Image) *image.RGBA {
 	bounds := img.Bounds()
 	width, height := bounds.Max.X, bounds.Max.Y
 	edgeImage := image.NewGray(bounds)
 	draw.Draw(edgeImage, bounds, img, bounds.Min, draw.Src)
 
+	neighborhood := [][]int{
+		{-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1},
+	}
+
 	for y := 1; y < height-1; y++ {
 		for x := 1; x < width-1; x++ {
-			maxGradient := float64(0)
 
-			for _, direction := range kirschDirections {
-				g := 0.0
-				for dy := -1; dy <= 1; dy++ {
-					for dx := -1; dx <= 1; dx++ {
-						pixel := color.GrayModel.Convert(img.At(x+dx, y+dy)).(color.Gray)
-						g += float64(pixel.Y) * float64(direction[(dy+1)*3+(dx+1)])
-					}
-				}
-				maxGradient = math.Max(maxGradient, math.Abs(g))
+			maxGradient := 0.0
+			neighborPixels := make([]int, 8)
+
+			for i := 0; i < 8; i++ {
+				dx, dy := neighborhood[i][0], neighborhood[i][1]
+				pixel := color.GrayModel.Convert(img.At(x+dx, y+dy)).(color.Gray)
+				neighborPixels[i] = int(pixel.Y)
 			}
 
-			edgeColor := uint8(math.Min(maxGradient, 255))
+			for i := 0; i < 8; i++ {
+				S := neighborPixels[i] +
+					neighborPixels[(i+1)%8] +
+					neighborPixels[(i+2)%8]
 
-			edgeImage.SetGray(x, y, color.Gray{Y: uint8(edgeColor)})
+				T := neighborPixels[(i+3)%8] +
+					neighborPixels[(i+4)%8] +
+					neighborPixels[(i+5)%8] +
+					neighborPixels[(i+6)%8] +
+					neighborPixels[(i+7)%8]
+
+				gradient := math.Abs(5*float64(S) - 3*float64(T))
+
+				if gradient > maxGradient {
+					maxGradient = gradient
+				}
+			}
+
+			edgeValue := uint8(math.Min(maxGradient, 255))
+			edgeImage.SetGray(x, y, color.Gray{Y: uint8(edgeValue)})
 		}
 	}
 
