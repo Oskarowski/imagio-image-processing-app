@@ -359,7 +359,7 @@ func main() {
 
 			gMin := cmd.GetOrDefault(command.Args["min"], 0)
 			gMax := cmd.GetOrDefault(command.Args["max"], 255)
-			alpha := cmd.GetOrDefault(command.Args["alpha"], 0.2)
+			alpha := cmd.GetOrDefault(command.Args["alpha"], 100.0)
 
 			if gMin < 0 || gMax > 255 || gMin >= gMax {
 				log.Fatal("gMin and gMax must be in the range [0, 255] with gMin < gMax")

@@ -3,7 +3,6 @@ package manipulations
 import (
 	"image"
 	"image/color"
-	"image/draw"
 	"math"
 )
 
@@ -31,16 +30,17 @@ func EnhanceImageWithRayleigh(img image.Image, gmin, gmax, alpha float64) *image
 		cumulativeHistogram[i] = cumulativeHistogram[i-1] + float64(baseHistogram[i])/N
 	}
 
-	output := image.NewGray(bounds)
+	outputImg := image.NewRGBA(bounds)
+
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			pixel := color.GrayModel.Convert(img.At(x, y)).(color.Gray)
-			f := int(pixel.Y)
+			r, g, b, _ := img.At(x, y).RGBA()
+			h, s, v := RGBToHSV(uint8(r>>8), uint8(g>>8), uint8(b>>8))
+			f := int(v * 255)
 
 			// g := gmin + math.Sqrt(2*alpha*alpha*math.Log(1/(1-cumulativeHistogram[f])))
 
 			cumulativeValueAdjustment := 1 - cumulativeHistogram[f]
-			// cumulativeValueAdjustment := float64(cumulativeHistogram[f])
 
 			if cumulativeValueAdjustment <= 0 {
 				cumulativeValueAdjustment = 1e-10
@@ -50,22 +50,24 @@ func EnhanceImageWithRayleigh(img image.Image, gmin, gmax, alpha float64) *image
 
 			squaredAlpha := alpha * alpha
 			transformedValue := 2 * squaredAlpha * logPart
-			sqrtValue := math.Sqrt(transformedValue)
+			newV := gmin + math.Sqrt(transformedValue)
 
-			g := gmin + sqrtValue
-
-			if g > gmax {
-				g = gmax
-			} else if g < gmin {
-				g = gmin
+			if newV > gmax {
+				newV = gmax
+			} else if newV < gmin {
+				newV = gmin
 			}
+			newV /= 255.0
 
-			output.SetGray(x, y, color.Gray{Y: uint8(g)})
+			rOut, gOut, bOut := HSVToRGB(h, s, newV)
+			outputImg.Set(x, y, color.RGBA{
+				R: uint8(rOut),
+				G: uint8(gOut),
+				B: uint8(bOut),
+				A: 255,
+			})
 		}
 	}
 
-	RGBA := image.NewRGBA(output.Bounds())
-	draw.Draw(RGBA, RGBA.Bounds(), output, output.Bounds().Min, draw.Src)
-
-	return RGBA
+	return outputImg
 }
