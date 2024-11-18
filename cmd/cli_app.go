@@ -377,7 +377,7 @@ func RunAsCliApp() {
 
 		case "sedgesharp":
 
-			chosenMask := GetOrDefault(command.Args["mask"], "mask1")
+			chosenMask := GetOrDefault(command.Args["mask"], "edge1")
 
 			mask, err := manipulations.GetMask(loadedMasks, chosenMask)
 
