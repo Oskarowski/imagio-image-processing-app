@@ -53,14 +53,14 @@ func ParseCommands(args []string) Commands {
 	return commands
 }
 
-type commandInfo struct {
+type CommandInfo struct {
 	Name        string
 	Usage       string
 	Description string
 	Arguments   []string
 }
 
-var availableCommands = []commandInfo{
+var AvailableCommands = []CommandInfo{
 	{"brightness", "--brightness -value=50 <bmp_image_path>", "Adjust brightness of the image.", []string{"-value=(int): Brightness percentage adjustment value."}},
 	{"contrast", "--contrast -value=25 <bmp_image_path>", "Adjust contrast of the image.", []string{"-value=(int): Contrast adjustment value (-255 to 255)."}},
 	{"negative", "--negative <bmp_image_path>", "Create a negative of the image.", []string{}},
@@ -96,7 +96,7 @@ func PrintHelp() {
 	fmt.Println("Usage: go run main.go <command> [-argument=value [...]] <bmp_image_path> [<second_image_path>]")
 	fmt.Println("\nAvailable commands:")
 
-	for _, cmd := range availableCommands {
+	for _, cmd := range AvailableCommands {
 		fmt.Printf(" %s\n", cmd.Usage)
 		fmt.Printf("   Description: %s\n", cmd.Description)
 
