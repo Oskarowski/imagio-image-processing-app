@@ -332,7 +332,7 @@ func RunAsCliApp() {
 			var histogramImgFilename string
 
 			for i := 0; i < len(imageQueue); i++ {
-				if imageQueue[i].IsHistogram {
+				if !imageQueue[i].IsHistogram {
 					histogramImg = imageQueue[i].Image
 					histogramImgFilename = imageQueue[i].Filename
 					break
