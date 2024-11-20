@@ -85,6 +85,7 @@ func RunAsTUIApp() {
 	var updateLoadedImagesList func()
 
 	fileSystemList := tview.NewList()
+	fileSystemList.SetTitle(" File System ").SetBorder(true)
 
 	updateFileSystemList = func(dir string) {
 		fileSystemList.Clear()
@@ -102,16 +103,19 @@ func RunAsTUIApp() {
 
 		for _, file := range files {
 			itemName := file.Name()
+			var displayItemName string
 			fullPath := filepath.Join(dir, itemName)
 
 			if file.IsDir() {
-				fileSystemList.AddItem(itemName+"/", "Directory", 0, func(targetDir string) func() {
+				displayItemName = "[blue]📁 " + itemName + "[-]"
+				fileSystemList.AddItem(displayItemName+"/", "", 0, func(targetDir string) func() {
 					return func() {
 						updateFileSystemList(fullPath)
 					}
 				}(file.Name()))
 			} else {
-				fileSystemList.AddItem(itemName, "Load this image", 0, func() {
+				displayItemName = "[green]📄 " + itemName + "[-]"
+				fileSystemList.AddItem(displayItemName, "", 0, func() {
 					imageStore.AddImage(itemName, fullPath)
 					imageStore.LoadImageData(len(imageStore.Images) - 1)
 					updateLoadedImagesList()
@@ -123,14 +127,18 @@ func RunAsTUIApp() {
 	updateFileSystemList(initialDir)
 
 	loadedImagesList := tview.NewList()
+	loadedImagesList.SetTitle(" Loaded Images ").SetBorder(true)
 
 	updateLoadedImagesList = func() {
 		loadedImagesList.Clear()
 
+		var displayItemName string
+
 		for i, img := range imageStore.Images {
 			if img.Loaded {
+				displayItemName = "[green]📷 " + img.Filename + "[-]"
 				idx := i
-				loadedImagesList.AddItem(img.Filename, "Loaded", 0, func() {
+				loadedImagesList.AddItem(displayItemName, "", 0, func() {
 					imageStore.RemoveImage(idx)
 					updateLoadedImagesList()
 				})
@@ -160,12 +168,14 @@ func RunAsTUIApp() {
 			if currentFocus == "left" {
 				currentFocus = "right"
 				app.SetFocus(loadedImagesList)
+				fileSystemList.SetBorderColor(tcell.ColorWhite)
+				loadedImagesList.SetBorderColor(tcell.ColorYellow)
 			} else {
 				currentFocus = "left"
 				app.SetFocus(fileSystemList)
+				fileSystemList.SetBorderColor(tcell.ColorYellow)
+				loadedImagesList.SetBorderColor(tcell.ColorWhite)
 			}
-		case tcell.KeyESC:
-			app.Stop()
 		}
 		return event
 	})
@@ -182,7 +192,7 @@ func RunAsTUIApp() {
 	var runCommand func(cmd cmd.CommandInfo)
 
 	updateCommandDetails := func(cmd cmd.CommandInfo) {
-		commandDetails.SetText(fmt.Sprintf("%s[-]\n\n%s\n\nParameters:\n%s",
+		commandDetails.SetText(fmt.Sprintf("[yellow]%s[-]\n\n[white]%s[-]\n\n[cyan]Parameters:[-]\n%s",
 			cmd.Name,
 			cmd.Description,
 			strings.Join(cmd.Arguments, "\n"),
@@ -193,10 +203,10 @@ func RunAsTUIApp() {
 			parts := strings.SplitN(arg, ":", 2)
 			if len(parts) > 1 {
 				paramName := strings.Trim(parts[0], "-()")
-				parameterForm.AddInputField(paramName, "", 20, nil, nil)
+				parameterForm.AddInputField("[cyan]"+paramName+"[-]", "", 20, nil, nil)
 			}
 		}
-		parameterForm.AddButton("Run", func() {
+		parameterForm.AddButton("[green]Run[-]", func() {
 			runCommand(cmd)
 		})
 	}
@@ -236,8 +246,8 @@ func RunAsTUIApp() {
 	commandManagerGrid.AddItem(executionLog, 2, 1, 1, 1, 0, 0, false)
 
 	navBar := tview.NewTextView().
-		SetText("[Image Loader Manager] [Command Execution Manager]").
 		SetDynamicColors(true).
+		SetText("[yellow]Image Loader Manager[-] [white]Command Execution Manager[-]").
 		SetTextAlign(tview.AlignCenter)
 
 	wrapWithNavBar := func(content tview.Primitive) *tview.Grid {
@@ -254,13 +264,22 @@ func RunAsTUIApp() {
 		switch event.Rune() {
 		case 'l':
 			appPages.SwitchToPage("Image Loader Manager")
+			navBar.SetText("[yellow]Image Loader Manager[-] [white]Command Execution Manager[-]")
 			return nil
 		case 'c':
 			appPages.SwitchToPage("Command Execution Manager")
+			navBar.SetText("[white]Image Loader Manager[-] [yellow]Command Execution Manager[-]")
 			return nil
 		}
+
+		switch event.Key() {
+		case tcell.KeyESC:
+			app.Stop()
+		}
+
 		return event
 	})
+
 	appPages.AddPage("Image Loader Manager", wrapWithNavBar(imgLoaderManagerGrid), true, true)
 	appPages.AddPage("Command Execution Manager", wrapWithNavBar(commandManagerGrid), true, false)
 
