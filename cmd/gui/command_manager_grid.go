@@ -9,10 +9,18 @@ import (
 	"github.com/rivo/tview"
 )
 
+var commandBuilder struct {
+	File                    string
+	FilePath                string
+	ComparisonImage         string
+	CommandSet              []string
+	RequiresComparisonImage bool
+}
+
 func getCommandManagerGrid(AppState *AppState) *tview.Grid {
-	commandManagerGrid := tview.NewGrid().
-		SetRows(1, 0, 0).
-		SetColumns(0, 0).
+	grid := tview.NewGrid().
+		SetRows(1, 1, 0, 20, 0, 0, 0).
+		SetColumns(0).
 		SetBorders(true)
 
 	commandManagerHeader := tview.NewTextView().
@@ -20,8 +28,42 @@ func getCommandManagerGrid(AppState *AppState) *tview.Grid {
 		SetTextAlign(tview.AlignCenter).
 		SetDynamicColors(true)
 
-	commandList := tview.NewList()
+	fileNameHeader := tview.NewTextView().
+		SetText("File: [cyan]<No file selected>[-]").
+		SetDynamicColors(true).
+		SetTextAlign(tview.AlignCenter).
+		SetWrap(false)
 
+	loadedFilesList := tview.NewList().
+		ShowSecondaryText(false)
+	loadedFilesList.SetTitle(" File System ").SetBorder(true)
+
+	var updateLoadedImagesList func()
+	updateLoadedImagesList = func() {
+		loadedFilesList.Clear()
+
+		for i, img := range AppState.ImgStore.Images {
+			var displayItemName string
+			if img.Loaded {
+				displayItemName = "[green]📷 " + img.Filename + "[-]"
+			} else {
+				displayItemName = "📷 " + img.Filename
+			}
+			idx := i
+			loadedFilesList.AddItem(displayItemName, "", 0, func() {
+				for j := range AppState.ImgStore.Images {
+					AppState.ImgStore.Images[j].Loaded = (j == idx)
+				}
+				fileNameHeader.SetText("File: [cyan]" + AppState.ImgStore.Images[idx].Filename + "[-]")
+				commandBuilder.File = AppState.ImgStore.Images[idx].Filename
+				commandBuilder.FilePath = AppState.ImgStore.Images[idx].Filepath
+				updateLoadedImagesList()
+			})
+		}
+	}
+	AppState.ImgStore.SubscribeToChanges(updateLoadedImagesList)
+
+	commandList := tview.NewList()
 	commandDetails := tview.NewTextView().
 		SetDynamicColors(true).
 		SetWrap(true)
@@ -30,7 +72,8 @@ func getCommandManagerGrid(AppState *AppState) *tview.Grid {
 
 	executionLog := tview.NewTextView().
 		SetDynamicColors(true).
-		SetWrap(true)
+		SetWrap(true).
+		SetScrollable(true)
 
 	var runCommand func(cmd cmd.CommandInfo)
 
@@ -41,28 +84,59 @@ func getCommandManagerGrid(AppState *AppState) *tview.Grid {
 			strings.Join(cmd.Arguments, "\n"),
 		))
 
+		if cmd.Name == "mse" {
+			commandBuilder.RequiresComparisonImage = true
+		}
+
 		parameterForm.Clear(true)
+
 		for _, arg := range cmd.Arguments {
 			parts := strings.SplitN(arg, ":", 2)
 			if len(parts) > 1 {
-				paramName := strings.Trim(parts[0], "-()")
-				parameterForm.AddInputField("[cyan]"+paramName+"[-]", "", 20, nil, nil)
+				paramName := strings.Trim(parts[0], "-")
+				parameterForm.AddInputField(paramName, "", 20, nil, nil)
 			}
 		}
-		parameterForm.AddButton("[green]Run[-]", func() {
+
+		parameterForm.AddButton("Run", func() {
 			runCommand(cmd)
 		})
 	}
 
+	// TODO add feature to chain commands
+	// TODO add option to select comparison image
 	runCommand = func(cmd cmd.CommandInfo) {
-		args := []string{cmd.Name}
-		for i := 0; i < parameterForm.GetFormItemCount()-1; i++ {
-			input := parameterForm.GetFormItem(i).(*tview.InputField)
-			args = append(args, fmt.Sprintf("-%s=%s", input.GetLabel(), input.GetText()))
+		if commandBuilder.RequiresComparisonImage && commandBuilder.ComparisonImage == "" {
+			executionLog.SetText("Please load a comparison image first")
+			log.Println("Error: A comparison image is required for this command.")
+			return
 		}
-		logMessage := fmt.Sprintf("[green]Executing: %s[-]\n", strings.Join(args, " "))
-		executionLog.SetText(logMessage)
-		log.Println(logMessage)
+
+		args := []string{"go", "run", "main.go", "--" + cmd.Name}
+
+		log.Printf("GetFormItemCount %v", parameterForm.GetFormItemCount())
+		for i := 0; i < parameterForm.GetFormItemCount(); i++ {
+			input := parameterForm.GetFormItem(i).(*tview.InputField)
+			trimmedLabel := strings.Split(input.GetLabel(), "=")[0]
+			value := input.GetText()
+			log.Printf("trimmedLabel: %s, Value: %s\n", trimmedLabel, value)
+			if value != "" {
+				args = append(args, fmt.Sprintf("-%s=%s", trimmedLabel, value))
+			}
+		}
+
+		if commandBuilder.File != "" {
+			args = append(args, commandBuilder.FilePath)
+		} else {
+			executionLog.SetText("[red]Error: No file selected for processing[-]")
+			log.Println("Error: No file selected for processing.")
+			return
+		}
+
+		fullCommand := strings.Join(args, " ")
+
+		executionLog.SetText(fullCommand)
+		log.Printf("Executing command: %s\n", fullCommand)
 	}
 
 	for _, cmd := range cmd.AvailableCommands {
@@ -72,11 +146,13 @@ func getCommandManagerGrid(AppState *AppState) *tview.Grid {
 		})
 	}
 
-	commandManagerGrid.AddItem(commandManagerHeader, 0, 0, 1, 2, 0, 0, false)
-	commandManagerGrid.AddItem(commandList, 1, 0, 1, 1, 0, 0, true)
-	commandManagerGrid.AddItem(commandDetails, 1, 1, 1, 1, 0, 0, false)
-	commandManagerGrid.AddItem(parameterForm, 2, 0, 1, 1, 0, 0, false)
-	commandManagerGrid.AddItem(executionLog, 2, 1, 1, 1, 0, 0, false)
+	grid.AddItem(commandManagerHeader, 0, 0, 1, 1, 0, 0, false)
+	grid.AddItem(fileNameHeader, 1, 0, 1, 1, 0, 0, false)
+	grid.AddItem(loadedFilesList, 2, 0, 1, 1, 0, 0, true)
+	grid.AddItem(commandList, 3, 0, 1, 1, 0, 0, true)
+	grid.AddItem(commandDetails, 4, 0, 1, 1, 0, 0, false)
+	grid.AddItem(parameterForm, 5, 0, 1, 1, 0, 0, false)
+	grid.AddItem(executionLog, 6, 0, 1, 1, 0, 0, false)
 
-	return commandManagerGrid
+	return grid
 }
