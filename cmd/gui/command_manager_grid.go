@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image-processing/cmd"
 	"log"
+	"os/exec"
 	"strings"
 
 	"github.com/rivo/tview"
@@ -114,12 +115,10 @@ func getCommandManagerGrid(AppState *AppState) *tview.Grid {
 
 		args := []string{"go", "run", "main.go", "--" + cmd.Name}
 
-		log.Printf("GetFormItemCount %v", parameterForm.GetFormItemCount())
 		for i := 0; i < parameterForm.GetFormItemCount(); i++ {
 			input := parameterForm.GetFormItem(i).(*tview.InputField)
 			trimmedLabel := strings.Split(input.GetLabel(), "=")[0]
 			value := input.GetText()
-			log.Printf("trimmedLabel: %s, Value: %s\n", trimmedLabel, value)
 			if value != "" {
 				args = append(args, fmt.Sprintf("-%s=%s", trimmedLabel, value))
 			}
@@ -137,6 +136,17 @@ func getCommandManagerGrid(AppState *AppState) *tview.Grid {
 
 		executionLog.SetText(fullCommand)
 		log.Printf("Executing command: %s\n", fullCommand)
+
+		execCmd := exec.Command(args[0], args[1:]...)
+		output, err := execCmd.CombinedOutput()
+		if err != nil {
+			executionLog.SetText(fmt.Sprintf("[red]Error:[-] %v\n[red]Output:[-] %s", err, string(output)))
+			log.Printf("Command execution failed: %v\n", err)
+			return
+		}
+
+		log.Printf("Command executed successfully: %s\n", string(output))
+		executionLog.SetText(fmt.Sprintf("[green]Success![-]\n%s", string(output)))
 	}
 
 	for _, cmd := range cmd.AvailableCommands {
