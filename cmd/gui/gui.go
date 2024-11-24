@@ -18,7 +18,18 @@ type LoadedImage struct {
 }
 
 type LoadedImagesStore struct {
-	Images []LoadedImage
+	Images            []LoadedImage
+	ChangeSubscribers []func()
+}
+
+func (store *LoadedImagesStore) notifyChangeSubscribers() {
+	for _, sub := range store.ChangeSubscribers {
+		sub()
+	}
+}
+
+func (store *LoadedImagesStore) SubscribeToChanges(sub func()) {
+	store.ChangeSubscribers = append(store.ChangeSubscribers, sub)
 }
 
 func (store *LoadedImagesStore) loadImageData(index int) error {
@@ -41,10 +52,12 @@ func (store *LoadedImagesStore) removeImage(index int) {
 		return
 	}
 	store.Images = append(store.Images[:index], store.Images[index+1:]...)
+	store.notifyChangeSubscribers()
 }
 
 func (store *LoadedImagesStore) addImage(filename string, filepath string) {
 	store.Images = append(store.Images, LoadedImage{Filename: filename, Filepath: filepath, Loaded: false})
+	store.notifyChangeSubscribers()
 }
 
 type AppState struct {
