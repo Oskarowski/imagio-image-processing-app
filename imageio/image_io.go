@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"os"
+	"path/filepath"
 
 	"golang.org/x/image/bmp"
 )
@@ -24,7 +25,16 @@ func OpenBmpImage(imagePath string) (image.Image, error) {
 }
 
 func SaveBmpImage(img *image.RGBA, filename string) error {
-	file, err := os.Create(filename)
+	outputDir := "output"
+	if _, err := os.Stat(outputDir); os.IsNotExist(err) {
+		if err := os.Mkdir(outputDir, os.ModePerm); err != nil {
+			return fmt.Errorf("error creating output directory: %v", err)
+		}
+	}
+
+	fullPath := filepath.Join(outputDir, filename)
+
+	file, err := os.Create(fullPath)
 	if err != nil {
 		return fmt.Errorf("error creating BMP image file: %v", err)
 	}

@@ -16,8 +16,9 @@ type Command struct {
 	Name string
 	Args map[string]string
 }
+type Commands []Command
 
-func ParseCommands(args []string) []Command {
+func ParseCommands(args []string) Commands {
 	var commands []Command
 	var currentCommand *Command
 
@@ -76,6 +77,18 @@ var availableCommands = []commandInfo{
 	{"snr", "--snr <comparison_image_path> <bmp_image_path>", "Calculate Signal to Noise Ratio with a comparison image.", []string{}},
 	{"psnr", "--psnr <comparison_image_path> <bmp_image_path>", "Calculate Peak Signal to Noise Ratio with a comparison image.", []string{}},
 	{"md", "--md <comparison_image_path> <bmp_image_path>", "Calculate Max Difference with a comparison image.", []string{}},
+	{"histogram", "--histogram <bmp_image_path>", "Generate and save a graphical representation of the histogram of the image.", []string{}},
+	{"hrayleigh", "--hrayleigh -min=0 -max=255 -alpha=\"0.2\" <bmp_image_path>", "Apply Rayleigh transformation to the image.", []string{"-min=(int): Minimum value in the range [0, 255].", "-max=(int): Maximum value in the range [0, 255], must be greater than min.", "-alpha=(float): Alpha value for transformation. Note: Quote float values (e.g., -alpha=\"0.5\")."}},
+	{"cmean", "--cmean <bmp_image_path>", "Calculate the mean intensity from the histogram of the image.", []string{}},
+	{"cvariance", "--cvariance <bmp_image_path>", "Calculate the variance intensity from the histogram of the image.", []string{}},
+	{"cstdev", "--cstdev <bmp_image_path>", "Calculate the standard deviation from the histogram of the image.", []string{}},
+	{"cvarcoi", "--cvarcoi <bmp_image_path>", "Calculate the coefficient of variation (type I) from the histogram.", []string{}},
+	{"casyco", "--casyco <bmp_image_path>", "Calculate the asymmetry coefficient from the histogram.", []string{}},
+	{"cflatco", "--cflatco <bmp_image_path>", "Calculate the flattening coefficient from the histogram.", []string{}},
+	{"cvarcoii", "--cvarcoii <bmp_image_path>", "Calculate the coefficient of variation (type II) from the histogram.", []string{}},
+	{"centropy", "--centropy <bmp_image_path>", "Calculate the entropy from the histogram of the image.", []string{}},
+	{"sedgesharp", "--sedgesharp -mask=\"edge1\" <bmp_image_path>", "Apply edge sharpening with the specified mask.", []string{"-mask=(string): The name of the mask to use."}},
+	{"okirsf", "--okirsf <bmp_image_path>", "Apply Kirsch edge detection to the image.", []string{}},
 	{"help", "--help", "Show this help message.", []string{}},
 }
 
@@ -97,15 +110,40 @@ func PrintHelp() {
 	}
 }
 
-func AtoiOrDefault(val string, defaultValue int) int {
+func GetOrDefault[T int | string | float64](val string, defaultValue T) T {
 	if val == "" {
 		return defaultValue
 	}
 
-	num, err := strconv.Atoi(val)
-	if err != nil {
-		return defaultValue
+	var result any
+	switch any(defaultValue).(type) {
+	case int:
+		if num, err := strconv.Atoi(val); err == nil {
+			result = num
+		} else {
+			result = defaultValue
+		}
+	case float64:
+		if num, err := strconv.ParseFloat(val, 64); err == nil {
+			result = num
+		} else {
+			result = defaultValue
+		}
+	case string:
+		result = val
+
+	default:
+		result = defaultValue
 	}
 
-	return num
+	return result.(T)
+}
+
+func (commands Commands) Includes(name string) bool {
+	for _, cmd := range commands {
+		if cmd.Name == name {
+			return true
+		}
+	}
+	return false
 }
