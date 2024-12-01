@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"image-processing/cmd"
+	"image-processing/cmd/gui"
+	"log"
 	"os"
 )
 
@@ -12,9 +13,16 @@ func main() {
 		return
 	}
 
+	logFile, err := os.OpenFile("logs.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		log.Fatalf("Failed to open log file: %v", err)
+	}
+	defer logFile.Close()
+	log.SetOutput(logFile)
+
 	if len(os.Args) > 1 {
 		cmd.RunAsCliApp()
 	} else {
-		fmt.Println("Should run as TUI app")
+		gui.RunAsTUIApp()
 	}
 }
