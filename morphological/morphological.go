@@ -21,17 +21,17 @@ func ReflectSE(se StructuringElement) StructuringElement {
 }
 
 func Fits(image BinaryImage, se StructuringElement, x, y int) bool {
-	rows := len(se.Data)
-	cols := len(se.Data[0])
-	for i := 0; i < rows; i++ {
-		for j := 0; j < cols; j++ {
-			imgX := x - se.OriginX + i
-			imgY := y - se.OriginY + j
-			if imgX < 0 || imgX >= len(image) || imgY < 0 || imgY >= len(image[0]) {
-				continue
-			}
-			if se.Data[i][j] == 1 && image[imgX][imgY] == 0 {
-				return false
+	rows := len(image)
+	cols := len(image[0])
+
+	for i := 0; i < len(se.Data); i++ {
+		for j := 0; j < len(se.Data[i]); j++ {
+			if se.Data[i][j] == 1 {
+				newX := x + i - se.OriginX
+				newY := y + j - se.OriginY
+				if newX < 0 || newX >= rows || newY < 0 || newY >= cols || image[newX][newY] == 0 {
+					return false
+				}
 			}
 		}
 	}
