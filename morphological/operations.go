@@ -60,36 +60,71 @@ func Closing(image BinaryImage, se StructuringElement) BinaryImage {
 }
 
 func HitOrMiss(image BinaryImage, se1, se2 StructuringElement) BinaryImage {
-	erosion1 := Erosion(image, se1)
+	foreground := Erosion(image, se1)
 	complement := Complement(image)
-	erosion2 := Erosion(complement, se2)
-	return Intersection(erosion1, erosion2)
+	background := Erosion(complement, se2)
+	return Intersection(foreground, background)
 }
 
-func Complement(image BinaryImage) BinaryImage {
-	rows := len(image)
-	cols := len(image[0])
-	output := make(BinaryImage, rows)
-	for i := range output {
-		output[i] = make([]int, cols)
-		for j := range output[i] {
-			output[i][j] = 1 - image[i][j]
-		}
-	}
-	return output
-}
+// func Complement(image BinaryImage) BinaryImage {
+// 	rows := len(image)
+// 	cols := len(image[0])
+// 	output := make(BinaryImage, rows)
+// 	for i := range output {
+// 		output[i] = make([]int, cols)
+// 		for j := range output[i] {
+// 			// output[i][j] = 1 - image[i][j]
+// 			if image[i][j] == 1 {
+// 				output[i][j] = 0
+// 			} else {
+// 				output[i][j] = 1
+// 			}
+// 		}
+// 	}
 
-func Intersection(img1, img2 BinaryImage) BinaryImage {
-	rows := len(img1)
-	cols := len(img1[0])
-	output := make(BinaryImage, rows)
-	for i := range output {
-		output[i] = make([]int, cols)
-		for j := range output[i] {
-			if img1[i][j] == 1 && img2[i][j] == 1 {
-				output[i][j] = 1
+// 	return output
+// }
+
+func Complement(img BinaryImage) BinaryImage {
+	for i := range img {
+		for j := range img[i] {
+			if img[i][j] == 1 {
+				img[i][j] = 0
+			} else {
+				img[i][j] = 1
 			}
 		}
 	}
-	return output
+	return img
+}
+
+// func Intersection(img1, img2 BinaryImage) BinaryImage {
+// 	rows := len(img1)
+// 	cols := len(img1[0])
+// 	output := make(BinaryImage, rows)
+// 	for i := range output {
+// 		output[i] = make([]int, cols)
+// 		for j := range output[i] {
+// 			// if img1[i][j] == 1 && img2[i][j] == 1 {
+// 			// 	output[i][j] = 1
+// 			// }
+// 			if img1[i][j] == 1 && img2[i][j] == 1 {
+// 				output[i][j] = 1
+// 			} else {
+// 				output[i][j] = 0
+// 			}
+// 		}
+// 	}
+// 	return output
+// }
+
+func Intersection(img1, img2 BinaryImage) BinaryImage {
+	for i := range img1 {
+		for j := range img1[i] {
+			if img1[i][j] == 1 && img2[i][j] == 0 {
+				img1[i][j] = 0
+			}
+		}
+	}
+	return img1
 }
