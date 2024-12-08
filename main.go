@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"image-processing/cmd"
 	"image-processing/cmd/gui"
+	"image-processing/imageio"
 	"image-processing/morphological"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 func main() {
@@ -90,6 +92,53 @@ func main() {
 	for _, row := range resultHoS {
 		fmt.Println(row)
 	}
+
+	fmt.Println()
+
+	A := morphological.BinaryImage{
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0},
+		{0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0},
+		{0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
+		{0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
+		{0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0},
+		{0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0},
+		{0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0},
+		{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0},
+		{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0},
+		{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+		{0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	}
+
+	fmt.Println("Before Thinning Image:")
+	for _, rowA := range A {
+		fmt.Println(rowA)
+	}
+
+	thinnedImage := morphological.Thinning(A, morphological.StructuralElements)
+	fmt.Println("\nThinned Image:")
+	for _, row := range thinnedImage {
+		fmt.Println(row)
+	}
+
+	seeds := []morphological.Point{{X: 100, Y: 300}}
+
+	// hot to print the path?
+	absolutePath, _ := filepath.Abs("imgs/mandrilc.bmp")
+	img, err := imageio.OpenBmpImage(absolutePath)
+	if err != nil {
+		log.Fatalf("Error opening file: %v", err)
+	}
+	fmt.Println("Img opened...")
+
+	_, segmentedImg := morphological.RegionGrowing(img, seeds, 0, 40)
+	fmt.Println("Saving segmented image...")
+	imageio.SaveBmpImage(segmentedImg, "segmented_100_300_40.bmp")
+	fmt.Println("Segmented image SAVED!")
 
 	return
 
