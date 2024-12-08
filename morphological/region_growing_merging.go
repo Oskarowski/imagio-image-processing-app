@@ -16,10 +16,21 @@ type Region struct {
 	Label  int // ID of the region
 }
 
+func randomColor() color.Color {
+	return color.RGBA{
+		R: uint8(rand.Intn(256)),
+		G: uint8(rand.Intn(256)),
+		B: uint8(rand.Intn(256)),
+		A: 255,
+	}
+}
+
 func getNeighbors(p Point, rows, cols int) []Point {
 	neighbors := []Point{}
-	directions := []Point{{-1, 0}, {1, 0}, {0, -1}, {0, 1}}
-
+	directions := []Point{
+		{-1, 0}, {1, 0}, {0, -1}, {0, 1},
+		{-1, -1}, {-1, 1}, {1, -1}, {1, 1},
+	}
 	for _, d := range directions {
 		neighbor := Point{X: p.X + d.X, Y: p.Y + d.Y}
 
@@ -33,31 +44,49 @@ func getNeighbors(p Point, rows, cols int) []Point {
 
 func getPixelValue(c color.Color) []float64 {
 	r, g, b, _ := c.RGBA()
-	return []float64{float64(r >> 8), float64(g >> 8), float64(b >> 8)}
+
+	normalizedR := float64(r) / 257.0
+	normalizedG := float64(g) / 257.0
+	normalizedB := float64(b) / 257.0
+
+	if math.Abs(normalizedR-normalizedG) < 1e-6 && math.Abs(normalizedG-normalizedB) < 1e-6 {
+		return []float64{normalizedR} // Single channel for grayscale
+	}
+
+	return []float64{normalizedR, normalizedG, normalizedB} // RGB
 }
 
 func calculateDistance(criterion int, p1, p2 []float64) float64 {
-	rDiff := p1[0] - p2[0]
-	gDiff := p1[1] - p2[1]
-	bDiff := p1[2] - p2[2]
+	if len(p1) != len(p2) {
+		panic("Pixel values must have the same dimension")
+	}
 
 	switch criterion {
-	case 0: // Euclidean Distance - Reference: https://medium.com/@khushihp7903/exploring-image-segmentation-with-the-region-growing-algorithm-4972dae63680
-		return math.Sqrt(rDiff*rDiff + gDiff*gDiff + bDiff*bDiff)
+	case 0: // Euclidean Distance
+		sum := 0.0
+		for i := 0; i < len(p1); i++ {
+			diff := p1[i] - p2[i]
+			sum += diff * diff
+		}
+		return math.Sqrt(sum)
 	case 1: // Manhattan Distance
-		return math.Abs(rDiff) + math.Abs(gDiff) + math.Abs(bDiff)
+		sum := 0.0
+		for i := 0; i < len(p1); i++ {
+			sum += math.Abs(p1[i] - p2[i])
+		}
+		return sum
 	case 2: // Chebyshev Distance
-		return math.Max(math.Max(math.Abs(rDiff), math.Abs(gDiff)), math.Abs(bDiff))
+		maxDiff := 0.0
+		for i := 0; i < len(p1); i++ {
+			diff := math.Abs(p1[i] - p2[i])
+			if diff > maxDiff {
+				maxDiff = diff
+			}
+		}
+		return maxDiff
+
 	default:
 		return 0
-	}
-}
-func randomColor() color.Color {
-	return color.RGBA{
-		R: uint8(rand.Intn(256)),
-		G: uint8(rand.Intn(256)),
-		B: uint8(rand.Intn(256)),
-		A: 255,
 	}
 }
 
@@ -68,7 +97,6 @@ func RegionGrowing(img image.Image, seeds []Point, criterion int, threshold floa
 	segmented := make([][]int, height)
 	for y := range segmented {
 		segmented[y] = make([]int, width)
-
 		for x := range segmented[y] {
 			segmented[y][x] = -1
 		}
@@ -78,7 +106,7 @@ func RegionGrowing(img image.Image, seeds []Point, criterion int, threshold floa
 	label := 0
 
 	for _, seed := range seeds {
-		if segmented[seed.X][seed.Y] != -1 {
+		if segmented[seed.Y][seed.X] != -1 {
 			continue
 		}
 
@@ -89,20 +117,22 @@ func RegionGrowing(img image.Image, seeds []Point, criterion int, threshold floa
 		for len(queue) > 0 {
 			current := queue[0]
 			queue = queue[1:]
-			if segmented[current.X][current.Y] != -1 {
+
+			if segmented[current.Y][current.X] != -1 {
 				continue
 			}
 
-			segmented[current.X][current.Y] = label
+			segmented[current.Y][current.X] = label
 			outputImage.Set(current.X, current.Y, regionColor)
 
 			for _, neighbor := range getNeighbors(current, width, height) {
-				neighborValue := getPixelValue(img.At(neighbor.X, neighbor.Y))
+				if segmented[neighbor.Y][neighbor.X] == -1 {
+					neighborValue := getPixelValue(img.At(neighbor.X, neighbor.Y))
+					distance := calculateDistance(criterion, neighborValue, seedValue)
 
-				distance := calculateDistance(criterion, neighborValue, seedValue)
-
-				if segmented[neighbor.X][neighbor.Y] == -1 && distance <= threshold {
-					queue = append(queue, neighbor)
+					if distance <= threshold {
+						queue = append(queue, neighbor)
+					}
 				}
 			}
 		}
@@ -111,5 +141,4 @@ func RegionGrowing(img image.Image, seeds []Point, criterion int, threshold floa
 	}
 
 	return segmented, outputImage
-
 }

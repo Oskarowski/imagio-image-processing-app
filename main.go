@@ -125,19 +125,17 @@ func main() {
 		fmt.Println(row)
 	}
 
-	seeds := []morphological.Point{{X: 100, Y: 300}}
-
-	// hot to print the path?
-	absolutePath, _ := filepath.Abs("imgs/mandrilc.bmp")
+	absolutePath, _ := filepath.Abs("imgs/lenac.bmp")
 	img, err := imageio.OpenBmpImage(absolutePath)
 	if err != nil {
 		log.Fatalf("Error opening file: %v", err)
 	}
-	fmt.Println("Img opened...")
 
-	_, segmentedImg := morphological.RegionGrowing(img, seeds, 0, 40)
+	seeds := []morphological.Point{{X: 320, Y: 450}, {X: 500, Y: 40}, {X: 50, Y: 250}, {X: 200, Y: 236}}
+	_, segmentedImg := morphological.RegionGrowing(img, seeds, 2, 45)
+
 	fmt.Println("Saving segmented image...")
-	imageio.SaveBmpImage(segmentedImg, "segmented_100_300_40.bmp")
+	imageio.SaveBmpImage(segmentedImg, "lenac_segmented_320_450_30_2.bmp")
 	fmt.Println("Segmented image SAVED!")
 
 	return
