@@ -24,17 +24,15 @@ func main() {
 	defer logFile.Close()
 	log.SetOutput(logFile)
 
-	image := morphological.BinaryImage{
-		{0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 1, 1, 0, 0},
-		{0, 1, 1, 1, 1, 1, 1, 0},
-		{0, 0, 0, 0, 1, 1, 1, 0},
-		{0, 0, 0, 1, 1, 1, 1, 0},
-		{0, 0, 0, 1, 0, 1, 0, 0},
-		{0, 0, 1, 1, 0, 1, 0, 0},
-		{0, 0, 0, 0, 1, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0},
+	absoluteBinaryImgPath, _ := filepath.Abs("imgs/lenabw.bmp")
+	img, err := imageio.LoadMonochromeBMP(absoluteBinaryImgPath)
+	if err != nil {
+		log.Fatalf("Error opening file: %v", err)
 	}
+
+	image := morphological.ConvertIntoBinaryImage(img)
+
+	imageio.SaveBmpImage(morphological.ConvertIntoImage(image), "converted_to_binary_and_into_image.bmp")
 
 	se := morphological.StructuringElement{
 		Data: [][]int{
@@ -47,28 +45,17 @@ func main() {
 	}
 
 	dilated := morphological.Dilation(image, se)
+	imageio.SaveBmpImage(morphological.ConvertIntoImage(dilated), "dilated.bmp")
 	fmt.Println("Dilated:")
-	for _, row := range dilated {
-		fmt.Println(row)
-	}
 
 	eroded := morphological.Erosion(image, se)
-	fmt.Println("Eroded:")
-	for _, row := range eroded {
-		fmt.Println(row)
-	}
+	imageio.SaveBmpImage(morphological.ConvertIntoImage(eroded), "eroded.bmp")
 
 	opened := morphological.Opening(image, se)
-	fmt.Println("Opened:")
-	for _, row := range opened {
-		fmt.Println(row)
-	}
+	imageio.SaveBmpImage(morphological.ConvertIntoImage(opened), "opened.bmp")
 
 	closed := morphological.Closing(image, se)
-	fmt.Println("Closed:")
-	for _, row := range closed {
-		fmt.Println(row)
-	}
+	imageio.SaveBmpImage(morphological.ConvertIntoImage(closed), "closed.bmp")
 
 	foregroundSE := morphological.StructuringElement{
 		Data: [][]int{
@@ -88,54 +75,24 @@ func main() {
 		OriginX: 2, OriginY: 1,
 	}
 	resultHoS := morphological.HitOrMiss(image, foregroundSE, backgroundSE)
-	fmt.Println("Hit or Miss:")
-	for _, row := range resultHoS {
-		fmt.Println(row)
-	}
+	imageio.SaveBmpImage(morphological.ConvertIntoImage(resultHoS), "resultHoS.bmp")
 
 	fmt.Println()
 
-	A := morphological.BinaryImage{
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0},
-		{0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0},
-		{0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
-		{0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
-		{0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0},
-		{0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0},
-		{0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0},
-		{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0},
-		{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0},
-		{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
-		{0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-	}
-
-	fmt.Println("Before Thinning Image:")
-	for _, rowA := range A {
-		fmt.Println(rowA)
-	}
-
-	thinnedImage := morphological.Thinning(A, morphological.StructuralElements)
-	fmt.Println("\nThinned Image:")
-	for _, row := range thinnedImage {
-		fmt.Println(row)
-	}
+	thinnedImage := morphological.Thinning(image, morphological.StructuralElements)
+	imageio.SaveBmpImage(morphological.ConvertIntoImage(thinnedImage), "thinned.bmp")
 
 	absolutePath, _ := filepath.Abs("imgs/lenac.bmp")
-	img, err := imageio.OpenBmpImage(absolutePath)
+	imgg, err := imageio.OpenBmpImage(absolutePath)
 	if err != nil {
 		log.Fatalf("Error opening file: %v", err)
 	}
 
 	seeds := []morphological.Point{{X: 320, Y: 450}, {X: 500, Y: 40}, {X: 50, Y: 250}, {X: 200, Y: 236}}
-	_, segmentedImg := morphological.RegionGrowing(img, seeds, 2, 45)
+	_, segmentedImg := morphological.RegionGrowing(imgg, seeds, morphological.Chebyshev, 35)
 
 	fmt.Println("Saving segmented image...")
-	imageio.SaveBmpImage(segmentedImg, "lenac_segmented_320_450_30_2.bmp")
+	imageio.SaveBmpImage(segmentedImg, "segmented_320_450_30_2.bmp")
 	fmt.Println("Segmented image SAVED!")
 
 	return
