@@ -1,14 +1,23 @@
 package morphological
 
 import (
+	"encoding/json"
+	"fmt"
 	"image"
+	"io/ioutil"
+	"os"
 )
 
 type BinaryImage [][]int
 
 type StructuringElement struct {
-	Data             [][]int
-	OriginX, OriginY int
+	Data    [][]int `json:"data"`
+	OriginX int     `json:"originX"`
+	OriginY int     `json:"originY"`
+}
+
+type StructureElementsJSON struct {
+	StructureElements map[string]StructuringElement `json:"structure_elements"`
 }
 
 func ConvertIntoBinaryImage(img image.Image) BinaryImage {
@@ -65,4 +74,25 @@ func Fits(image BinaryImage, se StructuringElement, x, y int) bool {
 		}
 	}
 	return true
+}
+
+func LoadStructureElementsFromJSON(filepath string) (map[string]StructuringElement, error) {
+	file, err := os.Open(filepath)
+	if err != nil {
+		return nil, fmt.Errorf("error opening file: %v", err)
+	}
+	defer file.Close()
+
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		return nil, fmt.Errorf("error reading file: %v", err)
+	}
+
+	var structureElementsJSON StructureElementsJSON
+	err = json.Unmarshal(data, &structureElementsJSON)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshaling JSON: %v", err)
+	}
+
+	return structureElementsJSON.StructureElements, nil
 }

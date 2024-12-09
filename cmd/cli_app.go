@@ -6,6 +6,7 @@ import (
 	"image-processing/analysis"
 	"image-processing/imageio"
 	"image-processing/manipulations"
+	"image-processing/morphological"
 	"image-processing/noise"
 	"log"
 	"os"
@@ -55,6 +56,11 @@ func RunAsCliApp() {
 	loadedMasks, err := manipulations.LoadMasksFromJSON("masks.json")
 	if err != nil {
 		log.Fatalf("Error loading masks: %v", err)
+	}
+
+	loadedStructureElements, err := morphological.LoadStructureElementsFromJSON("structure_elements.json")
+	if err != nil {
+		log.Fatalf("Error loading structure elements: %v", err)
 	}
 
 	originalName := filepath.Base(imagePath)
