@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"image"
-	"io/ioutil"
+	"io"
 	"os"
 )
+
+// Helpful presentation: https://www.ee.nthu.edu.tw/clhuang/09420EE368000DIP/chapter09.pdf
 
 type BinaryImage [][]int
 
@@ -83,7 +85,7 @@ func LoadStructureElementsFromJSON(filepath string) (map[string]StructuringEleme
 	}
 	defer file.Close()
 
-	data, err := ioutil.ReadAll(file)
+	data, err := io.ReadAll(file)
 	if err != nil {
 		return nil, fmt.Errorf("error reading file: %v", err)
 	}

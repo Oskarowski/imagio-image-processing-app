@@ -85,7 +85,6 @@ func Thinning(image BinaryImage, structElems []BinaryImage) BinaryImage {
 		return result, changed
 	}
 
-	// Repeat thinning operations with all structural elements until no changes occur
 	changed := true
 	for changed {
 		changed = false
