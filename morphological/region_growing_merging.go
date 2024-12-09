@@ -16,6 +16,14 @@ type Region struct {
 	Label  int // ID of the region
 }
 
+type DistanceCriterion int
+
+const (
+	Euclidean DistanceCriterion = iota
+	Manhattan
+	Chebyshev
+)
+
 func randomColor() color.Color {
 	return color.RGBA{
 		R: uint8(rand.Intn(256)),
@@ -56,26 +64,26 @@ func getPixelValue(c color.Color) []float64 {
 	return []float64{normalizedR, normalizedG, normalizedB} // RGB
 }
 
-func calculateDistance(criterion int, p1, p2 []float64) float64 {
+func calculateDistance(criterion DistanceCriterion, p1, p2 []float64) float64 {
 	if len(p1) != len(p2) {
 		panic("Pixel values must have the same dimension")
 	}
 
 	switch criterion {
-	case 0: // Euclidean Distance
+	case Euclidean:
 		sum := 0.0
 		for i := 0; i < len(p1); i++ {
 			diff := p1[i] - p2[i]
 			sum += diff * diff
 		}
 		return math.Sqrt(sum)
-	case 1: // Manhattan Distance
+	case Manhattan:
 		sum := 0.0
 		for i := 0; i < len(p1); i++ {
 			sum += math.Abs(p1[i] - p2[i])
 		}
 		return sum
-	case 2: // Chebyshev Distance
+	case Chebyshev:
 		maxDiff := 0.0
 		for i := 0; i < len(p1); i++ {
 			diff := math.Abs(p1[i] - p2[i])
@@ -90,7 +98,7 @@ func calculateDistance(criterion int, p1, p2 []float64) float64 {
 	}
 }
 
-func RegionGrowing(img image.Image, seeds []Point, criterion int, threshold float64) ([][]int, *image.RGBA) {
+func RegionGrowing(img image.Image, seeds []Point, criterion DistanceCriterion, threshold float64) ([][]int, *image.RGBA) {
 	bounds := img.Bounds()
 	width, height := bounds.Dx(), bounds.Dy()
 
