@@ -84,7 +84,10 @@ func LoadMonochromeBMP(filePath string) (image.Image, error) {
 	height := int(binary.LittleEndian.Uint32(header[22:26]))
 	bitDepth := uint16(binary.LittleEndian.Uint16(header[28:30]))
 
-	if bitDepth != 1 {
+	// Fallback for 24-bit BMP files
+	if bitDepth == 24 {
+		return load24BitBMPAsBinary(file, header, width, height)
+	} else if bitDepth != 1 {
 		return nil, fmt.Errorf("unsupported bit depth: %d", bitDepth)
 	}
 
@@ -92,7 +95,6 @@ func LoadMonochromeBMP(filePath string) (image.Image, error) {
 	rowBytes := (width + 7) / 8 // Each pixel is 1 bit
 	rowPadding := (4 - (rowBytes % 4)) % 4
 
-	// Read pixel data
 	pixelDataOffset := binary.LittleEndian.Uint32(header[10:14])
 	_, err = file.Seek(int64(pixelDataOffset), 0)
 	if err != nil {
@@ -114,7 +116,48 @@ func LoadMonochromeBMP(filePath string) (image.Image, error) {
 			byteIndex := rowStart + x/8
 			bitIndex := 7 - (x % 8)
 			if (pixelData[byteIndex]>>bitIndex)&1 == 1 {
-				img.SetGray(x, height-y-1, color.Gray{Y: 255}) // BMP stores rows bottom-to-top
+				img.SetGray(x, height-y-1, color.Gray{Y: 255}) // Interesting thing BMP stores rows bottom-to-top
+			} else {
+				img.SetGray(x, height-y-1, color.Gray{Y: 0})
+			}
+		}
+	}
+
+	return img, nil
+}
+
+func load24BitBMPAsBinary(file *os.File, header []byte, width, height int) (image.Image, error) {
+	// Calculate padding (each row is padded to 4 bytes)
+	rowBytes := width * 3 // Each pixel is 3 bytes (RGB)
+	rowPadding := (4 - (rowBytes % 4)) % 4
+
+	// Read pixel data
+	pixelDataOffset := binary.LittleEndian.Uint32(header[10:14])
+	_, err := file.Seek(int64(pixelDataOffset), 0)
+	if err != nil {
+		return nil, fmt.Errorf("error seeking to pixel data: %v", err)
+	}
+
+	pixelData := make([]byte, (rowBytes+rowPadding)*height)
+	_, err = file.Read(pixelData)
+	if err != nil {
+		return nil, fmt.Errorf("error reading pixel data: %v", err)
+	}
+
+	img := image.NewGray(image.Rect(0, 0, width, height))
+
+	// Convert BMP pixel data to binary image based on intensity threshold
+	for y := 0; y < height; y++ {
+		rowStart := y * (rowBytes + rowPadding)
+		for x := 0; x < width; x++ {
+			r := pixelData[rowStart+x*3+2]
+			g := pixelData[rowStart+x*3+1]
+			b := pixelData[rowStart+x*3+0]
+			gray := (uint16(r) + uint16(g) + uint16(b)) / 3
+
+			threshold := uint16(128)
+			if gray > threshold {
+				img.SetGray(x, height-y-1, color.Gray{Y: 255})
 			} else {
 				img.SetGray(x, height-y-1, color.Gray{Y: 0})
 			}
