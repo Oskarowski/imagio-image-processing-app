@@ -1,5 +1,9 @@
 package morphological
 
+import (
+	"image"
+)
+
 type BinaryImage [][]int
 
 type StructuringElement struct {
@@ -7,17 +11,42 @@ type StructuringElement struct {
 	OriginX, OriginY int
 }
 
-func ReflectSE(se StructuringElement) StructuringElement {
-	rows := len(se.Data)
-	cols := len(se.Data[0])
-	reflected := make([][]int, rows)
-	for i := range reflected {
-		reflected[i] = make([]int, cols)
-		for j := range reflected[i] {
-			reflected[i][j] = se.Data[rows-i-1][cols-j-1]
+func ConvertIntoBinaryImage(img image.Image) BinaryImage {
+	bounds := img.Bounds()
+	width, height := bounds.Dx(), bounds.Dy()
+
+	binaryImage := make(BinaryImage, height)
+	for y := 0; y < height; y++ {
+		binaryImage[y] = make([]int, width)
+		for x := 0; x < width; x++ {
+			r, g, b, _ := img.At(x, y).RGBA()
+			if r > 0 || g > 0 || b > 0 {
+				binaryImage[y][x] = 1
+			} else {
+				binaryImage[y][x] = 0
+			}
 		}
 	}
-	return StructuringElement{Data: reflected, OriginX: se.OriginX, OriginY: se.OriginY}
+
+	return binaryImage
+}
+
+func ConvertIntoImage(binaryImage BinaryImage) *image.RGBA {
+	height := len(binaryImage)
+	width := len(binaryImage[0])
+
+	img := image.NewRGBA(image.Rect(0, 0, width, height))
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			if binaryImage[y][x] == 1 {
+				img.Set(x, y, image.White)
+			} else {
+				img.Set(x, y, image.Black)
+			}
+		}
+	}
+
+	return img
 }
 
 func Fits(image BinaryImage, se StructuringElement, x, y int) bool {
