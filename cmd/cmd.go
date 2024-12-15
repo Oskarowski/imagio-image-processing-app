@@ -98,7 +98,7 @@ var AvailableCommands = []CommandInfo{
 		"-se2=(string): Path to or inline definition of the background structuring element.",
 	}},
 	{"thinning", "--thinning <bmp_image_path>", "Apply thinning operation to the image.", []string{}},
-	{"regiongrow", "--regiongrow -seeds=<seeds> -metric=<metric> -threshold=<value> <bmp_image_path>", "Perform region growing segmentation on the image.", []string{
+	{"region-grow", "--region-grow -seeds=<seeds> -metric=<metric> -threshold=<value> <bmp_image_path>", "Perform region growing segmentation on the image.", []string{
 		"-seeds=(string): List of seed points as [x,y][x,y][x,y].",
 		"-metric=(int): Distance metric ('0 - Euclidean', '1 - Manhattan', '2 - Chebyshev').",
 		"-threshold=(double): Similarity threshold for region growing.",
