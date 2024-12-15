@@ -1,6 +1,6 @@
 package morphological
 
-var StructuralElements = []BinaryImage{
+var SeriesXIISE = []BinaryImage{
 	{
 		{1, 1, 1},
 		{-1, 1, -1},
@@ -40,6 +40,29 @@ var StructuralElements = []BinaryImage{
 		{0, 0, -1},
 		{0, 1, 1},
 		{-1, 0, 1},
+	},
+}
+
+var SeriesXISE = []BinaryImage{
+	{
+		{1, -1, -1},
+		{1, 0, -1},
+		{1, -1, -1},
+	},
+	{
+		{1, 1, 1},
+		{-1, 0, -1},
+		{-1, -1, -1},
+	},
+	{
+		{-1, -1, 1},
+		{-1, 0, 1},
+		{-1, -1, 1},
+	},
+	{
+		{-1, -1, -1},
+		{-1, 0, -1},
+		{1, 1, 1},
 	},
 }
 
