@@ -32,6 +32,10 @@ func OpenBmpImage(imagePath string) (image.Image, error) {
 		return nil, fmt.Errorf("error resetting file pointer: %v", err)
 	}
 
+	if img, err := LoadMonochromeBMP(imagePath); err == nil {
+		return img, nil
+	}
+
 	// Fallback to generic image decoding
 	img, format, err := image.Decode(file)
 	if err != nil {
