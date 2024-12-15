@@ -22,6 +22,13 @@ type StructureElementsJSON struct {
 	StructureElements map[string]StructuringElement `json:"structure_elements"`
 }
 
+func GetStructureElement(structureElements map[string]StructuringElement, seName string) (StructuringElement, error) {
+	if structureElement, exists := structureElements[seName]; exists {
+		return structureElement, nil
+	}
+	return StructuringElement{}, fmt.Errorf("structural Element %s not found", seName)
+}
+
 func ConvertIntoBinaryImage(img image.Image) BinaryImage {
 	bounds := img.Bounds()
 	width, height := bounds.Dx(), bounds.Dy()
