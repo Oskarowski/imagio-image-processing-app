@@ -1,10 +1,13 @@
 package morphological
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"math"
 	"math/rand"
+	"regexp"
+	"strconv"
 )
 
 type Point struct {
@@ -23,6 +26,30 @@ const (
 	Manhattan
 	Chebyshev
 )
+
+func ParseSeedPoints(seedInput string) ([]Point, error) {
+	var points []Point
+
+	re := regexp.MustCompile(`\[(\d+),(\d+)\]`)
+	matches := re.FindAllStringSubmatch(seedInput, -1)
+
+	if len(matches) == 0 {
+		return nil, fmt.Errorf("no seed points found or invalid format %s", seedInput)
+	}
+
+	for _, match := range matches {
+		x, err1 := strconv.Atoi(match[1])
+		y, err2 := strconv.Atoi(match[2])
+
+		if err1 != nil || err2 != nil {
+			return nil, fmt.Errorf("invalid coordinate values in: %s", match[0])
+		}
+
+		points = append(points, Point{X: x, Y: y})
+	}
+
+	return points, nil
+}
 
 func randomColor() color.Color {
 	return color.RGBA{
