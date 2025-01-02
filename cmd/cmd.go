@@ -89,6 +89,20 @@ var AvailableCommands = []CommandInfo{
 	{"centropy", "--centropy <bmp_image_path>", "Calculate the entropy from the histogram of the image.", []string{}},
 	{"sedgesharp", "--sedgesharp -mask=\"edge1\" <bmp_image_path>", "Apply edge sharpening with the specified mask.", []string{"-mask=(string): The name of the mask to use."}},
 	{"okirsf", "--okirsf <bmp_image_path>", "Apply Kirsch edge detection to the image.", []string{}},
+	{"dilation", "--dilation -se=<structuring_element> <bmp_image_path>", "Apply dilation operation using the specified structuring element.", []string{"-se=(string): Name of SE based on structure_elements.json."}},
+	{"erosion", "--erosion -se=<structuring_element> <bmp_image_path>", "Apply erosion operation using the specified structuring element.", []string{"-se=(string): Name of SE based on structure_elements.json."}},
+	{"opening", "--opening -se=<structuring_element> <bmp_image_path>", "Apply opening operation using the specified structuring element.", []string{"-se=(string): Name of SE based on structure_elements.json."}},
+	{"closing", "--closing -se=<structuring_element> <bmp_image_path>", "Apply closing operation using the specified structuring element.", []string{"-se=(string): Name of SE based on structure_elements.json."}},
+	{"hmt", "--hmt -se1=<foreground_se> -se2=<background_se> <bmp_image_path>", "Perform hit-or-miss transformation using foreground and background structuring elements.", []string{
+		"-se1=(string): Path to or inline definition of the foreground structuring element.",
+		"-se2=(string): Path to or inline definition of the background structuring element.",
+	}},
+	{"thinning", "--thinning <bmp_image_path>", "Apply thinning operation to the image.", []string{}},
+	{"region-grow", "--region-grow -seeds=<seeds> -metric=<metric> -threshold=<value> <bmp_image_path>", "Perform region growing segmentation on the image.", []string{
+		"-seeds=(string): List of seed points as [x,y][x,y][x,y].",
+		"-metric=(int): Distance metric ('0 - Euclidean', '1 - Manhattan', '2 - Chebyshev').",
+		"-threshold=(double): Similarity threshold for region growing.",
+	}},
 	{"help", "--help", "Show this help message.", []string{}},
 }
 

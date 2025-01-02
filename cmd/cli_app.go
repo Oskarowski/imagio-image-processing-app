@@ -6,6 +6,7 @@ import (
 	"image-processing/analysis"
 	"image-processing/imageio"
 	"image-processing/manipulations"
+	"image-processing/morphological"
 	"image-processing/noise"
 	"log"
 	"os"
@@ -55,6 +56,11 @@ func RunAsCliApp() {
 	loadedMasks, err := manipulations.LoadMasksFromJSON("masks.json")
 	if err != nil {
 		log.Fatalf("Error loading masks: %v", err)
+	}
+
+	loadedStructureElements, err := morphological.LoadStructureElementsFromJSON("structure_elements.json")
+	if err != nil {
+		log.Fatalf("Error loading structure elements: %v", err)
 	}
 
 	originalName := filepath.Base(imagePath)
@@ -396,6 +402,127 @@ func RunAsCliApp() {
 			outputFileName := fmt.Sprintf("%s_kirsh_edge_detection.bmp", originalNameWithoutExt)
 
 			newImg := manipulations.ApplyKirshEdgeDetection(img)
+
+			imageQueue = append(imageQueue, ImageQueueItem{Image: newImg, Filename: outputFileName})
+
+		case "dilation":
+
+			chosenStructureElement := GetOrDefault(command.Args["se"], "iv")
+
+			se, err := morphological.GetStructureElement(loadedStructureElements, chosenStructureElement)
+
+			if err != nil {
+				log.Fatalf("Error getting structural element: %v", err)
+			}
+
+			outputFileName := fmt.Sprintf("%s_dilated_se_%s.bmp", originalNameWithoutExt, chosenStructureElement)
+
+			newBinaryImg := morphological.Dilation(morphological.ConvertIntoBinaryImage(img), se)
+
+			imageQueue = append(imageQueue, ImageQueueItem{Image: morphological.ConvertIntoImage(newBinaryImg), Filename: outputFileName})
+
+		case "erosion":
+
+			chosenStructureElement := GetOrDefault(command.Args["se"], "iv")
+
+			se, err := morphological.GetStructureElement(loadedStructureElements, chosenStructureElement)
+
+			if err != nil {
+				log.Fatalf("Error getting structural element: %v", err)
+			}
+
+			outputFileName := fmt.Sprintf("%s_eroded_se_%s.bmp", originalNameWithoutExt, chosenStructureElement)
+
+			newBinaryImg := morphological.Erosion(morphological.ConvertIntoBinaryImage(img), se)
+
+			imageQueue = append(imageQueue, ImageQueueItem{Image: morphological.ConvertIntoImage(newBinaryImg), Filename: outputFileName})
+
+		case "opening":
+
+			chosenStructureElement := GetOrDefault(command.Args["se"], "iv")
+
+			se, err := morphological.GetStructureElement(loadedStructureElements, chosenStructureElement)
+
+			if err != nil {
+				log.Fatalf("Error getting structural element: %v", err)
+			}
+
+			outputFileName := fmt.Sprintf("%s_opened_se_%s.bmp", originalNameWithoutExt, chosenStructureElement)
+
+			newBinaryImg := morphological.Opening(morphological.ConvertIntoBinaryImage(img), se)
+
+			imageQueue = append(imageQueue, ImageQueueItem{Image: morphological.ConvertIntoImage(newBinaryImg), Filename: outputFileName})
+
+		case "closing":
+
+			chosenStructureElement := GetOrDefault(command.Args["se"], "iv")
+
+			se, err := morphological.GetStructureElement(loadedStructureElements, chosenStructureElement)
+
+			if err != nil {
+				log.Fatalf("Error getting structural element: %v", err)
+			}
+
+			outputFileName := fmt.Sprintf("%s_closed_se_%s.bmp", originalNameWithoutExt, chosenStructureElement)
+
+			newBinaryImg := morphological.Closing(morphological.ConvertIntoBinaryImage(img), se)
+
+			imageQueue = append(imageQueue, ImageQueueItem{Image: morphological.ConvertIntoImage(newBinaryImg), Filename: outputFileName})
+
+		case "HMT":
+
+			foregroundStructureElement := GetOrDefault(command.Args["se1"], "xi-l")
+			backgroundStructureElement := GetOrDefault(command.Args["se2"], "xi-c")
+
+			se1, err1 := morphological.GetStructureElement(loadedStructureElements, foregroundStructureElement)
+			se2, err2 := morphological.GetStructureElement(loadedStructureElements, backgroundStructureElement)
+
+			if err1 != nil || err2 != nil {
+				log.Fatalf("Error getting structural element: %v | %v", err, err2)
+			}
+
+			outputFileName := fmt.Sprintf("%s_hmt_se1_%s_se2_%s.bmp", originalNameWithoutExt, foregroundStructureElement, backgroundStructureElement)
+
+			newBinaryImg := morphological.HitOrMiss(morphological.ConvertIntoBinaryImage(img), se1, se2)
+
+			imageQueue = append(imageQueue, ImageQueueItem{Image: morphological.ConvertIntoImage(newBinaryImg), Filename: outputFileName})
+
+		case "thinning":
+
+			chosenStructuralElementsSeries := GetOrDefault(command.Args["se"], "xii")
+
+			var seSeries []morphological.BinaryImage
+			switch chosenStructuralElementsSeries {
+			case "xi":
+				seSeries = morphological.SeriesXISE
+			case "xii":
+				seSeries = morphological.SeriesXIISE
+			}
+
+			outputFileName := fmt.Sprintf("%s_thinned_se_%s_series_applied.bmp", originalNameWithoutExt, chosenStructuralElementsSeries)
+
+			newBinaryImg := morphological.Thinning(morphological.ConvertIntoBinaryImage(img), seSeries)
+
+			imageQueue = append(imageQueue, ImageQueueItem{Image: morphological.ConvertIntoImage(newBinaryImg), Filename: outputFileName})
+
+		case "region-grow":
+
+			seeds, err := morphological.ParseSeedPoints(command.Args["seeds"])
+
+			if err != nil {
+				log.Fatalf("Error parsing seed points: %v", err)
+			}
+
+			distanceMetric := morphological.DistanceCriterion(GetOrDefault(command.Args["metric"], 0))
+			threshold := GetOrDefault(command.Args["threshold"], 20.0)
+
+			if threshold < 0 {
+				log.Fatalf("Threshold must be a positive number")
+			}
+
+			outputFileName := fmt.Sprintf("%s_region_growing_threshold_%v_method_%v.bmp", originalNameWithoutExt, threshold, distanceMetric)
+
+			_, newImg := morphological.RegionGrowing(img, seeds, distanceMetric, threshold)
 
 			imageQueue = append(imageQueue, ImageQueueItem{Image: newImg, Filename: outputFileName})
 
