@@ -1,13 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"image-processing/imageio"
 	"image-processing/orthogonal_transforms"
 	"log"
 )
 
 func main() {
-	loadedImg, err := imageio.OpenBmpImage("imgs/boat.bmp")
+	loadedImg, err := imageio.OpenBmpImage("imgs/camera.bmp")
 	// loadedImg, err := imageio.OpenBmpImage("imgs/lenag.bmp")
 	if err != nil {
 		log.Fatalf("Error opening file: %v", err)
@@ -19,6 +20,7 @@ func main() {
 	// imageio.SaveBmpImage(orthogonal_transforms.VisualizeSpectrumInImage(complexImg, 512, 512), "visualize_loaded_img.bmp")
 
 	fftData := orthogonal_transforms.FFT2D(complexImg, false)
+	fmt.Println("Computed FT data")
 	dcComponent := fftData[0][0]
 
 	// centeredFrequency := orthogonal_transforms.SwapQuadrants(fftData)
@@ -29,6 +31,7 @@ func main() {
 	normalized := orthogonal_transforms.NormalizeMagnitude(magnitude)
 	magnitudeImg := orthogonal_transforms.MagnitudeToImage(normalized)
 	imageio.SaveBmpImage(magnitudeImg, "magnitude_spectrum.bmp")
+	fmt.Println("Computed Magnitude Visualization")
 
 	// imageio.SaveBmpImage(orthogonal_transforms.ConvertComplexToImage(fftData), "fft_data_of_complex_img.bmp")
 	// imageio.SaveBmpImage(orthogonal_transforms.VisualizeSpectrumInImage(fftData, 512, 512), "visualize_fft_data_of_complex_img.bmp")
@@ -36,11 +39,13 @@ func main() {
 	// tifftData := orthogonal_transforms.IFFT2D(fftData)
 	// imageio.SaveBmpImage(orthogonal_transforms.ConvertComplexToImage(tifftData), "inverse_fft_on_fft_data.bmp")
 
-	lowCutoff := 10.0
-	highCutoff := 50.0
+	// lowCutoff := 10.0
+	// highCutoff := 50.0
 
-	bandpassFiltered := orthogonal_transforms.BandPassFilter2D(shiftedFreqDomain, lowCutoff, highCutoff)
+	// bandpassFiltered := orthogonal_transforms.BandPassFilter2D(shiftedFreqDomain, lowCutoff, highCutoff)
+	bandpassFiltered := orthogonal_transforms.HighPassFilter2D(shiftedFreqDomain, 30)
 	bandpassFiltered[0][0] = dcComponent
+	fmt.Println("Computed Filter")
 
 	imageio.SaveBmpImage(orthogonal_transforms.ConvertComplexToImage(bandpassFiltered), "band_pass_matrix_to_img.bmp")
 	imageio.SaveBmpImage(orthogonal_transforms.VisualizeSpectrumInImage(bandpassFiltered, 512, 512), "visualize_band_pass_matrix.bmp")
@@ -49,8 +54,10 @@ func main() {
 	// centeredFrequency2 := orthogonal_transforms.SwapQuadrants(bandpassMatrix)
 
 	unshiftedFreqDomain := orthogonal_transforms.QuadrantsSwap(bandpassFiltered)
+	fmt.Println("Computed Unshifted Frequency Domain")
 
 	reconstructedImageMatrix := orthogonal_transforms.FFT2D(unshiftedFreqDomain, true)
+	fmt.Println("Computed Inverse FT")
 
 	imageio.SaveBmpImage(orthogonal_transforms.ConvertComplexToImage(reconstructedImageMatrix), "converted_band_pass_filter_img.bmp")
 	imageio.SaveBmpImage(orthogonal_transforms.VisualizeSpectrumInImage(reconstructedImageMatrix, 512, 512), "visualize_band_pass_filter_img.bmp")
