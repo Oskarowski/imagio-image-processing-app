@@ -18,7 +18,6 @@ func LowPassFilter(data [][]complex128, cutoff float64) [][]complex128 {
 	return output
 }
 
-// BandPassFilter2D applies a band-pass filter in the frequency domain
 func BandPassFilter2D(input [][]complex128, lowCutoff, highCutoff float64) [][]complex128 {
 	n := len(input)
 	m := len(input[0])
@@ -56,6 +55,47 @@ func BandPassFilter2D(input [][]complex128, lowCutoff, highCutoff float64) [][]c
 
 	return filtered
 }
+
+// func BandPassFilter2D(input [][]complex128, lowCutoff, highCutoff float64) [][]complex128 {
+// 	n := len(input)
+// 	m := len(input[0])
+
+// 	// Create filter mask
+// 	filter := make([][]float64, n)
+// 	for i := range filter {
+// 		filter[i] = make([]float64, m)
+// 	}
+
+// 	centerX, centerY := n/2, m/2
+
+// 	// Preserve the DC component
+// 	filter[centerX][centerY] = 1.0 // DC component should not be filtered
+
+// 	for i := 0; i < n; i++ {
+// 		for j := 0; j < m; j++ {
+// 			// Compute the distance from the center (frequency domain center)
+// 			dist := math.Sqrt(float64((i-centerX)*(i-centerX) + (j-centerY)*(j-centerY)))
+
+// 			// Apply band-pass filter for frequencies within the range [lowCutoff, highCutoff]
+// 			if dist >= lowCutoff && dist <= highCutoff {
+// 				filter[i][j] = 1.0
+// 			} else {
+// 				filter[i][j] = 0.0
+// 			}
+// 		}
+// 	}
+
+// 	// Apply the filter in the frequency domain
+// 	filtered := make([][]complex128, n)
+// 	for i := range filtered {
+// 		filtered[i] = make([]complex128, m)
+// 		for j := 0; j < m; j++ {
+// 			filtered[i][j] = input[i][j] * complex(filter[i][j], 0)
+// 		}
+// 	}
+
+// 	return filtered
+// }
 
 // BandCutFilter - Apply a band-cut (band-stop) filter to the 2D frequency-domain data.
 func BandCutFilter(fftData [][]complex128, lowCutoff, highCutoff int) [][]complex128 {

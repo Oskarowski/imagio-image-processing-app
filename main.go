@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	loadedImg, err := imageio.OpenBmpImage("imgs/mandril.bmp")
+	loadedImg, err := imageio.OpenBmpImage("imgs/boat.bmp")
 	// loadedImg, err := imageio.OpenBmpImage("imgs/lenag.bmp")
 	if err != nil {
 		log.Fatalf("Error opening file: %v", err)
@@ -19,10 +19,13 @@ func main() {
 	// imageio.SaveBmpImage(orthogonal_transforms.VisualizeSpectrumInImage(complexImg, 512, 512), "visualize_loaded_img.bmp")
 
 	fftData := orthogonal_transforms.FFT2D(complexImg, false)
+	dcComponent := fftData[0][0]
 
-	centeredFrequency := orthogonal_transforms.SwapQuadrants(fftData)
+	// centeredFrequency := orthogonal_transforms.SwapQuadrants(fftData)
 
-	magnitude := orthogonal_transforms.FFTMagnitudeSpectrum(centeredFrequency)
+	shiftedFreqDomain := orthogonal_transforms.QuadrantsSwap(fftData)
+
+	magnitude := orthogonal_transforms.FFTMagnitudeSpectrum(shiftedFreqDomain)
 	normalized := orthogonal_transforms.NormalizeMagnitude(magnitude)
 	magnitudeImg := orthogonal_transforms.MagnitudeToImage(normalized)
 	imageio.SaveBmpImage(magnitudeImg, "magnitude_spectrum.bmp")
@@ -36,15 +39,18 @@ func main() {
 	lowCutoff := 10.0
 	highCutoff := 50.0
 
-	bandpassMatrix := orthogonal_transforms.BandPassFilter2D(centeredFrequency, lowCutoff, highCutoff)
-	imageio.SaveBmpImage(orthogonal_transforms.ConvertComplexToImage(bandpassMatrix), "band_pass_matrix_to_img.bmp")
-	imageio.SaveBmpImage(orthogonal_transforms.VisualizeSpectrumInImage(bandpassMatrix, 512, 512), "visualize_band_pass_matrix.bmp")
-	imageio.SaveBmpImage(orthogonal_transforms.ConvertFloatMatrixToImage(orthogonal_transforms.VisualizeSpectrum(bandpassMatrix)), "visualize_spectrum_band_pass_matrix.bmp")
+	bandpassFiltered := orthogonal_transforms.BandPassFilter2D(shiftedFreqDomain, lowCutoff, highCutoff)
+	bandpassFiltered[0][0] = dcComponent
 
-	centeredFrequency2 := orthogonal_transforms.SwapQuadrants(bandpassMatrix)
+	imageio.SaveBmpImage(orthogonal_transforms.ConvertComplexToImage(bandpassFiltered), "band_pass_matrix_to_img.bmp")
+	imageio.SaveBmpImage(orthogonal_transforms.VisualizeSpectrumInImage(bandpassFiltered, 512, 512), "visualize_band_pass_matrix.bmp")
+	imageio.SaveBmpImage(orthogonal_transforms.ConvertFloatMatrixToImage(orthogonal_transforms.VisualizeSpectrum(bandpassFiltered)), "visualize_spectrum_band_pass_matrix.bmp")
 
-	// reconstructedImageMatrix := orthogonal_transforms.FFT2D(bandpassMatrix, true)
-	reconstructedImageMatrix := orthogonal_transforms.FFT2D(centeredFrequency2, true)
+	// centeredFrequency2 := orthogonal_transforms.SwapQuadrants(bandpassMatrix)
+
+	unshiftedFreqDomain := orthogonal_transforms.QuadrantsSwap(bandpassFiltered)
+
+	reconstructedImageMatrix := orthogonal_transforms.FFT2D(unshiftedFreqDomain, true)
 
 	imageio.SaveBmpImage(orthogonal_transforms.ConvertComplexToImage(reconstructedImageMatrix), "converted_band_pass_filter_img.bmp")
 	imageio.SaveBmpImage(orthogonal_transforms.VisualizeSpectrumInImage(reconstructedImageMatrix, 512, 512), "visualize_band_pass_filter_img.bmp")
