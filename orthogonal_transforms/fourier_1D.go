@@ -5,6 +5,29 @@ import (
 	"math/cmplx"
 )
 
+func SlowDFT1D(input []complex128, inverse bool) []complex128 {
+	n := len(input)
+	output := make([]complex128, n)
+	sign := 1.0
+	if inverse {
+		sign = -1.0
+	}
+
+	for k := 0; k < n; k++ {
+		var sum complex128
+		for t := 0; t < n; t++ {
+			angle := 2 * math.Pi * float64(k*t) / float64(n)
+			sum += input[t] * cmplx.Exp(complex(0, -sign*angle))
+		}
+		if inverse {
+			sum /= complex(float64(n), 0)
+		}
+		output[k] = sum
+	}
+
+	return output
+}
+
 func FFT1D(input []complex128, inverse bool) []complex128 {
 	n := len(input)
 	if n <= 1 {
