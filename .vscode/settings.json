@@ -1,6 +1,7 @@
 {
     "cSpell.words": [
         "asym",
+        "bandpass",
         "basicfont",
         "Bmax",
         "Bmed",
@@ -25,6 +26,8 @@
         "Grayscale",
         "hflip",
         "hrayleigh",
+        "IDFT",
+        "IFFT",
         "imageio",
         "imgs",
         "kirsh",
