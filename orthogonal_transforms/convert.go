@@ -3,6 +3,7 @@ package orthogonal_transforms
 import (
 	"image"
 	"image/color"
+	"math"
 )
 
 func ConvertImageToComplex(img image.Image) [][]complex128 {
@@ -36,7 +37,7 @@ func ConvertToFloatMatrix(img image.Image) [][]float64 {
 		for x := 0; x < width; x++ {
 			r, g, b, _ := img.At(x, y).RGBA()
 
-			gray := 0.299*float64(r/256) + 0.587*float64(g/256) + 0.114*float64(b/256)
+			gray := 0.299*float64(r>>8) + 0.587*float64(g>>8) + 0.114*float64(b>>8)
 			matrix[y][x] = gray
 
 		}
@@ -67,9 +68,29 @@ func ConvertComplexToImage(complexImg [][]complex128) *image.RGBA {
 	width := len(complexImg[0])
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 
+	var min, max float64
+	min = math.Inf(1)
+	max = math.Inf(-1)
+
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
-			pixelValue := uint8(real(complexImg[y][x]))
+			value := real(complexImg[y][x])
+			if value < min {
+				min = value
+			}
+			if value > max {
+				max = value
+			}
+		}
+	}
+
+	gamma := 1.0
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			value := real(complexImg[y][x])
+			normalized := (value - min) / (max - min) * 255.0
+			corrected := math.Pow(normalized/255.0, 1.0/gamma) * 255.0
+			pixelValue := uint8(math.Round(corrected))
 			img.Set(x, y, color.RGBA{pixelValue, pixelValue, pixelValue, 255})
 		}
 	}
