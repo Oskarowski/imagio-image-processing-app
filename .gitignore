@@ -23,6 +23,6 @@ go.work.sum
 # env file
 .env
 
-/output
+*output
 *.log
 *.logs
