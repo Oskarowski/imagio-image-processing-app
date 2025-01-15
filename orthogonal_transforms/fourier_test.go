@@ -68,7 +68,7 @@ func TestHighPassFilterWithEdgeDetection2DImage2(t *testing.T) {
 
 	binaryMask := morphological.ConvertIntoBinaryImage(maskImg)
 
-	filteredSpectrum := HighPassFilterWithEdgeDetection2D(shiftedSpectrum, binaryMask, 30, 2)
+	filteredSpectrum := HighPassFilterWithEdgeDetection2D(shiftedSpectrum, binaryMask)
 
 	magnitudeAfterFilter := FFTMagnitudeSpectrum(filteredSpectrum)
 	normalizedAfterFilter := NormalizeMagnitude(magnitudeAfterFilter)
@@ -88,5 +88,40 @@ func TestHighPassFilterWithEdgeDetection2DImage2(t *testing.T) {
 
 	imageio.SaveBmpImage(ConvertComplexToImage(reconstructedImageMatrix), "test_F5test2_High_Pass_With_Edge_Detection_converted_image.bmp")
 	imageio.SaveBmpImage(ConvertFloatMatrixToImage(VisualizeSpectrum(reconstructedImageMatrix)), "test_F5test2_High_Pass_With_Edge_Detection_visualize_image.bmp")
+}
+
+func TestBoatBandpass(t *testing.T) {
+	loadedImg, err := imageio.OpenBmpImage("../imgs/boat.bmp")
+	if err != nil {
+		log.Fatalf("Error opening file: %v", err)
+	}
+	complexImg := ConvertImageToComplex(loadedImg)
+
+	ftSpectrum := FFT2D(complexImg, false)
+
+	dcComponent := ftSpectrum[0][0]
+
+	shiftedSpectrum := QuadrantsSwap(ftSpectrum)
+
+	magnitude := FFTMagnitudeSpectrum(shiftedSpectrum)
+	normalized := NormalizeMagnitude(magnitude)
+	magnitudeImg := MagnitudeToImage(normalized)
+	imageio.SaveBmpImage(magnitudeImg, "test_boat_bandpass_magnitude_spectrum.bmp")
+
+	filteredSpectrum := BandPassFilter2D(shiftedSpectrum, 10.0, 50.0)
+
+	filteredSpectrum[0][0] = dcComponent
+
+	unshiftedFilteredSpectrum := QuadrantsSwap(filteredSpectrum)
+
+	magnitude2 := FFTMagnitudeSpectrum(unshiftedFilteredSpectrum)
+	normalized2 := NormalizeMagnitude(magnitude2)
+	magnitudeImg2 := MagnitudeToImage(normalized2)
+	imageio.SaveBmpImage(magnitudeImg2, "test_boat_bandpass_unshifted_after_filtered_magnitude_spectrum.bmp")
+
+	reconstructedImageMatrix := FFT2D(unshiftedFilteredSpectrum, true)
+
+	imageio.SaveBmpImage(ConvertComplexToImage(reconstructedImageMatrix), "test_boat_bandpass_converted_image.bmp")
+	imageio.SaveBmpImage(ConvertFloatMatrixToImage(VisualizeSpectrum(reconstructedImageMatrix)), "test_boat_bandpass_30_visualize_image.bmp")
 
 }

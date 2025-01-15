@@ -155,49 +155,11 @@ func BandCutFilter2D(input [][]complex128, lowCutoff, highCutoff float64) [][]co
 	return filtered
 }
 
-func ScaleMask(mask [][]int, targetHeight, targetWidth int) [][]int {
-	sourceHeight := len(mask)
-	sourceWidth := len(mask[0])
-
-	scaledMask := make([][]int, targetHeight)
-	for y := range scaledMask {
-		scaledMask[y] = make([]int, targetWidth)
-		for x := 0; x < targetWidth; x++ {
-			// Calculate source coordinates
-			sourceX := float64(x) * float64(sourceWidth) / float64(targetWidth)
-			sourceY := float64(y) * float64(sourceHeight) / float64(targetHeight)
-
-			// Bilinear interpolation
-			x0, y0 := int(math.Floor(sourceX)), int(math.Floor(sourceY))
-			x1, y1 := x0+1, y0+1
-			if x1 >= sourceWidth {
-				x1 = sourceWidth - 1
-			}
-			if y1 >= sourceHeight {
-				y1 = sourceHeight - 1
-			}
-
-			topLeft := mask[y0][x0]
-			topRight := mask[y0][x1]
-			bottomLeft := mask[y1][x0]
-			bottomRight := mask[y1][x1]
-
-			fx, fy := sourceX-float64(x0), sourceY-float64(y0)
-			top := float64(topLeft)*(1-fx) + float64(topRight)*fx
-			bottom := float64(bottomLeft)*(1-fx) + float64(bottomRight)*fx
-
-			scaledMask[y][x] = int(math.Round(top*(1-fy) + bottom*fy))
-		}
-	}
-
-	return scaledMask
-}
-
-func HighPassFilterWithEdgeDetection2D(imageSpectrum [][]complex128, mask morphological.BinaryImage, cutoff int, edgeDirection int) [][]complex128 {
+func HighPassFilterWithEdgeDetection2D(imageSpectrum [][]complex128, mask morphological.BinaryImage) [][]complex128 {
 	height := len(imageSpectrum)
 	width := len(imageSpectrum[0])
 
-	scaledMask := ScaleMask(mask, height, width)
+	scaledMask := scaleMask(mask, height, width)
 
 	spectrum := make([][]complex128, height)
 	for y := range spectrum {
@@ -208,7 +170,7 @@ func HighPassFilterWithEdgeDetection2D(imageSpectrum [][]complex128, mask morpho
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
 			if scaledMask[y][x] == 0 {
-				spectrum[y][x] = complex(0, 0)
+				spectrum[y][x] = 0
 			}
 		}
 	}

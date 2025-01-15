@@ -3,65 +3,61 @@ package main
 import (
 	"fmt"
 	"image-processing/imageio"
+	"image-processing/morphological"
 	"image-processing/orthogonal_transforms"
 	"log"
 )
 
 func main() {
-	loadedImg, err := imageio.OpenBmpImage("imgs/camera.bmp")
-	// loadedImg, err := imageio.OpenBmpImage("imgs/lenag.bmp")
+	loadedImg, err := imageio.OpenBmpImage("imgs/F5test1.bmp")
+	// loadedImg, err := imageio.OpenBmpImage("imgs/pentagon.bmp")
 	if err != nil {
 		log.Fatalf("Error opening file: %v", err)
 	}
 
 	complexImg := orthogonal_transforms.ConvertImageToComplex(loadedImg)
 
-	// imageio.SaveBmpImage(orthogonal_transforms.ConvertComplexToImage(complexImg), "loaded_img_to_complex_to_img.bmp")
-	// imageio.SaveBmpImage(orthogonal_transforms.VisualizeSpectrumInImage(complexImg, 512, 512), "visualize_loaded_img.bmp")
+	imageio.SaveBmpImage(orthogonal_transforms.ConvertComplexToImage(complexImg), "loaded_img_to_complex_to_img.bmp")
 
-	fftData := orthogonal_transforms.FFT2D(complexImg, false)
+	ftSpectrum := orthogonal_transforms.FFT2D(complexImg, false)
 	fmt.Println("Computed FT data")
-	dcComponent := fftData[0][0]
 
-	// centeredFrequency := orthogonal_transforms.SwapQuadrants(fftData)
+	dcComponent := ftSpectrum[0][0]
 
-	shiftedFreqDomain := orthogonal_transforms.QuadrantsSwap(fftData)
+	shiftedFtSpectrum := orthogonal_transforms.QuadrantsSwap(ftSpectrum)
 
-	magnitude := orthogonal_transforms.FFTMagnitudeSpectrum(shiftedFreqDomain)
+	magnitude := orthogonal_transforms.FFTMagnitudeSpectrum(shiftedFtSpectrum)
 	normalized := orthogonal_transforms.NormalizeMagnitude(magnitude)
 	magnitudeImg := orthogonal_transforms.MagnitudeToImage(normalized)
 	imageio.SaveBmpImage(magnitudeImg, "magnitude_spectrum.bmp")
 	fmt.Println("Computed Magnitude Visualization")
 
-	// imageio.SaveBmpImage(orthogonal_transforms.ConvertComplexToImage(fftData), "fft_data_of_complex_img.bmp")
-	// imageio.SaveBmpImage(orthogonal_transforms.VisualizeSpectrumInImage(fftData, 512, 512), "visualize_fft_data_of_complex_img.bmp")
+	maskImg, err := imageio.OpenBmpImage("orthogonal_transforms/masks/F5mask1.bmp")
+	if err != nil {
+		log.Fatalf("Error opening file: %v", err)
+	}
 
-	// tifftData := orthogonal_transforms.IFFT2D(fftData)
-	// imageio.SaveBmpImage(orthogonal_transforms.ConvertComplexToImage(tifftData), "inverse_fft_on_fft_data.bmp")
+	binaryMask := morphological.ConvertIntoBinaryImage(maskImg)
 
-	// lowCutoff := 10.0
-	// highCutoff := 50.0
+	filteredSpectrum := orthogonal_transforms.HighPassFilterWithEdgeDetection2D(shiftedFtSpectrum, binaryMask)
 
-	// bandpassFiltered := orthogonal_transforms.BandPassFilter2D(shiftedFreqDomain, lowCutoff, highCutoff)
-	bandpassFiltered := orthogonal_transforms.HighPassFilter2D(shiftedFreqDomain, 30)
-	bandpassFiltered[0][0] = dcComponent
+	filteredSpectrum[0][0] = dcComponent
 	fmt.Println("Computed Filter")
 
-	imageio.SaveBmpImage(orthogonal_transforms.ConvertComplexToImage(bandpassFiltered), "band_pass_matrix_to_img.bmp")
-	imageio.SaveBmpImage(orthogonal_transforms.VisualizeSpectrumInImage(bandpassFiltered, 512, 512), "visualize_band_pass_matrix.bmp")
-	imageio.SaveBmpImage(orthogonal_transforms.ConvertFloatMatrixToImage(orthogonal_transforms.VisualizeSpectrum(bandpassFiltered)), "visualize_spectrum_band_pass_matrix.bmp")
+	// imageio.SaveBmpImage(orthogonal_transforms.ConvertComplexToImage(bandpassFiltered), "band_pass_matrix_to_img.bmp")
+	// imageio.SaveBmpImage(orthogonal_transforms.VisualizeSpectrumInImage(bandpassFiltered, 512, 512), "visualize_band_pass_matrix.bmp")
+	// imageio.SaveBmpImage(orthogonal_transforms.ConvertFloatMatrixToImage(orthogonal_transforms.VisualizeSpectrum(bandpassFiltered)), "visualize_spectrum_band_pass_matrix.bmp")
 
 	// centeredFrequency2 := orthogonal_transforms.SwapQuadrants(bandpassMatrix)
 
-	unshiftedFreqDomain := orthogonal_transforms.QuadrantsSwap(bandpassFiltered)
-	fmt.Println("Computed Unshifted Frequency Domain")
+	unshiftedFreqDomain := orthogonal_transforms.QuadrantsSwap(filteredSpectrum)
 
 	reconstructedImageMatrix := orthogonal_transforms.FFT2D(unshiftedFreqDomain, true)
 	fmt.Println("Computed Inverse FT")
 
-	imageio.SaveBmpImage(orthogonal_transforms.ConvertComplexToImage(reconstructedImageMatrix), "converted_band_pass_filter_img.bmp")
-	imageio.SaveBmpImage(orthogonal_transforms.VisualizeSpectrumInImage(reconstructedImageMatrix, 512, 512), "visualize_band_pass_filter_img.bmp")
-	imageio.SaveBmpImage(orthogonal_transforms.ConvertFloatMatrixToImage(orthogonal_transforms.VisualizeSpectrum(reconstructedImageMatrix)), "visualize_spectrum_band_pass_filter_img.bmp")
+	imageio.SaveBmpImage(orthogonal_transforms.ConvertComplexToImage(reconstructedImageMatrix), "converted_filter_img.bmp")
+	// imageio.SaveBmpImage(orthogonal_transforms.VisualizeSpectrumInImage(reconstructedImageMatrix, 512, 512), "visualize_filter_img.bmp")
+	imageio.SaveBmpImage(orthogonal_transforms.ConvertFloatMatrixToImage(orthogonal_transforms.VisualizeSpectrum(reconstructedImageMatrix)), "visualize_filter_spectrum_img.bmp")
 
 	return
 

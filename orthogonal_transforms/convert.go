@@ -17,7 +17,7 @@ func ConvertImageToComplex(img image.Image) [][]complex128 {
 		for x := 0; x < width; x++ {
 			r, g, b, _ := img.At(x, y).RGBA()
 
-			gray := 0.299*float64(r/256) + 0.587*float64(g/256) + 0.114*float64(b/256)
+			gray := 0.299*float64(r>>8) + 0.587*float64(g>>8) + 0.114*float64(b>>8)
 			complexImg[y][x] = complex(gray, 0)
 
 		}
@@ -54,7 +54,7 @@ func ConvertFloatMatrixToImage(matrix [][]float64) *image.RGBA {
 
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
-			intensity := uint8(matrix[y][x])
+			intensity := uint8(math.Min(math.Max(matrix[y][x], 0), 255))
 
 			img.Set(x, y, color.RGBA{intensity, intensity, intensity, 255})
 		}
@@ -84,7 +84,7 @@ func ConvertComplexToImage(complexImg [][]complex128) *image.RGBA {
 		}
 	}
 
-	gamma := 1.0
+	gamma := 0.5
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
 			value := real(complexImg[y][x])
