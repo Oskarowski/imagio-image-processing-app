@@ -3,15 +3,16 @@ package orthogonal_transforms
 import (
 	"image-processing/morphological"
 	"math"
+	"math/cmplx"
 )
 
 //https://www.clear.rice.edu/elec301/Projects01/image_filt/concept.html
+// https://www.scaler.com/topics/filtering-in-image-processing/
 
 func BandPassFilter2D(input [][]complex128, lowCutoff, highCutoff float64) [][]complex128 {
 	n := len(input)
 	m := len(input[0])
 
-	// Create filter mask
 	filter := make([][]float64, n)
 	for i := range filter {
 		filter[i] = make([]float64, m)
@@ -21,10 +22,8 @@ func BandPassFilter2D(input [][]complex128, lowCutoff, highCutoff float64) [][]c
 
 	for i := 0; i < n; i++ {
 		for j := 0; j < m; j++ {
-			// Compute the distance from the center
 			dist := math.Sqrt(float64((i-centerX)*(i-centerX) + (j-centerY)*(j-centerY)))
 
-			// Pass frequencies within the band
 			if dist >= lowCutoff && dist <= highCutoff {
 				filter[i][j] = 1.0
 			} else {
@@ -58,10 +57,8 @@ func LowPassFilter2D(input [][]complex128, cutoff float64) [][]complex128 {
 
 	for i := 0; i < n; i++ {
 		for j := 0; j < m; j++ {
-			// Compute the distance from the center
 			dist := math.Sqrt(float64((i-centerX)*(i-centerX) + (j-centerY)*(j-centerY)))
 
-			// Allow frequencies below the cutoff
 			if dist <= cutoff {
 				filter[i][j] = 1.0
 			} else {
@@ -85,7 +82,6 @@ func HighPassFilter2D(input [][]complex128, cutoff float64) [][]complex128 {
 	n := len(input)
 	m := len(input[0])
 
-	// Create filter mask
 	filter := make([][]float64, n)
 	for i := range filter {
 		filter[i] = make([]float64, m)
@@ -95,10 +91,8 @@ func HighPassFilter2D(input [][]complex128, cutoff float64) [][]complex128 {
 
 	for i := 0; i < n; i++ {
 		for j := 0; j < m; j++ {
-			// Compute the distance from the center
 			dist := math.Sqrt(float64((i-centerX)*(i-centerX) + (j-centerY)*(j-centerY)))
 
-			// Allow frequencies above the cutoff
 			if dist >= cutoff {
 				filter[i][j] = 1.0
 			} else {
@@ -122,7 +116,6 @@ func BandCutFilter2D(input [][]complex128, lowCutoff, highCutoff float64) [][]co
 	n := len(input)
 	m := len(input[0])
 
-	// Create filter mask
 	filter := make([][]float64, n)
 	for i := range filter {
 		filter[i] = make([]float64, m)
@@ -132,10 +125,8 @@ func BandCutFilter2D(input [][]complex128, lowCutoff, highCutoff float64) [][]co
 
 	for i := 0; i < n; i++ {
 		for j := 0; j < m; j++ {
-			// Compute the distance from the center
 			dist := math.Sqrt(float64((i-centerX)*(i-centerX) + (j-centerY)*(j-centerY)))
 
-			// Block frequencies within the band (lowCutoff <= dist <= highCutoff)
 			if dist >= lowCutoff && dist <= highCutoff {
 				filter[i][j] = 0.0
 			} else {
@@ -176,4 +167,29 @@ func HighPassFilterWithEdgeDetection2D(imageSpectrum [][]complex128, mask morpho
 	}
 
 	return spectrum
+}
+
+func PhaseModifyingFilter(input [][]complex128, k, l int) [][]complex128 {
+	height := len(input)
+	width := len(input[0])
+
+	mask := make([][]complex128, width)
+	for y := 0; y < height; y++ {
+		mask[y] = make([]complex128, width)
+
+		for x := 0; x < width; x++ {
+			phase := -float64(x*k)*2*math.Pi/float64(width) - float64(y*l)*2*math.Pi/float64(height) + float64(k+l)*math.Pi
+			mask[y][x] = cmplx.Exp(complex(0.0, phase))
+		}
+	}
+
+	filtered := make([][]complex128, height)
+	for y := 0; y < height; y++ {
+		filtered[y] = make([]complex128, width)
+		for x := 0; x < width; x++ {
+			filtered[y][x] = input[y][x] * mask[y][x]
+		}
+	}
+
+	return filtered
 }

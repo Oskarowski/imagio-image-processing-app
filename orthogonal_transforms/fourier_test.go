@@ -125,3 +125,37 @@ func TestBoatBandpass(t *testing.T) {
 	imageio.SaveBmpImage(ConvertFloatMatrixToImage(VisualizeSpectrum(reconstructedImageMatrix)), "test_boat_bandpass_30_visualize_image.bmp")
 
 }
+
+func TestPhaseModifyingFilter(t *testing.T) {
+	loadedImg, err := imageio.OpenBmpImage("../imgs/mandril.bmp")
+	if err != nil {
+		log.Fatalf("Error opening file: %v", err)
+	}
+	complexImg := ConvertImageToComplex(loadedImg)
+
+	ftSpectrum := FFT2D(complexImg, false)
+
+	shiftedSpectrum := QuadrantsSwap(ftSpectrum)
+
+	magnitude := FFTMagnitudeSpectrum(shiftedSpectrum)
+	normalized := NormalizeMagnitude(magnitude)
+	magnitudeImg := MagnitudeToImage(normalized)
+	imageio.SaveBmpImage(magnitudeImg, "test_phase_modifying_filter_magnitude_spectrum.bmp")
+
+	k := 125
+	l := 125
+	filteredSpectrum := PhaseModifyingFilter(shiftedSpectrum, k, l)
+
+	unshiftedFilteredSpectrum := QuadrantsSwap(filteredSpectrum)
+
+	magnitude2 := FFTMagnitudeSpectrum(filteredSpectrum)
+	normalized2 := NormalizeMagnitude(magnitude2)
+	magnitudeImg2 := MagnitudeToImage(normalized2)
+	imageio.SaveBmpImage(magnitudeImg2, "test_phase_modifying_filter_after_filtered_magnitude_spectrum.bmp")
+
+	reconstructedImageMatrix := FFT2D(unshiftedFilteredSpectrum, true)
+
+	imageio.SaveBmpImage(ConvertComplexToImage(reconstructedImageMatrix), "test_phase_modifying_filter_converted_image.bmp")
+	imageio.SaveBmpImage(ConvertFloatMatrixToImage(VisualizeSpectrum(reconstructedImageMatrix)), "test_phase_modifying_filter_visualize_image.bmp")
+
+}
