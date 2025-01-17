@@ -68,10 +68,7 @@ func ConvertComplexToImage(complexImg [][]complex128) *image.RGBA {
 	width := len(complexImg[0])
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 
-	var min, max float64
-	min = math.Inf(1)
-	max = math.Inf(-1)
-
+	min, max := math.Inf(1), math.Inf(-1)
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
 			value := real(complexImg[y][x])
@@ -84,13 +81,17 @@ func ConvertComplexToImage(complexImg [][]complex128) *image.RGBA {
 		}
 	}
 
-	gamma := 0.5
+	gamma := 1.0
+	applyGamma := func(value float64) uint8 {
+		normalized := (value - min) / (max - min) * 255.0
+		corrected := math.Pow(normalized/255.0, 1.0/gamma) * 255.0
+		return uint8(math.Round(corrected))
+	}
+
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
 			value := real(complexImg[y][x])
-			normalized := (value - min) / (max - min) * 255.0
-			corrected := math.Pow(normalized/255.0, 1.0/gamma) * 255.0
-			pixelValue := uint8(math.Round(corrected))
+			pixelValue := applyGamma(value)
 			img.Set(x, y, color.RGBA{pixelValue, pixelValue, pixelValue, 255})
 		}
 	}

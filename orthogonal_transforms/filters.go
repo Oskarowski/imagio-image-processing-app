@@ -47,7 +47,6 @@ func LowPassFilter2D(input [][]complex128, cutoff float64) [][]complex128 {
 	n := len(input)
 	m := len(input[0])
 
-	// Create filter mask
 	filter := make([][]float64, n)
 	for i := range filter {
 		filter[i] = make([]float64, m)
@@ -173,12 +172,12 @@ func PhaseModifyingFilter(input [][]complex128, k, l int) [][]complex128 {
 	height := len(input)
 	width := len(input[0])
 
-	mask := make([][]complex128, width)
+	mask := make([][]complex128, height)
 	for y := 0; y < height; y++ {
 		mask[y] = make([]complex128, width)
 
 		for x := 0; x < width; x++ {
-			phase := -float64(x*k)*2*math.Pi/float64(width) - float64(y*l)*2*math.Pi/float64(height) + float64(k+l)*math.Pi
+			phase := -float64(y*k)*2*math.Pi/float64(height) - float64(x*l)*2*math.Pi/float64(width) + float64(k+l)*math.Pi
 			mask[y][x] = cmplx.Exp(complex(0.0, phase))
 		}
 	}

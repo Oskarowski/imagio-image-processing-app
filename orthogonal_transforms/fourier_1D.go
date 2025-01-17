@@ -9,6 +9,7 @@ func SlowDFT1D(input []complex128, inverse bool) []complex128 {
 	n := len(input)
 	output := make([]complex128, n)
 	sign := 1.0
+
 	if inverse {
 		sign = -1.0
 	}
@@ -34,7 +35,6 @@ func FFT1D(input []complex128, inverse bool) []complex128 {
 		return input
 	}
 
-	// Divide: Separate input into even and odd indices
 	even := make([]complex128, n/2)
 	odd := make([]complex128, n/2)
 	for i := 0; i < n/2; i++ {
@@ -42,11 +42,9 @@ func FFT1D(input []complex128, inverse bool) []complex128 {
 		odd[i] = input[i*2+1]
 	}
 
-	// Recursively compute FFT for both halves
 	evenFFT := FFT1D(even, inverse)
 	oddFFT := FFT1D(odd, inverse)
 
-	// Combine: Apply the FFT butterfly computation
 	output := make([]complex128, n)
 	angle := 2 * math.Pi / float64(n)
 	if inverse {
