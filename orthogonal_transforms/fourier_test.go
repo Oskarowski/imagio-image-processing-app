@@ -8,7 +8,7 @@ import (
 )
 
 func TestBandpassFilter(t *testing.T) {
-	loadedImg, err := imageio.OpenBmpImage("../imgs/boat.bmp")
+	loadedImg, err := imageio.OpenBmpImage("../imgs/mandril.bmp")
 	if err != nil {
 		log.Fatalf("Error opening file: %v", err)
 	}
@@ -25,7 +25,7 @@ func TestBandpassFilter(t *testing.T) {
 	magnitudeImg := MagnitudeToImage(normalized)
 	imageio.SaveBmpImage(magnitudeImg, "test_bandpass_magnitude_spectrum.bmp")
 
-	filteredSpectrum := BandPassFilter2D(shiftedSpectrum, 10.0, 50.0)
+	filteredSpectrum := BandPassFilter2D(shiftedSpectrum, 25.0, 90.0)
 
 	unshiftedFilteredSpectrum := QuadrantsSwap(filteredSpectrum)
 
@@ -59,7 +59,7 @@ func TestLowpassFilter(t *testing.T) {
 	magnitudeImg := MagnitudeToImage(normalized)
 	imageio.SaveBmpImage(magnitudeImg, "test_lowpass_magnitude_spectrum.bmp")
 
-	filteredSpectrum := LowPassFilter2D(shiftedSpectrum, 30.0)
+	filteredSpectrum := LowPassFilter2D(shiftedSpectrum, 5.0)
 
 	unshiftedFilteredSpectrum := QuadrantsSwap(filteredSpectrum)
 
@@ -77,7 +77,7 @@ func TestLowpassFilter(t *testing.T) {
 }
 
 func TestHighpassFilter(t *testing.T) {
-	loadedImg, err := imageio.OpenBmpImage("../imgs/camera.bmp")
+	loadedImg, err := imageio.OpenBmpImage("../imgs/pentagon.bmp")
 	if err != nil {
 		log.Fatalf("Error opening file: %v", err)
 	}
@@ -94,12 +94,12 @@ func TestHighpassFilter(t *testing.T) {
 	magnitudeImg := MagnitudeToImage(normalized)
 	imageio.SaveBmpImage(magnitudeImg, "test_highpass_magnitude_spectrum.bmp")
 
-	filteredSpectrum := HighPassFilter2D(shiftedSpectrum, 30)
+	filteredSpectrum := HighPassFilter2D(shiftedSpectrum, 45.0)
 
 	unshiftedFilteredSpectrum := QuadrantsSwap(filteredSpectrum)
 	unshiftedFilteredSpectrum[0][0] = dcComponent
 
-	magnitude2 := FFTMagnitudeSpectrum(unshiftedFilteredSpectrum)
+	magnitude2 := FFTMagnitudeSpectrum(filteredSpectrum)
 	normalized2 := NormalizeMagnitude(magnitude2)
 	magnitudeImg2 := MagnitudeToImage(normalized2)
 	imageio.SaveBmpImage(magnitudeImg2, "test_highpass_unshifted_magnitude_spectrum.bmp")
@@ -111,7 +111,7 @@ func TestHighpassFilter(t *testing.T) {
 }
 
 func TestBandCutFilter(t *testing.T) {
-	loadedImg, err := imageio.OpenBmpImage("../imgs/mandril.bmp")
+	loadedImg, err := imageio.OpenBmpImage("../imgs/messer.bmp")
 	if err != nil {
 		log.Fatalf("Error opening file: %v", err)
 	}
@@ -128,12 +128,12 @@ func TestBandCutFilter(t *testing.T) {
 	magnitudeImg := MagnitudeToImage(normalized)
 	imageio.SaveBmpImage(magnitudeImg, "test_bandcut_magnitude_spectrum.bmp")
 
-	filteredSpectrum := BandCutFilter2D(shiftedSpectrum, 20, 40)
+	filteredSpectrum := BandCutFilter2D(shiftedSpectrum, 35, 100)
 
 	unshiftedFilteredSpectrum := QuadrantsSwap(filteredSpectrum)
 	unshiftedFilteredSpectrum[0][0] = dcComponent
 
-	magnitude2 := FFTMagnitudeSpectrum(unshiftedFilteredSpectrum)
+	magnitude2 := FFTMagnitudeSpectrum(filteredSpectrum)
 	normalized2 := NormalizeMagnitude(magnitude2)
 	magnitudeImg2 := MagnitudeToImage(normalized2)
 	imageio.SaveBmpImage(magnitudeImg2, "test_bandcut_unshifted_magnitude_spectrum.bmp")
@@ -146,7 +146,7 @@ func TestBandCutFilter(t *testing.T) {
 }
 
 func TestHighPassFilterWithEdgeDetection2DImage2(t *testing.T) {
-	loadedImg, err := imageio.OpenBmpImage("../imgs/F5test2.bmp")
+	loadedImg, err := imageio.OpenBmpImage("../imgs/F5test3.bmp")
 	if err != nil {
 		log.Fatalf("Error opening file: %v", err)
 	}
@@ -163,7 +163,7 @@ func TestHighPassFilterWithEdgeDetection2DImage2(t *testing.T) {
 	magnitudeImg := MagnitudeToImage(normalized)
 	imageio.SaveBmpImage(magnitudeImg, "test_highpass_edge_detection_magnitude_spectrum.bmp")
 
-	maskImg, err := imageio.OpenBmpImage("./masks/F5mask1.bmp")
+	maskImg, err := imageio.OpenBmpImage("./masks/F5mask2.bmp")
 	if err != nil {
 		log.Fatalf("Error opening file: %v", err)
 	}
@@ -179,11 +179,6 @@ func TestHighPassFilterWithEdgeDetection2DImage2(t *testing.T) {
 
 	unshiftedFilteredSpectrum := QuadrantsSwap(filteredSpectrum)
 	unshiftedFilteredSpectrum[0][0] = dcComponent
-
-	magnitude2 := FFTMagnitudeSpectrum(unshiftedFilteredSpectrum)
-	normalized2 := NormalizeMagnitude(magnitude2)
-	magnitudeImg2 := MagnitudeToImage(normalized2)
-	imageio.SaveBmpImage(magnitudeImg2, "test_highpass_edge_detection_unshifted_magnitude_spectrum.bmp")
 
 	reconstructedImageMatrix := FFT2D(unshiftedFilteredSpectrum, true)
 
