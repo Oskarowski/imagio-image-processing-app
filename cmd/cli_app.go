@@ -8,6 +8,7 @@ import (
 	"image-processing/manipulations"
 	"image-processing/morphological"
 	"image-processing/noise"
+	"image-processing/orthogonal_transforms"
 	"log"
 	"os"
 	"path/filepath"
@@ -525,6 +526,80 @@ func RunAsCliApp() {
 			_, newImg := morphological.RegionGrowing(img, seeds, distanceMetric, threshold)
 
 			imageQueue = append(imageQueue, ImageQueueItem{Image: newImg, Filename: outputFileName})
+
+		case "bandpass":
+
+			lowCut := GetOrDefault(command.Args["low"], 15)
+			highCut := GetOrDefault(command.Args["high"], 50)
+			withSpectrum := GetOrDefault(command.Args["spectrum"], 1)
+
+			output := orthogonal_transforms.HandleBandpassFiltering(img, originalNameWithoutExt, lowCut, highCut, withSpectrum == 1)
+
+			for _, spectrumImage := range output {
+				imageQueue = append(imageQueue, ImageQueueItem{Image: &spectrumImage.Img, Filename: spectrumImage.Name})
+			}
+
+		case "lowpass":
+
+			cutoff := GetOrDefault(command.Args["cutoff"], 15)
+			withSpectrum := GetOrDefault(command.Args["spectrum"], 1)
+
+			output := orthogonal_transforms.HandleLowpassFiltering(img, originalNameWithoutExt, cutoff, withSpectrum == 1)
+
+			for _, spectrumImage := range output {
+				imageQueue = append(imageQueue, ImageQueueItem{Image: &spectrumImage.Img, Filename: spectrumImage.Name})
+			}
+
+		case "highpass":
+
+			cutoff := GetOrDefault(command.Args["cutoff"], 25)
+			withSpectrum := GetOrDefault(command.Args["spectrum"], 1)
+
+			output := orthogonal_transforms.HandleHighpassFiltering(img, originalNameWithoutExt, cutoff, withSpectrum == 1)
+
+			for _, spectrumImage := range output {
+				imageQueue = append(imageQueue, ImageQueueItem{Image: &spectrumImage.Img, Filename: spectrumImage.Name})
+			}
+
+		case "bandcut":
+
+			lowCut := GetOrDefault(command.Args["low"], 25)
+			highCut := GetOrDefault(command.Args["high"], 70)
+			withSpectrum := GetOrDefault(command.Args["spectrum"], 1)
+
+			output := orthogonal_transforms.HandleBandcutFiltering(img, originalNameWithoutExt, lowCut, highCut, withSpectrum == 1)
+
+			for _, spectrumImage := range output {
+				imageQueue = append(imageQueue, ImageQueueItem{Image: &spectrumImage.Img, Filename: spectrumImage.Name})
+			}
+
+		case "phasemod":
+
+			k := GetOrDefault(command.Args["k"], 123)
+			l := GetOrDefault(command.Args["l"], 123)
+
+			output := orthogonal_transforms.HandlePhaseModification(img, originalNameWithoutExt, k, l)
+
+			for _, spectrumImage := range output {
+				imageQueue = append(imageQueue, ImageQueueItem{Image: &spectrumImage.Img, Filename: spectrumImage.Name})
+			}
+
+		case "maskpass":
+
+			withSpectrum := GetOrDefault(command.Args["spectrum"], 0)
+			mask := GetOrDefault(command.Args["mask"], "F5mask1.bmp")
+
+			maskPath := filepath.Join("orthogonal_transforms", "masks", mask)
+			maskImg, err := imageio.OpenBmpImage(maskPath)
+			if err != nil {
+				log.Fatalf("Error opening mask: %v", err)
+			}
+
+			output := orthogonal_transforms.HandleMaskpassFiltering(img, originalNameWithoutExt, maskImg, withSpectrum == 1)
+
+			for _, spectrumImage := range output {
+				imageQueue = append(imageQueue, ImageQueueItem{Image: &spectrumImage.Img, Filename: spectrumImage.Name})
+			}
 
 		default:
 			fmt.Println("Unknown commend")
