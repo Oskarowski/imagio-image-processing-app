@@ -2,7 +2,7 @@ package main
 
 import (
 	"image-processing/cmd"
-	"image-processing/cmd/gui"
+	"image-processing/cmd/tui"
 	"log"
 	"os"
 )
@@ -23,6 +23,6 @@ func main() {
 	if len(os.Args) > 1 {
 		cmd.RunAsCliApp()
 	} else {
-		gui.RunAsTUIApp()
+		tui.RunAsTUIApp()
 	}
 }
