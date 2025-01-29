@@ -103,6 +103,12 @@ var AvailableCommands = []CommandInfo{
 		"-metric=(int): Distance metric ('0 - Euclidean', '1 - Manhattan', '2 - Chebyshev').",
 		"-threshold=(double): Similarity threshold for region growing.",
 	}},
+	{"bandpass", "--bandpass -low=15 -high=50 -spectrum=1 <bmp_image_path>", "Apply bandpass filtering to the image.", []string{"-low=(int): Lower cutoff frequency.", "-high=(int): Upper cutoff frequency.", "-spectrum=(int): Include spectrum in output (0 or 1)."}},
+	{"lowpass", "--lowpass -cutoff=15 -spectrum=1 <bmp_image_path>", "Apply lowpass filtering to the image.", []string{"-cutoff=(int): Cutoff frequency.", "-spectrum=(int): Include spectrum in output (0 or 1)."}},
+	{"highpass", "--highpass -cutoff=25 -spectrum=1 <bmp_image_path>", "Apply highpass filtering to the image.", []string{"-cutoff=(int): Cutoff frequency.", "-spectrum=(int): Include spectrum in output (0 or 1)."}},
+	{"bandcut", "--bandcut -low=25 -high=70 -spectrum=1 <bmp_image_path>", "Apply bandcut filtering to the image.", []string{"-low=(int): Lower cutoff frequency.", "-high=(int): Upper cutoff frequency.", "-spectrum=(int): Include spectrum in output (0 or 1)."}},
+	{"phasemod", "--phasemod -k=123 -l=123 <bmp_image_path>", "Modify the image phase.", []string{"-k=(int): Phase modulation parameter k.", "-l=(int): Phase modulation parameter l."}},
+	{"maskpass", "--maskpass -spectrum=0 -mask=\"F5mask1.bmp\" <bmp_image_path>", "Apply mask-based filtering using a specified mask.", []string{"-spectrum=(int): Include spectrum in output (0 or 1).", "-mask=(string): Name of the mask image (relative to orthogonal_transforms/masks)."}},
 	{"help", "--help", "Show this help message.", []string{}},
 }
 
