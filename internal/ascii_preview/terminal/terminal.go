@@ -1,3 +1,4 @@
+// taken from unmaintained repository: https://github.com/qeesung/image2ascii
 package terminal
 
 import (

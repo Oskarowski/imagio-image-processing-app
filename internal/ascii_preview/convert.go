@@ -1,4 +1,4 @@
-// Package convert can convert a image to ascii string or matrix
+// taken from unmaintained repository: https://github.com/qeesung/image2ascii
 package ascii_preview
 
 import (

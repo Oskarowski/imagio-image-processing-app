@@ -1,6 +1,4 @@
-// Package ascii can convert a image pixel to a raw char
-// base on it's RGBA value, in another word, input a image pixel
-// output a raw char ascii.
+// taken from unmaintained repository: https://github.com/qeesung/image2ascii
 package ascii
 
 import (

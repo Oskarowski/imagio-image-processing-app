@@ -6,33 +6,39 @@ import (
 	"image"
 	"image-processing/imageio"
 	"image-processing/internal/ascii_preview"
-	"log"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/charmbracelet/bubbles/filepicker"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 type view int
 
+type terminalSize struct {
+	width  int
+	height int
+}
+
 const (
 	filePickerView view = iota
-	selectedFilesView
 	imagePreviewView
+	commandsSelectionView
+	commandExecutionView
 )
 
 type model struct {
-	filepicker    filepicker.Model
-	selectedFiles []string
-	currentView   view
-	quitting      bool
-	err           error
-	imagePreview  string
-	loadedImage   image.Image
-	width         int
-	height        int
+	filepicker   filepicker.Model
+	selectedFile string
+	currentView  view
+	quitting     bool
+	err          error
+	imagePreview string
+	loadedImage  image.Image
+	terminalSize terminalSize
+	commandsList viewport.Model
 }
 
 type clearErrorMsg struct{}
@@ -56,7 +62,7 @@ func (m *model) loadImagePreview(path string) {
 
 	m.loadedImage = file
 
-	availableHeight := m.height
+	availableHeight := m.terminalSize.height
 
 	convertOptions := ascii_preview.DefaultOptions
 	convertOptions.FixedWidth = availableHeight * 2
@@ -80,15 +86,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case "tab":
-			m.currentView = (m.currentView + 1) % 3
+			m.currentView = (m.currentView + 1) % 4
 			return m, nil
 
 		case "enter":
 			if m.currentView == filePickerView {
 				if didSelect, path := m.filepicker.DidSelectFile(msg); didSelect {
-					log.Default().Print("Selected file: ", path)
-					m.selectedFiles = append(m.selectedFiles, path)
-
+					m.selectedFile = path
 					m.loadImagePreview(path)
 					m.currentView = imagePreviewView
 
@@ -96,8 +100,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 				if didSelect, path := m.filepicker.DidSelectDisabledFile(msg); didSelect {
-					log.Printf("Disabled file selected: %s", path)
 					m.err = errors.New(path + " is not valid.")
+					m.selectedFile = ""
 					return m, clearErrorAfter(2 * time.Second)
 				}
 			}
@@ -105,8 +109,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case tea.WindowSizeMsg:
-		m.width = msg.Width
-		m.height = msg.Height
+		m.terminalSize.width = msg.Width
+		m.terminalSize.height = msg.Height
 		return m, nil
 
 	case clearErrorMsg:
@@ -130,16 +134,6 @@ func (m model) View() string {
 			s.WriteString("  " + m.filepicker.Styles.DisabledFile.Render(m.err.Error()) + "\n")
 		}
 		s.WriteString("\n" + m.filepicker.View() + "\n")
-
-	case selectedFilesView:
-		s.WriteString("\n  Selected files (Press 'Tab' to view file picker):\n")
-		if len(m.selectedFiles) == 0 {
-			s.WriteString("  No files selected.\n")
-		} else {
-			for i, f := range m.selectedFiles {
-				s.WriteString(fmt.Sprintf(" %d. ", i) + m.filepicker.Styles.Selected.Render(f) + "\n")
-			}
-		}
 
 	case imagePreviewView:
 		s.WriteString("\n  Image Preview (Press 'Tab' to view selected files):\n")
