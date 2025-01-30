@@ -6,12 +6,13 @@ import (
 	"image"
 	"image-processing/imageio"
 	"image-processing/internal/ascii_preview"
+	"log"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/charmbracelet/bubbles/filepicker"
-	"github.com/charmbracelet/bubbles/viewport"
+	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -22,6 +23,16 @@ type terminalSize struct {
 	height int
 }
 
+type listItem struct {
+	title, desc string
+}
+
+func (i listItem) Title() string       { return i.title }
+func (i listItem) Description() string { return i.desc }
+func (i listItem) FilterValue() string { return i.title }
+
+type clearErrorMsg struct{}
+
 const (
 	filePickerView view = iota
 	imagePreviewView
@@ -30,18 +41,17 @@ const (
 )
 
 type model struct {
-	filepicker   filepicker.Model
-	selectedFile string
-	currentView  view
-	quitting     bool
-	err          error
-	imagePreview string
-	loadedImage  image.Image
-	terminalSize terminalSize
-	commandsList viewport.Model
+	filepicker      filepicker.Model
+	selectedFile    string
+	currentView     view
+	quitting        bool
+	err             error
+	imagePreview    string
+	loadedImage     image.Image
+	terminalSize    terminalSize
+	commandsList    list.Model
+	selectedCommand string
 }
-
-type clearErrorMsg struct{}
 
 func clearErrorAfter(t time.Duration) tea.Cmd {
 	return tea.Tick(t, func(_ time.Time) tea.Msg {
@@ -76,7 +86,12 @@ func (m *model) loadImagePreview(path string) {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
-	m.filepicker, cmd = m.filepicker.Update(msg)
+
+	if m.currentView == filePickerView {
+		m.filepicker, cmd = m.filepicker.Update(msg)
+	} else if m.currentView == commandsSelectionView {
+		m.commandsList, cmd = m.commandsList.Update(msg)
+	}
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -106,11 +121,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 
+			if m.currentView == commandsSelectionView {
+				selectedItem := m.commandsList.SelectedItem()
+				log.Default().Println("Selected item: ", selectedItem)
+
+			}
+
+		case "r":
+			if m.currentView == commandExecutionView {
+				log.Default().Println("Executing command: ", m.selectedCommand)
+			}
 		}
 
 	case tea.WindowSizeMsg:
 		m.terminalSize.width = msg.Width
 		m.terminalSize.height = msg.Height
+		m.commandsList.SetSize(msg.Width, msg.Height)
 		return m, nil
 
 	case clearErrorMsg:
@@ -138,6 +164,12 @@ func (m model) View() string {
 	case imagePreviewView:
 		s.WriteString("\n  Image Preview (Press 'Tab' to view selected files):\n")
 		s.WriteString("\n" + m.imagePreview + "\n")
+
+	case commandsSelectionView:
+		s.WriteString("\n  Select a command (Press 'Tab' to view selected files, 'Enter' to enter for details):\n")
+
+		s.WriteString(m.commandsList.View())
+
 	}
 
 	return s.String()
@@ -151,12 +183,26 @@ func RunAsTUIApp() {
 	fp.ShowPermissions = false
 	fp.CurrentDirectory, _ = os.Getwd()
 
-	m := model{
-		filepicker:  fp,
-		currentView: filePickerView,
+	commands := []list.Item{
+		listItem{title: "hflip", desc: "Apply horizontal flip to the image."},
+		listItem{title: "vflip", desc: "Apply vertical flip to the image."},
+		listItem{title: "bandpass", desc: "Apply bandpass filtering to the image."},
 	}
 
-	tm, _ := tea.NewProgram(&m).Run()
-	mm := tm.(model)
-	fmt.Println("\nSee you next time " + mm.filepicker.Styles.Selected.Render("👋"))
+	commandList := list.New(commands, list.NewDefaultDelegate(), 0, 0)
+	commandList.Title = "Available Commands"
+
+	m := model{
+		filepicker:   fp,
+		currentView:  filePickerView,
+		commandsList: commandList,
+	}
+
+	p := tea.NewProgram(m, tea.WithAltScreen())
+
+	if _, err := p.Run(); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("\nSee you next time " + m.filepicker.Styles.Selected.Render("👋"))
 }
