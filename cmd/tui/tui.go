@@ -3,6 +3,9 @@ package tui
 import (
 	"errors"
 	"fmt"
+	"image"
+	"image-processing/imageio"
+	"image-processing/internal/ascii_preview"
 	"log"
 	"os"
 	"strings"
@@ -17,6 +20,7 @@ type view int
 const (
 	filePickerView view = iota
 	selectedFilesView
+	imagePreviewView
 )
 
 type model struct {
@@ -25,6 +29,10 @@ type model struct {
 	currentView   view
 	quitting      bool
 	err           error
+	imagePreview  string
+	loadedImage   image.Image
+	width         int
+	height        int
 }
 
 type clearErrorMsg struct{}
@@ -39,6 +47,27 @@ func (m model) Init() tea.Cmd {
 	return m.filepicker.Init()
 }
 
+func (m *model) loadImagePreview(path string) {
+	file, err := imageio.OpenBmpImage(path)
+	if err != nil {
+		m.err = fmt.Errorf("failed to open image: %v", err)
+		return
+	}
+
+	m.loadedImage = file
+
+	availableHeight := m.height
+
+	convertOptions := ascii_preview.DefaultOptions
+	convertOptions.FixedWidth = availableHeight * 2
+	convertOptions.FixedHeight = availableHeight
+
+	converter := ascii_preview.NewImageConverter()
+	converted := converter.Image2ASCIIString(m.loadedImage, &convertOptions)
+
+	m.imagePreview = converted
+}
+
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	m.filepicker, cmd = m.filepicker.Update(msg)
@@ -51,7 +80,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case "tab":
-			m.currentView = (m.currentView + 1) % 2
+			m.currentView = (m.currentView + 1) % 3
 			return m, nil
 
 		case "enter":
@@ -59,17 +88,26 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if didSelect, path := m.filepicker.DidSelectFile(msg); didSelect {
 					log.Default().Print("Selected file: ", path)
 					m.selectedFiles = append(m.selectedFiles, path)
+
+					m.loadImagePreview(path)
+					m.currentView = imagePreviewView
+
 					return m, nil
 				}
 
 				if didSelect, path := m.filepicker.DidSelectDisabledFile(msg); didSelect {
 					log.Printf("Disabled file selected: %s", path)
 					m.err = errors.New(path + " is not valid.")
-					return m, clearErrorAfter(4 * time.Second)
+					return m, clearErrorAfter(2 * time.Second)
 				}
 			}
 
 		}
+
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
+		return m, nil
 
 	case clearErrorMsg:
 		m.err = nil
@@ -102,6 +140,10 @@ func (m model) View() string {
 				s.WriteString(fmt.Sprintf(" %d. ", i) + m.filepicker.Styles.Selected.Render(f) + "\n")
 			}
 		}
+
+	case imagePreviewView:
+		s.WriteString("\n  Image Preview (Press 'Tab' to view selected files):\n")
+		s.WriteString("\n" + m.imagePreview + "\n")
 	}
 
 	return s.String()
