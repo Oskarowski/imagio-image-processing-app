@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"image"
-	"image-processing/imageio"
-	"image-processing/internal/ascii_preview"
 	"log"
 	"os"
 	"strings"
@@ -13,7 +11,9 @@ import (
 
 	"github.com/charmbracelet/bubbles/filepicker"
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type view int
@@ -23,13 +23,7 @@ type terminalSize struct {
 	height int
 }
 
-type listItem struct {
-	title, desc string
-}
-
-func (i listItem) Title() string       { return i.title }
-func (i listItem) Description() string { return i.desc }
-func (i listItem) FilterValue() string { return i.title }
+var style lipgloss.Style
 
 type clearErrorMsg struct{}
 
@@ -37,20 +31,39 @@ const (
 	filePickerView view = iota
 	imagePreviewView
 	commandsSelectionView
+	commandDetailView
 	commandExecutionView
 )
 
 type model struct {
-	filepicker      filepicker.Model
-	selectedFile    string
-	currentView     view
-	quitting        bool
-	err             error
-	imagePreview    string
-	loadedImage     image.Image
-	terminalSize    terminalSize
-	commandsList    list.Model
-	selectedCommand string
+	filepicker          filepicker.Model
+	selectedFile        string
+	currentView         view
+	quitting            bool
+	err                 error
+	imagePreview        string
+	loadedImage         image.Image
+	terminalSize        terminalSize
+	commandsList        list.Model
+	selectedCommand     string
+	selectedCommandArgs map[string]string
+	inputs              []textinput.Model
+}
+
+type commandDefinition struct {
+	name        string
+	syntax      string
+	description string
+	args        []string
+}
+
+func (i commandDefinition) Title() string       { return i.name }
+func (i commandDefinition) Description() string { return i.description }
+func (i commandDefinition) FilterValue() string { return i.name }
+
+var commandDefinitions = []commandDefinition{
+	{"bandpass", "--bandpass -low=15 -high=50 -spectrum=1 <bmp_image_path>", "Apply bandpass filtering to the image.", []string{"-low=(int): Lower cutoff frequency.", "-high=(int): Upper cutoff frequency.", "-spectrum=(int): Include spectrum in output (0 or 1)."}},
+	{"lowpass", "--lowpass -cutoff=15 -spectrum=1 <bmp_image_path>", "Apply lowpass filtering to the image.", []string{"-cutoff=(int): Cutoff frequency.", "-spectrum=(int): Include spectrum in output (0 or 1)."}},
 }
 
 func clearErrorAfter(t time.Duration) tea.Cmd {
@@ -63,25 +76,19 @@ func (m model) Init() tea.Cmd {
 	return m.filepicker.Init()
 }
 
-func (m *model) loadImagePreview(path string) {
-	file, err := imageio.OpenBmpImage(path)
-	if err != nil {
-		m.err = fmt.Errorf("failed to open image: %v", err)
-		return
+func (m *model) initializeTextInputs() {
+	for _, cmd := range commandDefinitions {
+		if cmd.name == m.selectedCommand {
+			m.inputs = make([]textinput.Model, len(cmd.args))
+			for j, arg := range cmd.args {
+				log.Default().Println("Arg:", arg)
+				input := textinput.New()
+				input.Placeholder = arg
+				m.inputs[j] = input
+			}
+			break
+		}
 	}
-
-	m.loadedImage = file
-
-	availableHeight := m.terminalSize.height
-
-	convertOptions := ascii_preview.DefaultOptions
-	convertOptions.FixedWidth = availableHeight * 2
-	convertOptions.FixedHeight = availableHeight
-
-	converter := ascii_preview.NewImageConverter()
-	converted := converter.Image2ASCIIString(m.loadedImage, &convertOptions)
-
-	m.imagePreview = converted
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -91,6 +98,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.filepicker, cmd = m.filepicker.Update(msg)
 	} else if m.currentView == commandsSelectionView {
 		m.commandsList, cmd = m.commandsList.Update(msg)
+	} else if m.currentView == commandDetailView {
+		for i, input := range m.inputs {
+			m.inputs[i], cmd = input.Update(msg)
+		}
 	}
 
 	switch msg := msg.(type) {
@@ -101,7 +112,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case "tab":
-			m.currentView = (m.currentView + 1) % 4
+			m.currentView = (m.currentView + 1) % 5
 			return m, nil
 
 		case "enter":
@@ -122,14 +133,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if m.currentView == commandsSelectionView {
-				selectedItem := m.commandsList.SelectedItem()
-				log.Default().Println("Selected item: ", selectedItem)
+				if selectedItem, ok := m.commandsList.SelectedItem().(commandDefinition); ok {
+					log.Default().Println("Selected item:", selectedItem.name)
+					m.selectedCommand = selectedItem.name
+					m.initializeTextInputs()
+					m.currentView = commandDetailView
+				}
 
 			}
 
 		case "r":
-			if m.currentView == commandExecutionView {
-				log.Default().Println("Executing command: ", m.selectedCommand)
+			if m.currentView == commandDetailView {
+				log.Println("Executing:", m.selectedCommand, m.selectedCommandArgs[m.selectedCommand])
 			}
 		}
 
@@ -157,9 +172,11 @@ func (m model) View() string {
 	case filePickerView:
 		s.WriteString("\n  Select files (Press 'Tab' to view selected files, 'Enter' to add):\n")
 		if m.err != nil {
+			// s.WriteString(style.Render("  " + m.filepicker.Styles.DisabledFile.Render(m.err.Error()) + "\n"))
 			s.WriteString("  " + m.filepicker.Styles.DisabledFile.Render(m.err.Error()) + "\n")
 		}
-		s.WriteString("\n" + m.filepicker.View() + "\n")
+		// s.WriteString((style.Render(" kurwa ")))
+		s.WriteString(style.Render("\n" + m.filepicker.View() + "\n"))
 
 	case imagePreviewView:
 		s.WriteString("\n  Image Preview (Press 'Tab' to view selected files):\n")
@@ -170,6 +187,16 @@ func (m model) View() string {
 
 		s.WriteString(m.commandsList.View())
 
+	case commandDetailView:
+		s.WriteString("\n  Command: " + m.selectedCommand + "\n")
+
+		log.Default().Println("Rendering inputs:", len(m.inputs))
+
+		for _, input := range m.inputs {
+			s.WriteString("\n" + input.View())
+		}
+
+		s.WriteString("\n Press 'r' to execute command.")
 	}
 
 	return s.String()
@@ -183,20 +210,24 @@ func RunAsTUIApp() {
 	fp.ShowPermissions = false
 	fp.CurrentDirectory, _ = os.Getwd()
 
-	commands := []list.Item{
-		listItem{title: "hflip", desc: "Apply horizontal flip to the image."},
-		listItem{title: "vflip", desc: "Apply vertical flip to the image."},
-		listItem{title: "bandpass", desc: "Apply bandpass filtering to the image."},
+	var commandItems []list.Item
+	for _, cmd := range commandDefinitions {
+		commandItems = append(commandItems, cmd)
 	}
-
-	commandList := list.New(commands, list.NewDefaultDelegate(), 0, 0)
+	commandList := list.New(commandItems, list.NewDefaultDelegate(), 0, 0)
 	commandList.Title = "Available Commands"
 
 	m := model{
-		filepicker:   fp,
-		currentView:  filePickerView,
-		commandsList: commandList,
+		filepicker:          fp,
+		currentView:         filePickerView,
+		commandsList:        commandList,
+		selectedCommandArgs: make(map[string]string),
 	}
+
+	style = lipgloss.NewStyle().
+		Width(m.terminalSize.width).
+		BorderStyle(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("63"))
 
 	p := tea.NewProgram(m, tea.WithAltScreen())
 
