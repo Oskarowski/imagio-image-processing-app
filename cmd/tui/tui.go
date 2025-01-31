@@ -18,11 +18,6 @@ import (
 
 type view int
 
-type terminalSize struct {
-	width  int
-	height int
-}
-
 var style lipgloss.Style
 
 type clearErrorMsg struct{}
@@ -48,6 +43,7 @@ type model struct {
 	selectedCommand     string
 	selectedCommandArgs map[string]string
 	inputs              []textinput.Model
+	cursor              int
 }
 
 type commandDefinition struct {
@@ -86,6 +82,9 @@ func (m *model) initializeTextInputs() {
 				input.Placeholder = arg
 				m.inputs[j] = input
 			}
+
+			m.cursor = 0
+			m.inputs[0].Focus()
 			break
 		}
 	}
@@ -140,6 +139,44 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.currentView = commandDetailView
 				}
 
+			}
+
+			if m.currentView == commandDetailView {
+				m.cursor = (m.cursor + 1) % len(m.inputs)
+				for i := range m.inputs {
+					if i == m.cursor {
+						m.inputs[i].Focus()
+					} else {
+						m.inputs[i].Blur()
+					}
+				}
+			}
+
+		case "up":
+			if m.currentView == commandDetailView {
+				if m.cursor > 0 {
+					m.cursor--
+				}
+				m.cursor = m.cursor % len(m.inputs)
+				for i := range m.inputs {
+					if i == m.cursor {
+						m.inputs[i].Focus()
+					} else {
+						m.inputs[i].Blur()
+					}
+				}
+			}
+
+		case "down":
+			if m.currentView == commandDetailView {
+				m.cursor = (m.cursor + 1) % len(m.inputs)
+				for i := range m.inputs {
+					if i == m.cursor {
+						m.inputs[i].Focus()
+					} else {
+						m.inputs[i].Blur()
+					}
+				}
 			}
 
 		case "r":

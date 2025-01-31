@@ -26,3 +26,8 @@ func (m *model) loadImagePreview(path string) {
 
 	m.imagePreview = converted
 }
+
+type terminalSize struct {
+	width  int
+	height int
+}
