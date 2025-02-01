@@ -16,7 +16,6 @@ import (
 func OpenBmpImage(imagePath string) (image.Image, error) {
 	file, err := os.Open(imagePath)
 	if err != nil {
-		log.Fatalf("Error opening file: %v", err)
 		return nil, err
 	}
 	defer file.Close()

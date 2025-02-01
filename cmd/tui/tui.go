@@ -21,8 +21,10 @@ type view int
 var style lipgloss.Style
 
 var cursorStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+var successStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("2"))
 
 type clearErrorMsg struct{}
+type clearSuccessMsg struct{}
 
 const (
 	filePickerView view = iota
@@ -38,6 +40,7 @@ type model struct {
 	currentView         view
 	quitting            bool
 	err                 error
+	successMessage      string
 	imagePreview        string
 	loadedImage         image.Image
 	terminalSize        terminalSize
@@ -67,6 +70,12 @@ var commandDefinitions = []commandDefinition{
 func clearErrorAfter(t time.Duration) tea.Cmd {
 	return tea.Tick(t, func(_ time.Time) tea.Msg {
 		return clearErrorMsg{}
+	})
+}
+
+func clearSuccessAfter(t time.Duration) tea.Cmd {
+	return tea.Tick(t, func(_ time.Time) tea.Msg {
+		return clearSuccessMsg{}
 	})
 }
 
@@ -162,8 +171,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						}
 					}
 
-					log.Printf("Command %s with args %v", m.selectedCommand, m.selectedCommandArgs)
-
 					result, err := executeCommand(m.selectedFile, m.selectedCommand, m.selectedCommandArgs)
 
 					log.Default().Printf("Command result: %s", result)
@@ -171,8 +178,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if err != nil {
 						log.Default().Printf("Error executing command: %v", err)
 						m.err = err
-						return m, clearErrorAfter(2 * time.Second)
+						return m, clearErrorAfter(3 * time.Second)
 					}
+
+					m.successMessage = result
+					return m, clearSuccessAfter(3 * time.Second)
 
 				} else {
 					m.cursor = (m.cursor + 1) % (len(m.inputs) + 1)
@@ -224,6 +234,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case clearErrorMsg:
 		m.err = nil
+
+	case clearSuccessMsg:
+		m.successMessage = ""
 	}
 
 	return m, cmd
@@ -246,11 +259,10 @@ func (m model) View() string {
 
 	case imagePreviewView:
 		s.WriteString("\n  Image Preview (Press 'Tab' to view selected files):\n")
-		s.WriteString("\n" + m.imagePreview + "\n")
+		s.WriteString(m.imagePreview)
 
 	case commandsSelectionView:
 		s.WriteString("\n  Select a command (Press 'Tab' to view selected files, 'Enter' to enter for details):\n")
-
 		s.WriteString(m.commandsList.View())
 
 	case commandDetailView:
@@ -264,6 +276,12 @@ func (m model) View() string {
 			s.WriteString("\n\n" + cursorStyle.Render(" ▶ ") + "[ Submit ]")
 		} else {
 			s.WriteString("\n\n { Submit }")
+		}
+
+		if m.err != nil {
+			s.WriteString("\n\n" + m.filepicker.Styles.DisabledFile.Render("Error: "+m.err.Error()))
+		} else if m.successMessage != "" {
+			s.WriteString("\n\n" + successStyle.Render("Success: "+m.successMessage))
 		}
 	}
 

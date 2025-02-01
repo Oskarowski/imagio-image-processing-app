@@ -2,6 +2,7 @@ package tui
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"strconv"
 )
@@ -17,20 +18,25 @@ func executeCommand(imgPath, cmdName string, cmdArgs map[string]string) (string,
 
 		lowCutInt, err := strconv.Atoi(lowCut)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("invalid lowCut value: %w", err)
 		}
 
 		highCutInt, err := strconv.Atoi(highCut)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("invalid highCut value: %w", err)
 		}
 
 		withSpectrum, err := strconv.ParseBool(withSpectrumImgGenerated)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("invalid withSpectrumImgGenerated value: %w", err)
 		}
 
-		return handleBandpassCommand(imgPath, lowCutInt, highCutInt, withSpectrum)
+		result, err := handleBandpassCommand(imgPath, lowCutInt, highCutInt, withSpectrum)
+		if err != nil {
+			return "", fmt.Errorf("bandpass filtering failed: %w", err)
+		}
+
+		return result, nil
 
 	default:
 		return "", errors.New("command not found")
