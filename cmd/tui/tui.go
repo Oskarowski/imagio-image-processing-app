@@ -20,6 +20,8 @@ type view int
 
 var style lipgloss.Style
 
+var cursorStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+
 type clearErrorMsg struct{}
 
 const (
@@ -73,13 +75,16 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m *model) initializeTextInputs() {
+	m.inputs = nil
+	m.selectedCommandArgs = make(map[string]string)
+
 	for _, cmd := range commandDefinitions {
 		if cmd.name == m.selectedCommand {
 			m.inputs = make([]textinput.Model, len(cmd.args))
 			for j, arg := range cmd.args {
-				log.Default().Println("Arg:", arg)
 				input := textinput.New()
 				input.Placeholder = arg
+				m.selectedCommandArgs[cmd.name] = ""
 				m.inputs[j] = input
 			}
 
@@ -133,7 +138,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			if m.currentView == commandsSelectionView {
 				if selectedItem, ok := m.commandsList.SelectedItem().(commandDefinition); ok {
-					log.Default().Println("Selected item:", selectedItem.name)
 					m.selectedCommand = selectedItem.name
 					m.initializeTextInputs()
 					m.currentView = commandDetailView
@@ -142,12 +146,34 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if m.currentView == commandDetailView {
-				m.cursor = (m.cursor + 1) % len(m.inputs)
-				for i := range m.inputs {
-					if i == m.cursor {
-						m.inputs[i].Focus()
-					} else {
-						m.inputs[i].Blur()
+
+				if m.cursor == len(m.inputs) {
+					log.Default().Printf("Executing command %s with args %v", m.selectedCommand, m.selectedCommandArgs)
+
+					for _, input := range m.inputs {
+						log.Default().Printf("Input: %s", input.Value())
+					}
+
+					for key, value := range m.selectedCommandArgs {
+						if strings.TrimSpace(value) == "" {
+							m.err = fmt.Errorf("missing value for %s", key)
+							return m, clearErrorAfter(2 * time.Second)
+						}
+					}
+
+					log.Printf("Executing command %s with args %v", m.selectedCommand, m.selectedCommandArgs)
+
+				} else {
+					log.Default().Print()
+					// m.selectedCommandArgs[m.inputs[m.cursor].] = m.inputs[m.cursor].Value()
+					m.cursor = (m.cursor + 1) % (len(m.inputs) + 1)
+
+					for i := range m.inputs {
+						if i == m.cursor {
+							m.inputs[i].Focus()
+						} else {
+							m.inputs[i].Blur()
+						}
 					}
 				}
 			}
@@ -169,9 +195,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "down":
 			if m.currentView == commandDetailView {
-				m.cursor = (m.cursor + 1) % len(m.inputs)
+				m.cursor = (m.cursor + 1) % (len(m.inputs) + 1)
 				for i := range m.inputs {
-					if i == m.cursor {
+					if i == m.cursor && i < len(m.inputs) {
 						m.inputs[i].Focus()
 					} else {
 						m.inputs[i].Blur()
@@ -181,7 +207,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "r":
 			if m.currentView == commandDetailView {
-				log.Println("Executing:", m.selectedCommand, m.selectedCommandArgs[m.selectedCommand])
+
+				// log.Printf("Executing command %s with args %v", m.selectedCommand, m.selectedCommandArgs)
 			}
 		}
 
@@ -209,10 +236,8 @@ func (m model) View() string {
 	case filePickerView:
 		s.WriteString("\n  Select files (Press 'Tab' to view selected files, 'Enter' to add):\n")
 		if m.err != nil {
-			// s.WriteString(style.Render("  " + m.filepicker.Styles.DisabledFile.Render(m.err.Error()) + "\n"))
 			s.WriteString("  " + m.filepicker.Styles.DisabledFile.Render(m.err.Error()) + "\n")
 		}
-		// s.WriteString((style.Render(" kurwa ")))
 		s.WriteString(style.Render("\n" + m.filepicker.View() + "\n"))
 
 	case imagePreviewView:
@@ -227,13 +252,15 @@ func (m model) View() string {
 	case commandDetailView:
 		s.WriteString("\n  Command: " + m.selectedCommand + "\n")
 
-		log.Default().Println("Rendering inputs:", len(m.inputs))
-
 		for _, input := range m.inputs {
 			s.WriteString("\n" + input.View())
 		}
 
-		s.WriteString("\n Press 'r' to execute command.")
+		if m.cursor == len(m.inputs) {
+			s.WriteString("\n\n" + cursorStyle.Render(" ▶ ") + "[ Submit ]")
+		} else {
+			s.WriteString("\n\n { Submit }")
+		}
 	}
 
 	return s.String()
