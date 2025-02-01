@@ -60,7 +60,7 @@ func (i commandDefinition) Description() string { return i.description }
 func (i commandDefinition) FilterValue() string { return i.name }
 
 var commandDefinitions = []commandDefinition{
-	{"bandpass", "--bandpass -low=15 -high=50 -spectrum=1 <bmp_image_path>", "Apply bandpass filtering to the image.", []string{"-low=(int): Lower cutoff frequency.", "-high=(int): Upper cutoff frequency.", "-spectrum=(int): Include spectrum in output (0 or 1)."}},
+	{"bandpass", "--bandpass -low=15 -high=50 -spectrum=1 <bmp_image_path>", "Apply bandpass filtering to the image.", []string{"lowCut", "highCut", "withSpectrumImgGenerated"}},
 	{"lowpass", "--lowpass -cutoff=15 -spectrum=1 <bmp_image_path>", "Apply lowpass filtering to the image.", []string{"-cutoff=(int): Cutoff frequency.", "-spectrum=(int): Include spectrum in output (0 or 1)."}},
 }
 
@@ -84,7 +84,7 @@ func (m *model) initializeTextInputs() {
 			for j, arg := range cmd.args {
 				input := textinput.New()
 				input.Placeholder = arg
-				m.selectedCommandArgs[cmd.name] = ""
+				m.selectedCommandArgs[arg] = ""
 				m.inputs[j] = input
 			}
 
@@ -148,10 +148,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.currentView == commandDetailView {
 
 				if m.cursor == len(m.inputs) {
-					log.Default().Printf("Executing command %s with args %v", m.selectedCommand, m.selectedCommandArgs)
 
 					for _, input := range m.inputs {
-						log.Default().Printf("Input: %s", input.Value())
+						argName := input.Placeholder
+						argValue := input.Value()
+						m.selectedCommandArgs[argName] = argValue
 					}
 
 					for key, value := range m.selectedCommandArgs {
@@ -161,11 +162,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						}
 					}
 
-					log.Printf("Executing command %s with args %v", m.selectedCommand, m.selectedCommandArgs)
+					log.Printf("Command %s with args %v", m.selectedCommand, m.selectedCommandArgs)
+
+					result, err := executeCommand(m.selectedFile, m.selectedCommand, m.selectedCommandArgs)
+
+					log.Default().Printf("Command result: %s", result)
+
+					if err != nil {
+						log.Default().Printf("Error executing command: %v", err)
+						m.err = err
+						return m, clearErrorAfter(2 * time.Second)
+					}
 
 				} else {
-					log.Default().Print()
-					// m.selectedCommandArgs[m.inputs[m.cursor].] = m.inputs[m.cursor].Value()
 					m.cursor = (m.cursor + 1) % (len(m.inputs) + 1)
 
 					for i := range m.inputs {
@@ -205,11 +214,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 
-		case "r":
-			if m.currentView == commandDetailView {
-
-				// log.Printf("Executing command %s with args %v", m.selectedCommand, m.selectedCommandArgs)
-			}
 		}
 
 	case tea.WindowSizeMsg:
