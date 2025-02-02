@@ -50,7 +50,6 @@ type model struct {
 
 type commandDefinition struct {
 	name        string
-	syntax      string
 	description string
 	args        []string
 }
@@ -60,8 +59,12 @@ func (i commandDefinition) Description() string { return i.description }
 func (i commandDefinition) FilterValue() string { return i.name }
 
 var commandDefinitions = []commandDefinition{
-	{"bandpass", "--bandpass -low=15 -high=50 -spectrum=1 <bmp_image_path>", "Apply bandpass filtering to the image.", []string{"lowCut", "highCut", "withSpectrumImgGenerated"}},
-	{"lowpass", "--lowpass -cutoff=15 -spectrum=1 <bmp_image_path>", "Apply lowpass filtering to the image.", []string{"-cutoff=(int): Cutoff frequency.", "-spectrum=(int): Include spectrum in output (0 or 1)."}},
+	{"bandpass", "Apply bandpass filtering to the image.", []string{"lowCut", "highCut", "withSpectrumImgGenerated"}},
+	{"lowpass", "Apply lowpass filtering to the image.", []string{"cutoff", "withSpectrumImgGenerated"}},
+	{"highpass", "Apply highpass filtering to the image.", []string{"cutoff", "withSpectrumImgGenerated"}},
+	{"bandcut", "Apply bandcut filtering to the image.", []string{"lowCut", "highCut", "withSpectrumImgGenerated"}},
+	{"phasemod", "Apply phase modification to the image.", []string{"k", "l"}},
+	{"maskpass", "Apply maskpass filtering to the image.", []string{"maskName", "withSpectrumImgGenerated"}},
 }
 
 func clearErrorAfter(t time.Duration) tea.Cmd {
@@ -237,7 +240,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		m.filePickerViewStyle = lipgloss.NewStyle().
 			Width(msg.Width - 2).
-			Height(msg.Height - 2).
 			BorderStyle(lipgloss.RoundedBorder()).
 			BorderForeground(lipgloss.Color("205"))
 
