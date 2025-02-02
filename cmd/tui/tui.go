@@ -18,11 +18,6 @@ import (
 
 type view int
 
-var style lipgloss.Style
-
-var cursorStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
-var successStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("2"))
-
 type clearErrorMsg struct{}
 type clearSuccessMsg struct{}
 
@@ -35,20 +30,22 @@ const (
 )
 
 type model struct {
-	filepicker          filepicker.Model
-	selectedFile        string
-	currentView         view
-	quitting            bool
-	err                 error
-	successMessage      string
-	imagePreview        string
-	loadedImage         image.Image
-	terminalSize        terminalSize
-	commandsList        list.Model
-	selectedCommand     string
-	selectedCommandArgs map[string]string
-	inputs              []textinput.Model
-	cursor              int
+	filepicker             filepicker.Model
+	selectedFile           string
+	currentView            view
+	quitting               bool
+	err                    error
+	successMessage         string
+	imagePreview           string
+	loadedImage            image.Image
+	terminalSize           terminalSize
+	commandsList           list.Model
+	selectedCommand        string
+	selectedCommandArgs    map[string]string
+	inputs                 []textinput.Model
+	cursor                 int
+	commandDetailViewStyle lipgloss.Style
+	filePickerViewStyle    lipgloss.Style
 }
 
 type commandDefinition struct {
@@ -230,6 +227,20 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.terminalSize.width = msg.Width
 		m.terminalSize.height = msg.Height
 		m.commandsList.SetSize(msg.Width, msg.Height)
+
+		m.commandDetailViewStyle = lipgloss.NewStyle().
+			Width(msg.Width-2).
+			Height(msg.Height-2).
+			Padding(1, 2).
+			BorderStyle(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("205"))
+
+		m.filePickerViewStyle = lipgloss.NewStyle().
+			Width(msg.Width - 2).
+			Height(msg.Height - 2).
+			BorderStyle(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("205"))
+
 		return m, nil
 
 	case clearErrorMsg:
@@ -251,11 +262,14 @@ func (m model) View() string {
 
 	switch m.currentView {
 	case filePickerView:
-		s.WriteString("\n  Select files (Press 'Tab' to view selected files, 'Enter' to add):\n")
+		s.WriteString("Select files (Press 'Tab' to view selected files, 'Enter' to add):")
 		if m.err != nil {
-			s.WriteString("  " + m.filepicker.Styles.DisabledFile.Render(m.err.Error()) + "\n")
+			s.WriteString(m.filepicker.Styles.DisabledFile.Render(m.err.Error()) + "\n")
 		}
-		s.WriteString(style.Render("\n" + m.filepicker.View() + "\n"))
+		s.WriteString("\n\n")
+		s.WriteString(m.filepicker.View())
+
+		return m.filePickerViewStyle.Render(s.String())
 
 	case imagePreviewView:
 		s.WriteString("\n  Image Preview (Press 'Tab' to view selected files):\n")
@@ -266,23 +280,37 @@ func (m model) View() string {
 		s.WriteString(m.commandsList.View())
 
 	case commandDetailView:
-		s.WriteString("\n  Command: " + m.selectedCommand + "\n")
+		s.WriteString(lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("205")).Render("Command Details"))
+		s.WriteString("\n\n")
+
+		s.WriteString(lipgloss.NewStyle().Bold(true).Render("Command: "))
+		s.WriteString(m.selectedCommand + "\n\n")
 
 		for _, input := range m.inputs {
 			s.WriteString("\n" + input.View())
 		}
 
+		buttonStyle := lipgloss.NewStyle().
+			Padding(0, 4).
+			Background(lipgloss.Color("205")).
+			Foreground(lipgloss.Color("0")).
+			Bold(true)
+
 		if m.cursor == len(m.inputs) {
-			s.WriteString("\n\n" + cursorStyle.Render(" ▶ ") + "[ Submit ]")
+			s.WriteString("\n\n" + buttonStyle.Render("[ Submit ]"))
 		} else {
-			s.WriteString("\n\n { Submit }")
+			s.WriteString("\n\n" + lipgloss.NewStyle().Render("[ Submit ]"))
 		}
 
 		if m.err != nil {
-			s.WriteString("\n\n" + m.filepicker.Styles.DisabledFile.Render("Error: "+m.err.Error()))
+			errorStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("9")).Bold(true)
+			s.WriteString("\n\n" + errorStyle.Render("Error: "+m.err.Error()))
 		} else if m.successMessage != "" {
+			successStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("2")).Bold(true)
 			s.WriteString("\n\n" + successStyle.Render("Success: "+m.successMessage))
 		}
+
+		return m.commandDetailViewStyle.Render(s.String())
 	}
 
 	return s.String()
@@ -303,17 +331,22 @@ func RunAsTUIApp() {
 	commandList := list.New(commandItems, list.NewDefaultDelegate(), 0, 0)
 	commandList.Title = "Available Commands"
 
-	m := model{
-		filepicker:          fp,
-		currentView:         filePickerView,
-		commandsList:        commandList,
-		selectedCommandArgs: make(map[string]string),
-	}
-
-	style = lipgloss.NewStyle().
-		Width(m.terminalSize.width).
+	var commandDetailStyle = lipgloss.NewStyle().
 		BorderStyle(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("63"))
+
+	var filePickerViewStyle = lipgloss.NewStyle().
+		BorderStyle(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("63"))
+
+	m := model{
+		filepicker:             fp,
+		currentView:            filePickerView,
+		commandsList:           commandList,
+		selectedCommandArgs:    make(map[string]string),
+		commandDetailViewStyle: commandDetailStyle,
+		filePickerViewStyle:    filePickerViewStyle,
+	}
 
 	p := tea.NewProgram(m, tea.WithAltScreen())
 
