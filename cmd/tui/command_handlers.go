@@ -2,175 +2,169 @@ package tui
 
 import (
 	"errors"
+	"fmt"
 	"image-processing/imageio"
 	"image-processing/orthogonal_transforms"
 )
 
-func handleBandpassCommand(imgPath string, lowCut, highCut int, withSpectrumImgGenerated bool) (successMsgString string, err error) {
+type handlingCommandOptions struct {
+	imgPath                  string
+	maskPath                 string
+	lowCut, highCut          int
+	cutoff, k, l             int
+	withSpectrumImgGenerated bool
+}
+
+func validateFrequencyRange(lowCut, highCut, imgWidth int) error {
 	if lowCut < 0 || highCut < 0 {
-		return "", errors.New("low and high cut frequencies must be positive")
+		return errors.New("low and high cut frequencies must be positive")
 	}
 
 	if lowCut >= highCut {
-		return "", errors.New("low cut frequency must be lower than high cut frequency")
+		return errors.New("low cut frequency must be lower than high cut frequency")
 	}
 
-	img, err := imageio.OpenBmpImage(imgPath)
+	if lowCut >= imgWidth/2 || highCut >= imgWidth/2 {
+		return errors.New("low and high cut frequencies must be lower than half the image width")
+	}
+
+	return nil
+}
+
+func saveFilteringResults(handlerResult []orthogonal_transforms.SpectrumImage) error {
+	for _, resultImg := range handlerResult {
+		err := imageio.SaveBmpImage(&resultImg.Img, resultImg.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func handleBandpassCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
 	if err != nil {
 		return "", err
 	}
 
-	if lowCut >= img.Bounds().Dx()/2 || highCut >= img.Bounds().Dx()/2 {
-		return "", errors.New("low and high cut frequencies must be lower than half the image width")
+	if err := validateFrequencyRange(opts.lowCut, opts.highCut, img.Bounds().Dx()); err != nil {
+		return "", err
 	}
 
-	imgFileName := imageio.GetPureFileName(imgPath)
+	imgFileName := imageio.GetPureFileName(opts.imgPath)
 
-	handlerResult := orthogonal_transforms.HandleBandpassFiltering(img, imgFileName, lowCut, highCut, withSpectrumImgGenerated)
+	handlerResult := orthogonal_transforms.HandleBandpassFiltering(img, imgFileName, opts.lowCut, opts.highCut, opts.withSpectrumImgGenerated)
 
-	for _, resultImg := range handlerResult {
-		err = imageio.SaveBmpImage(&resultImg.Img, resultImg.Name)
-		if err != nil {
-			return "", err
-		}
+	if err := saveFilteringResults(handlerResult); err != nil {
+		return "", err
 	}
 
 	return "Bandpass filtering successful", nil
 }
 
-func handleLowpassCommand(imgPath string, cutoff int, withSpectrumImgGenerated bool) (successMsgString string, err error) {
-	if cutoff < 0 {
-		return "", errors.New("cutoff frequency must be positive")
-	}
-
-	img, err := imageio.OpenBmpImage(imgPath)
+func handleLowpassCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
 	if err != nil {
 		return "", err
 	}
 
-	if cutoff >= img.Bounds().Dx()/2 || cutoff >= img.Bounds().Dy()/2 {
-		return "", errors.New("cutoff frequency must be lower than half the image width")
+	if opts.cutoff < 0 || opts.cutoff >= img.Bounds().Dx()/2 || opts.cutoff >= img.Bounds().Dy()/2 {
+		return "", errors.New("cutoff frequency must be positive and less than half the image width/height")
 	}
 
-	imgFileName := imageio.GetPureFileName(imgPath)
+	imgFileName := imageio.GetPureFileName(opts.imgPath)
 
-	handlerResult := orthogonal_transforms.HandleLowpassFiltering(img, imgFileName, cutoff, withSpectrumImgGenerated)
+	handlerResult := orthogonal_transforms.HandleLowpassFiltering(img, imgFileName, opts.cutoff, opts.withSpectrumImgGenerated)
 
-	for _, resultImg := range handlerResult {
-		err = imageio.SaveBmpImage(&resultImg.Img, resultImg.Name)
-		if err != nil {
-			return "", err
-		}
+	if err := saveFilteringResults(handlerResult); err != nil {
+		return "", err
 	}
 
 	return "Lowpass filtering successful", nil
 }
 
-func handleHighpassCommand(imgPath string, cutoff int, withSpectrumImgGenerated bool) (successMsgString string, err error) {
-	if cutoff < 0 {
-		return "", errors.New("cutoff frequency must be positive")
-	}
-
-	img, err := imageio.OpenBmpImage(imgPath)
+func handleHighpassCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
 	if err != nil {
 		return "", err
 	}
 
-	if cutoff >= img.Bounds().Dx()/2 || cutoff >= img.Bounds().Dy()/2 {
-		return "", errors.New("cutoff frequency must be lower than half the image width")
+	if opts.cutoff < 0 || opts.cutoff >= img.Bounds().Dx()/2 || opts.cutoff >= img.Bounds().Dy()/2 {
+		return "", errors.New("cutoff frequency must be positive and less than half the image width/height")
 	}
 
-	imgFileName := imageio.GetPureFileName(imgPath)
+	imgFileName := imageio.GetPureFileName(opts.imgPath)
 
-	handlerResult := orthogonal_transforms.HandleHighpassFiltering(img, imgFileName, cutoff, withSpectrumImgGenerated)
+	handlerResult := orthogonal_transforms.HandleHighpassFiltering(img, imgFileName, opts.cutoff, opts.withSpectrumImgGenerated)
 
-	for _, resultImg := range handlerResult {
-		err = imageio.SaveBmpImage(&resultImg.Img, resultImg.Name)
-		if err != nil {
-			return "", err
-		}
+	if err := saveFilteringResults(handlerResult); err != nil {
+		return "", err
 	}
 
 	return "Highpass filtering successful", nil
 }
 
-func handleBandcutCommand(imgPath string, lowCut, highCut int, withSpectrumImgGenerated bool) (successMsgString string, err error) {
-	if lowCut < 0 || highCut < 0 {
-		return "", errors.New("low and high cut frequencies must be positive")
-	}
-
-	if lowCut >= highCut {
-		return "", errors.New("low cut frequency must be lower than high cut frequency")
-	}
-
-	img, err := imageio.OpenBmpImage(imgPath)
+func handleBandcutCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
 	if err != nil {
 		return "", err
 	}
 
-	if lowCut >= img.Bounds().Dx()/2 || highCut >= img.Bounds().Dx()/2 {
-		return "", errors.New("low and high cut frequencies must be lower than half the image width")
+	if err := validateFrequencyRange(opts.lowCut, opts.highCut, img.Bounds().Dx()); err != nil {
+		return "", err
 	}
 
-	imgFileName := imageio.GetPureFileName(imgPath)
+	imgFileName := imageio.GetPureFileName(opts.imgPath)
 
-	handlerResult := orthogonal_transforms.HandleBandcutFiltering(img, imgFileName, lowCut, highCut, withSpectrumImgGenerated)
+	handlerResult := orthogonal_transforms.HandleBandcutFiltering(img, imgFileName, opts.lowCut, opts.highCut, opts.withSpectrumImgGenerated)
 
-	for _, resultImg := range handlerResult {
-		err = imageio.SaveBmpImage(&resultImg.Img, resultImg.Name)
-		if err != nil {
-			return "", err
-		}
+	if err := saveFilteringResults(handlerResult); err != nil {
+		return "", err
 	}
 
 	return "Bandcut filtering successful", nil
 }
 
-func handlePhasemodCommand(imgPath string, k, l int) (successMsgString string, err error) {
-	if k < 0 || l < 0 {
+func handlePhasemodCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	if opts.k < 0 || opts.l < 0 {
 		return "", errors.New("k and l must be positive")
 	}
 
-	img, err := imageio.OpenBmpImage(imgPath)
+	img, err := imageio.OpenBmpImage(opts.imgPath)
 	if err != nil {
 		return "", err
 	}
 
-	imgFileName := imageio.GetPureFileName(imgPath)
+	imgFileName := imageio.GetPureFileName(opts.imgPath)
 
-	handlerResult := orthogonal_transforms.HandlePhaseModification(img, imgFileName, k, l)
+	handlerResult := orthogonal_transforms.HandlePhaseModification(img, imgFileName, opts.k, opts.l)
 
-	for _, resultImg := range handlerResult {
-		err = imageio.SaveBmpImage(&resultImg.Img, resultImg.Name)
-		if err != nil {
-			return "", err
-		}
+	if err := saveFilteringResults(handlerResult); err != nil {
+		return "", err
 	}
 
 	return "Phase modified successful", nil
 }
 
-func handleMaskpassCommand(imgPath, maskPath string, withSpectrumImgGenerated bool) (successMsgString string, err error) {
+func handleMaskpassCommand(opts handlingCommandOptions) (successMsgString string, err error) {
 
-	maskImg, err := imageio.OpenBmpImage(maskPath)
+	maskImg, err := imageio.OpenBmpImage(opts.maskPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to open mask image: %w", err)
+	}
+
+	img, err := imageio.OpenBmpImage(opts.maskPath)
 	if err != nil {
 		return "", err
 	}
 
-	img, err := imageio.OpenBmpImage(imgPath)
-	if err != nil {
+	imgFileName := imageio.GetPureFileName(opts.imgPath)
+
+	handlerResult := orthogonal_transforms.HandleMaskpassFiltering(img, imgFileName, maskImg, opts.withSpectrumImgGenerated)
+
+	if err := saveFilteringResults(handlerResult); err != nil {
 		return "", err
-	}
-
-	imgFileName := imageio.GetPureFileName(imgPath)
-
-	handlerResult := orthogonal_transforms.HandleMaskpassFiltering(img, imgFileName, maskImg, withSpectrumImgGenerated)
-
-	for _, resultImg := range handlerResult {
-		err = imageio.SaveBmpImage(&resultImg.Img, resultImg.Name)
-		if err != nil {
-			return "", err
-		}
 	}
 
 	return "Maskpass filter successful applied", nil
