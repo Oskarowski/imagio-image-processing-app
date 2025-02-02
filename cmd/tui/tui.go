@@ -262,14 +262,24 @@ func (m model) View() string {
 
 	switch m.currentView {
 	case filePickerView:
-		s.WriteString("Select files (Press 'Tab' to view selected files, 'Enter' to add):")
-		if m.err != nil {
-			s.WriteString(m.filepicker.Styles.DisabledFile.Render(m.err.Error()) + "\n")
-		}
-		s.WriteString("\n\n")
-		s.WriteString(m.filepicker.View())
 
-		return m.filePickerViewStyle.Render(s.String())
+		titleStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("205"))
+		errorStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("9")).Bold(true)
+
+		title := titleStyle.Render("Select Files (Press 'Tab' to switch views, 'Enter' to select):")
+
+		var errorMessage string
+		if m.err != nil {
+			errorMessage = errorStyle.Render("Error: " + m.err.Error())
+		}
+
+		content := lipgloss.JoinVertical(lipgloss.Top,
+			title,
+			errorMessage,
+			m.filepicker.View(),
+		)
+
+		return m.filePickerViewStyle.Render(content)
 
 	case imagePreviewView:
 		s.WriteString("\n  Image Preview (Press 'Tab' to view selected files):\n")
