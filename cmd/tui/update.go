@@ -122,19 +122,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			case COMMAND_EXECUTION_VIEW:
 
-				if m.cursor > 0 {
-					m.cursor--
-				}
+				if len(m.CommandState.inputs) > 0 {
+					if m.cursor > 0 {
+						m.cursor--
+					}
 
-				m.cursor = m.cursor % len(m.CommandState.inputs)
+					m.cursor = m.cursor % len(m.CommandState.inputs)
 
-				for i := range m.CommandState.inputs {
-					if i == m.cursor {
-						m.CommandState.inputs[i].Focus()
-					} else {
-						m.CommandState.inputs[i].Blur()
+					for i := range m.CommandState.inputs {
+						if i == m.cursor {
+							m.CommandState.inputs[i].Focus()
+						} else {
+							m.CommandState.inputs[i].Blur()
+						}
 					}
 				}
+
 			}
 
 		case "down":
@@ -142,12 +145,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			case COMMAND_EXECUTION_VIEW:
 
-				m.cursor = (m.cursor + 1) % (len(m.CommandState.inputs) + 1)
-				for i := range m.CommandState.inputs {
-					if i == m.cursor && i < len(m.CommandState.inputs) {
-						m.CommandState.inputs[i].Focus()
-					} else {
-						m.CommandState.inputs[i].Blur()
+				if len(m.CommandState.inputs) > 0 {
+					m.cursor = (m.cursor + 1) % (len(m.CommandState.inputs) + 1)
+					for i := range m.CommandState.inputs {
+						if i == m.cursor && i < len(m.CommandState.inputs) {
+							m.CommandState.inputs[i].Focus()
+						} else {
+							m.CommandState.inputs[i].Blur()
+						}
 					}
 				}
 			}
