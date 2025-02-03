@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 	"image-processing/cmd/tui/executioner"
+	"image-processing/imageio"
 	"log"
 	"os"
 	"strings"
@@ -90,14 +91,26 @@ func (m Model) View() string {
 		s.WriteString(m.commandsList.View())
 
 	case COMMAND_EXECUTION_VIEW:
-		s.WriteString(lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("205")).Render("Command Details"))
-		s.WriteString("\n\n")
+		titleStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("205"))
+		labelStyle := lipgloss.NewStyle().Bold(true)
 
-		s.WriteString(lipgloss.NewStyle().Bold(true).Render("Command: "))
-		s.WriteString(m.CommandState.selectedCommand + "\n\n")
+		s.WriteString(titleStyle.Render("Execute Command") + "\n\n")
+
+		if m.CommandState.selectedCommand != "" {
+			s.WriteString(labelStyle.Render("Command: ") + m.CommandState.selectedCommand + "\n\n")
+		} else {
+			s.WriteString(labelStyle.Render("No command selected!") + "\n\n")
+		}
+
+		if m.selectedFile != "" {
+			fileName := imageio.GetPureFileName(m.selectedFile)
+			s.WriteString(labelStyle.Render("File: ") + fileName + "\n\n")
+		} else {
+			s.WriteString(labelStyle.Render("No file selected!") + "\n\n")
+		}
 
 		for _, input := range m.CommandState.inputs {
-			s.WriteString("\n" + input.View())
+			s.WriteString(input.View() + "\n")
 		}
 
 		buttonStyle := lipgloss.NewStyle().
@@ -106,10 +119,12 @@ func (m Model) View() string {
 			Foreground(lipgloss.Color("0")).
 			Bold(true)
 
-		if m.cursor == len(m.CommandState.inputs) {
-			s.WriteString("\n\n" + buttonStyle.Render("[ Submit ]"))
-		} else {
-			s.WriteString("\n\n" + lipgloss.NewStyle().Render("[ Submit ]"))
+		if m.CommandState.selectedCommand != "" && m.selectedFile != "" {
+			if m.cursor == len(m.CommandState.inputs) {
+				s.WriteString("\n\n" + buttonStyle.Render("[ Execute ]"))
+			} else {
+				s.WriteString("\n\n" + lipgloss.NewStyle().Render("[ Execute ]"))
+			}
 		}
 
 		if m.UIState.err != nil {
