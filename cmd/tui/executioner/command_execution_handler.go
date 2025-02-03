@@ -1,4 +1,4 @@
-package tui
+package executioner
 
 import (
 	"errors"
@@ -167,7 +167,7 @@ func maskpassExecutioner(imgPath string, args map[string]string) (string, error)
 	return handleMaskpassCommand(opts)
 }
 
-func executeCommand(imgPath, cmdName string, cmdArgs map[string]string) (string, error) {
+func ExecuteCommand(imgPath, cmdName string, cmdArgs map[string]string) (string, error) {
 	handler, exists := commandRegistry[cmdName]
 	if !exists {
 		return "", fmt.Errorf("command not found: %s", cmdName)

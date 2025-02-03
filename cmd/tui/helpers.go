@@ -6,14 +6,12 @@ import (
 	"image-processing/internal/ascii_preview"
 )
 
-func (m *model) loadImagePreview(path string) {
+func (m *Model) loadImagePreview(path string) {
 	file, err := imageio.OpenBmpImage(path)
 	if err != nil {
-		m.err = fmt.Errorf("failed to open image: %v", err)
+		m.UIState.err = fmt.Errorf("failed to open image: %v", err)
 		return
 	}
-
-	m.loadedImage = file
 
 	availableHeight := m.terminalSize.height
 
@@ -22,7 +20,7 @@ func (m *model) loadImagePreview(path string) {
 	convertOptions.FixedHeight = availableHeight
 
 	converter := ascii_preview.NewImageConverter()
-	converted := converter.Image2ASCIIString(m.loadedImage, &convertOptions)
+	converted := converter.Image2ASCIIString(file, &convertOptions)
 
 	m.imagePreview = converted
 }

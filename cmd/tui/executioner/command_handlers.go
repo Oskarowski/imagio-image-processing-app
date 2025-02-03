@@ -1,4 +1,4 @@
-package tui
+package executioner
 
 import (
 	"errors"
