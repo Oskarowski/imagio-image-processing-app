@@ -154,7 +154,7 @@ func handleMaskpassCommand(opts handlingCommandOptions) (successMsgString string
 		return "", fmt.Errorf("failed to open mask image: %w", err)
 	}
 
-	img, err := imageio.OpenBmpImage(opts.maskPath)
+	img, err := imageio.OpenBmpImage(opts.imgPath)
 	if err != nil {
 		return "", err
 	}

@@ -587,7 +587,8 @@ func RunAsCliApp() {
 		case "maskpass":
 
 			withSpectrum := GetOrDefault(command.Args["spectrum"], 0)
-			mask := GetOrDefault(command.Args["mask"], "F5mask1.bmp")
+			maskName := GetOrDefault(command.Args["mask"], "F5mask1")
+			mask := maskName + ".bmp"
 
 			maskPath := filepath.Join("orthogonal_transforms", "masks", mask)
 			maskImg, err := imageio.OpenBmpImage(maskPath)

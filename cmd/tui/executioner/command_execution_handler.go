@@ -151,6 +151,7 @@ func maskpassExecutioner(imgPath string, args map[string]string) (string, error)
 		return "", errors.New("maskName cannot be empty")
 	}
 
+	maskName = maskName + ".bmp"
 	maskPath := filepath.Join("orthogonal_transforms", "masks", maskName)
 
 	withSpectrum, err := parseBoolArg(args, "withSpectrumImgGenerated")
