@@ -2,7 +2,6 @@ package tui
 
 import (
 	"github.com/charmbracelet/bubbles/textinput"
-	"github.com/charmbracelet/lipgloss"
 )
 
 type clearErrorMsg struct{}
@@ -17,15 +16,9 @@ const (
 	COMMAND_EXECUTION_VIEW
 )
 
-type UIStyle struct {
-	filepickerViewStyle       lipgloss.Style
-	commandExecutionViewStyle lipgloss.Style
-}
-
 type UIState struct {
 	err            error
 	successMessage string
-	imagePreview   string
 }
 
 type CommandState struct {
