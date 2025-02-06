@@ -11,21 +11,36 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+func (m Model) updateFilePickerView(msg tea.Msg) (Model, tea.Cmd) {
+	var cmd tea.Cmd
+	m.filepicker, cmd = m.filepicker.Update(msg)
+	return m, cmd
+}
+
+func (m Model) updateCommandSelectionView(msg tea.Msg) (Model, tea.Cmd) {
+	var cmd tea.Cmd
+	m.commandsList, cmd = m.commandsList.Update(msg)
+	return m, cmd
+}
+
+func (m Model) updateCommandExecutionView(msg tea.Msg) (Model, tea.Cmd) {
+	var cmd tea.Cmd
+	for i, input := range m.CommandState.inputs {
+		m.CommandState.inputs[i], cmd = input.Update(msg)
+	}
+	return m, cmd
+}
+
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch m.currentView {
-
 	case FILE_PICKER_VIEW:
-		m.filepicker, cmd = m.filepicker.Update(msg)
-
+		m, cmd = m.updateFilePickerView(msg)
 	case COMMAND_SELECTION_VIEW:
-		m.commandsList, cmd = m.commandsList.Update(msg)
-
+		m, cmd = m.updateCommandSelectionView(msg)
 	case COMMAND_EXECUTION_VIEW:
-		for i, input := range m.CommandState.inputs {
-			m.CommandState.inputs[i], cmd = input.Update(msg)
-		}
+		m, cmd = m.updateCommandExecutionView(msg)
 	}
 
 	switch msg := msg.(type) {
@@ -162,19 +177,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.terminalSize.width = msg.Width
 		m.terminalSize.height = msg.Height
-		m.commandsList.SetSize(msg.Width, msg.Height)
 
-		m.UIStyles.commandExecutionViewStyle = lipgloss.NewStyle().
-			Width(msg.Width-2).
-			Height(msg.Height-2).
-			Padding(1, 2).
-			BorderStyle(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("205"))
+		navBarHeight := lipgloss.Height(m.renderNavBar())
+		containerPadding := 4
+		availableHeight := msg.Height - navBarHeight - containerPadding
+		m.commandsList.SetSize(msg.Width-4, availableHeight)
 
-		m.UIStyles.filepickerViewStyle = lipgloss.NewStyle().
-			Width(msg.Width - 2).
-			BorderStyle(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("205"))
+		m.filepicker.Height = availableHeight - 4
 
 		return m, nil
 
