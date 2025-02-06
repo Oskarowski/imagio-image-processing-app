@@ -16,8 +16,8 @@ func (m *Model) loadImagePreview(path string) {
 	availableHeight := m.terminalSize.height
 
 	convertOptions := ascii_preview.DefaultOptions
-	convertOptions.FixedWidth = availableHeight * 2
-	convertOptions.FixedHeight = availableHeight
+	convertOptions.FixedWidth = availableHeight*2 - 4
+	convertOptions.FixedHeight = availableHeight - 6
 
 	converter := ascii_preview.NewImageConverter()
 	converted := converter.Image2ASCIIString(file, &convertOptions)
