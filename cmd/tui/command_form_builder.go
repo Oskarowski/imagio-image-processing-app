@@ -1,0 +1,126 @@
+package tui
+
+import (
+	"fmt"
+	"strconv"
+
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/huh"
+)
+
+func (m *Model) buildCommandForm() error {
+	var (
+		lowCut, highCut, cutoff, k, l, maskName string
+		withSpectrum                            bool
+	)
+
+	customKM := huh.NewDefaultKeyMap()
+	customKM.Input.Next = key.NewBinding(key.WithKeys("down", "j"), key.WithHelp("↓/j", "Next field"))
+	customKM.Input.Prev = key.NewBinding(key.WithKeys("up", "k"), key.WithHelp("↑/k", "Previous field"))
+	customKM.Confirm.Next = key.NewBinding(key.WithKeys("down", "j"), key.WithHelp("↓/j", "Next field"))
+	customKM.Confirm.Prev = key.NewBinding(key.WithKeys("up", "k"), key.WithHelp("↑/k", "Previous field"))
+	customKM.Confirm.Submit.SetEnabled(false)
+	customKM.Confirm.Accept.SetEnabled(false)
+	customKM.Confirm.Reject.SetEnabled(false)
+
+	cmd := m.CommandState.selectedCommand
+
+	var form *huh.Form
+
+	switch cmd {
+	case "bandpass", "bandcut":
+
+		inputLowCut := huh.NewInput().
+			Title("Low cut frequency").
+			Placeholder("Enter low cut frequency value").
+			Value(&lowCut)
+
+		inputHighCut := huh.NewInput().
+			Title("High Cut").
+			Placeholder("Enter high cut frequency value").
+			Value(&highCut)
+
+		confirmSpectrum := huh.NewConfirm().
+			Title("Generate Spectrum Image?").
+			Affirmative("Yes").
+			Negative("No").
+			Value(&withSpectrum)
+
+		form = huh.NewForm(huh.NewGroup(inputLowCut, inputHighCut, confirmSpectrum)).
+			WithTheme(huh.ThemeCatppuccin())
+
+	case "lowpass", "highpass":
+
+		inputCutoff := huh.NewInput().
+			Title("Cutoff").
+			Placeholder("Enter cutoff value").
+			Value(&cutoff)
+		confirmSpectrum := huh.NewConfirm().
+			Title("Generate Spectrum Image?").
+			Affirmative("Yes").
+			Negative("No").
+			Value(&withSpectrum)
+
+		form = huh.NewForm(huh.NewGroup(inputCutoff, confirmSpectrum)).
+			WithTheme(huh.ThemeCatppuccin())
+
+	case "phasemod":
+
+		inputK := huh.NewInput().
+			Title("k").
+			Placeholder("Enter value for k").
+			Value(&k)
+		inputL := huh.NewInput().
+			Title("l").
+			Placeholder("Enter value for l").
+			Value(&l)
+
+		form = huh.NewForm(huh.NewGroup(inputK, inputL)).
+			WithTheme(huh.ThemeCatppuccin())
+
+	case "maskpass":
+
+		selectMask := huh.NewSelect[string]().
+			Title("Mask Name").
+			Options(huh.NewOptions("edge1", "edge2", "edge3")...).
+			Value(&maskName)
+		confirmSpectrum := huh.NewConfirm().
+			Title("Generate Spectrum Image?").
+			Affirmative("Yes").
+			Negative("No").
+			Value(&withSpectrum)
+
+		form = huh.NewForm(huh.NewGroup(selectMask, confirmSpectrum)).
+			WithTheme(huh.ThemeCatppuccin())
+
+	default:
+		return fmt.Errorf("unsupported command: %s", cmd)
+	}
+
+	form.WithKeyMap(customKM)
+	form.Init()
+
+	m.form = form
+
+	m.formGetter = func() map[string]string {
+		args := make(map[string]string)
+		switch cmd {
+		case "bandpass", "bandcut":
+			args["lowCut"] = lowCut
+			args["highCut"] = highCut
+			args["withSpectrumImgGenerated"] = strconv.FormatBool(withSpectrum)
+		case "lowpass", "highpass":
+			args["cutoff"] = cutoff
+			args["withSpectrumImgGenerated"] = strconv.FormatBool(withSpectrum)
+		case "phasemod":
+			args["k"] = k
+			args["l"] = l
+		case "maskpass":
+			args["maskName"] = maskName
+			args["withSpectrumImgGenerated"] = strconv.FormatBool(withSpectrum)
+		}
+		return args
+	}
+
+	return nil
+}
