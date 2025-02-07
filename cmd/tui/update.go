@@ -2,12 +2,12 @@ package tui
 
 import (
 	"errors"
-	"fmt"
 	"image-processing/cmd/tui/executioner"
 	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -25,9 +25,18 @@ func (m Model) updateCommandSelectionView(msg tea.Msg) (Model, tea.Cmd) {
 
 func (m Model) updateCommandExecutionView(msg tea.Msg) (Model, tea.Cmd) {
 	var cmd tea.Cmd
-	for i, input := range m.CommandState.inputs {
-		m.CommandState.inputs[i], cmd = input.Update(msg)
+
+	if m.form != nil {
+		var formCmd tea.Cmd
+		form, formCmd := m.form.Update(msg)
+		if f, ok := form.(*huh.Form); ok {
+			m.form = f
+			cmd = tea.Batch(cmd, formCmd)
+		}
+
+		return m, cmd
 	}
+
 	return m, cmd
 }
 
@@ -85,91 +94,38 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				if selectedItem, ok := m.commandsList.SelectedItem().(executioner.CommandDefinition); ok {
 					m.CommandState.selectedCommand = selectedItem.Name
-					m.initializeTextInputs()
+
+					formErr := m.buildCommandForm()
+					if formErr != nil {
+						m.UIState.err = formErr
+						return m, clearErrorAfter(3 * time.Second)
+					}
+
 					m.currentView = COMMAND_EXECUTION_VIEW
 				}
 
 			case COMMAND_EXECUTION_VIEW:
 
-				if m.cursor == len(m.CommandState.inputs) {
-					// mv this to a separate function which will handle this
+				if m.form != nil {
+					m.CommandState.commandArgs = m.formGetter()
 
-					for _, formInput := range m.CommandState.inputs {
-						argName := formInput.Placeholder
-						argValue := formInput.Value()
-						m.CommandState.commandArgs[argName] = argValue
-					}
-
-					// for future the command arg should have a flag to indicate if it is required and if not provide a default value
 					for key, value := range m.CommandState.commandArgs {
-						if strings.TrimSpace(value) == "" {
-							m.UIState.err = fmt.Errorf("missing value for %s", key)
+						if strings.Trim(value, " ") == "" {
+							m.UIState.err = errors.New("missing value for " + key)
 							return m, clearErrorAfter(2 * time.Second)
 						}
-					}
 
-					result, err := executioner.ExecuteCommand(m.selectedFile, m.CommandState.selectedCommand, m.CommandState.commandArgs)
-
-					if err != nil {
-						m.UIState.err = err
-						return m, clearErrorAfter(3 * time.Second)
-					}
-
-					m.UIState.successMessage = result
-					return m, clearSuccessAfter(3 * time.Second)
-
-				} else {
-					m.cursor = (m.cursor + 1) % (len(m.CommandState.inputs) + 1)
-
-					for i := range m.CommandState.inputs {
-						if i == m.cursor {
-							m.CommandState.inputs[i].Focus()
-						} else {
-							m.CommandState.inputs[i].Blur()
+						result, err := executioner.ExecuteCommand(m.selectedFile, m.CommandState.selectedCommand, m.CommandState.commandArgs)
+						if err != nil {
+							m.UIState.err = err
+							return m, clearErrorAfter(3 * time.Second)
 						}
+
+						m.UIState.successMessage = result
+						return m, clearSuccessAfter(3 * time.Second)
 					}
 				}
 
-			}
-
-		case "up":
-			switch m.currentView {
-
-			case COMMAND_EXECUTION_VIEW:
-
-				if len(m.CommandState.inputs) > 0 {
-					if m.cursor > 0 {
-						m.cursor--
-					}
-
-					m.cursor = m.cursor % len(m.CommandState.inputs)
-
-					for i := range m.CommandState.inputs {
-						if i == m.cursor {
-							m.CommandState.inputs[i].Focus()
-						} else {
-							m.CommandState.inputs[i].Blur()
-						}
-					}
-				}
-
-			}
-
-		case "down":
-			switch m.currentView {
-
-			case COMMAND_EXECUTION_VIEW:
-
-				if len(m.CommandState.inputs) > 0 {
-					m.cursor = (m.cursor + 1) % (len(m.CommandState.inputs) + 1)
-					for i := range m.CommandState.inputs {
-						if i == m.cursor && i < len(m.CommandState.inputs) {
-							m.CommandState.inputs[i].Focus()
-						} else {
-							m.CommandState.inputs[i].Blur()
-						}
-					}
-				}
 			}
 
 		}

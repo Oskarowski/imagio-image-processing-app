@@ -1,9 +1,5 @@
 package tui
 
-import (
-	"github.com/charmbracelet/bubbles/textinput"
-)
-
 type clearErrorMsg struct{}
 type clearSuccessMsg struct{}
 
@@ -24,5 +20,4 @@ type UIState struct {
 type CommandState struct {
 	selectedCommand string
 	commandArgs     map[string]string
-	inputs          []textinput.Model
 }

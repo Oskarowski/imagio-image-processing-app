@@ -8,8 +8,8 @@ import (
 
 	"github.com/charmbracelet/bubbles/filepicker"
 	"github.com/charmbracelet/bubbles/list"
-	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -23,32 +23,12 @@ type Model struct {
 	imagePreview string
 	terminalSize terminalSize
 	commandsList list.Model
-	cursor       int
+	form         *huh.Form
+	formGetter   func() map[string]string
 }
 
 func (m Model) Init() tea.Cmd {
 	return m.filepicker.Init()
-}
-
-func (m *Model) initializeTextInputs() {
-	m.CommandState.inputs = nil
-	m.CommandState.commandArgs = make(map[string]string)
-
-	for _, cmd := range executioner.CommandDefinitions {
-		if cmd.Name == m.CommandState.selectedCommand {
-			m.CommandState.inputs = make([]textinput.Model, len(cmd.Args))
-			for j, arg := range cmd.Args {
-				input := textinput.New()
-				input.Placeholder = arg
-				m.CommandState.commandArgs[arg] = ""
-				m.CommandState.inputs[j] = input
-			}
-
-			m.cursor = -1
-			m.CommandState.inputs[0].Focus()
-			break
-		}
-	}
 }
 
 func (m Model) View() string {
