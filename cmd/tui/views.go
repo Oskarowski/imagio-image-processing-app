@@ -59,22 +59,30 @@ func (m Model) commandExecutionView() string {
 		s.WriteString(labelStyle.Render("No file selected!") + "\n\n")
 	}
 
-	for _, input := range m.CommandState.inputs {
-		s.WriteString(input.View() + "\n")
+	if m.form == nil {
+		s.WriteString("No form defined.\n")
+		return s.String()
 	}
 
-	buttonStyle := lipgloss.NewStyle().
-		Padding(0, 4).
-		Background(lipgloss.Color("205")).
-		Foreground(lipgloss.Color("0")).
-		Bold(true)
+	formContainer := lipgloss.NewStyle().
+		Render(m.form.View())
+
+	s.WriteString(formContainer)
 
 	if m.CommandState.selectedCommand != "" && m.selectedFile != "" {
-		if m.cursor == len(m.CommandState.inputs) {
-			s.WriteString("\n\n" + buttonStyle.Render("[ Execute ]"))
-		} else {
-			s.WriteString("\n\n" + lipgloss.NewStyle().Render("[ Execute ]"))
-		}
+		executeMsgStyle := lipgloss.NewStyle().
+			Padding(0, 4).
+			Background(lipgloss.Color("205")).
+			Foreground(lipgloss.Color("0")).
+			Bold(true)
+		s.WriteString("\n\n" + executeMsgStyle.Render("Press Enter to Execute Command"))
+	} else {
+		disabledStyle := lipgloss.NewStyle().
+			Padding(0, 4).
+			Background(lipgloss.Color("236")).
+			Foreground(lipgloss.Color("250")).
+			Bold(true)
+		s.WriteString("\n\n" + disabledStyle.Render("[ Execute ]"))
 	}
 
 	if m.UIState.err != nil {
