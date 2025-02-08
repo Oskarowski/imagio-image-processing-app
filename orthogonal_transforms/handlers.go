@@ -11,6 +11,9 @@ type SpectrumImage struct {
 	Name string
 }
 
+func (s SpectrumImage) GetImage() *image.RGBA { return &s.Img }
+func (s SpectrumImage) GetName() string       { return s.Name }
+
 func HandleBandpassFiltering(img image.Image, filename string, lowCut, highCut int, withSpectrum bool) []SpectrumImage {
 	complexMatrix := ConvertImageToComplex(img)
 	ftm := FFT2D(complexMatrix, false)

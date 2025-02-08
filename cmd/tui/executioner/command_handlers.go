@@ -31,9 +31,9 @@ func validateFrequencyRange(lowCut, highCut, imgWidth int) error {
 	return nil
 }
 
-func saveFilteringResults(handlerResult []orthogonal_transforms.SpectrumImage) error {
+func saveFilteringResults(handlerResult []cmd.ResultImage) error {
 	for _, resultImg := range handlerResult {
-		err := imageio.SaveBmpImage(&resultImg.Img, resultImg.Name)
+		err := imageio.SaveBmpImage(resultImg.GetImage(), resultImg.GetName())
 		if err != nil {
 			return err
 		}
@@ -56,7 +56,7 @@ func handleBandpassCommand(opts handlingCommandOptions) (successMsgString string
 
 	handlerResult := orthogonal_transforms.HandleBandpassFiltering(img, imgFileName, opts.lowCut, opts.highCut, opts.withSpectrumImgGenerated)
 
-	if err := saveFilteringResults(handlerResult); err != nil {
+	if err := saveFilteringResults(cmd.ToResultImage(handlerResult)); err != nil {
 		return "", err
 	}
 
@@ -77,7 +77,7 @@ func handleLowpassCommand(opts handlingCommandOptions) (successMsgString string,
 
 	handlerResult := orthogonal_transforms.HandleLowpassFiltering(img, imgFileName, opts.cutoff, opts.withSpectrumImgGenerated)
 
-	if err := saveFilteringResults(handlerResult); err != nil {
+	if err := saveFilteringResults(cmd.ToResultImage(handlerResult)); err != nil {
 		return "", err
 	}
 
@@ -98,7 +98,7 @@ func handleHighpassCommand(opts handlingCommandOptions) (successMsgString string
 
 	handlerResult := orthogonal_transforms.HandleHighpassFiltering(img, imgFileName, opts.cutoff, opts.withSpectrumImgGenerated)
 
-	if err := saveFilteringResults(handlerResult); err != nil {
+	if err := saveFilteringResults(cmd.ToResultImage(handlerResult)); err != nil {
 		return "", err
 	}
 
@@ -119,7 +119,7 @@ func handleBandcutCommand(opts handlingCommandOptions) (successMsgString string,
 
 	handlerResult := orthogonal_transforms.HandleBandcutFiltering(img, imgFileName, opts.lowCut, opts.highCut, opts.withSpectrumImgGenerated)
 
-	if err := saveFilteringResults(handlerResult); err != nil {
+	if err := saveFilteringResults(cmd.ToResultImage(handlerResult)); err != nil {
 		return "", err
 	}
 
@@ -140,7 +140,7 @@ func handlePhasemodCommand(opts handlingCommandOptions) (successMsgString string
 
 	handlerResult := orthogonal_transforms.HandlePhaseModification(img, imgFileName, opts.k, opts.l)
 
-	if err := saveFilteringResults(handlerResult); err != nil {
+	if err := saveFilteringResults(cmd.ToResultImage(handlerResult)); err != nil {
 		return "", err
 	}
 
@@ -163,7 +163,7 @@ func handleMaskpassCommand(opts handlingCommandOptions) (successMsgString string
 
 	handlerResult := orthogonal_transforms.HandleMaskpassFiltering(img, imgFileName, maskImg, opts.withSpectrumImgGenerated)
 
-	if err := saveFilteringResults(handlerResult); err != nil {
+	if err := saveFilteringResults(cmd.ToResultImage(handlerResult)); err != nil {
 		return "", err
 	}
 
