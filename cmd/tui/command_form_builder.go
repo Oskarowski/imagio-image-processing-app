@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"image-processing/orthogonal_transforms"
 	"strconv"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -19,6 +20,9 @@ func (m *Model) buildCommandForm() error {
 	customKM.Input.Prev = key.NewBinding(key.WithKeys("up", "k"), key.WithHelp("↑/k", "Previous field"))
 	customKM.Confirm.Next = key.NewBinding(key.WithKeys("down", "j"), key.WithHelp("↓/j", "Next field"))
 	customKM.Confirm.Prev = key.NewBinding(key.WithKeys("up", "k"), key.WithHelp("↑/k", "Previous field"))
+	customKM.Select.Next = key.NewBinding(key.WithKeys("p", "j"), key.WithHelp("p", "Select"))
+	customKM.Select.Prev = key.NewBinding(key.WithKeys("k"), key.WithHelp("k", "Previous"))
+
 	customKM.Confirm.Submit.SetEnabled(false)
 	customKM.Confirm.Accept.SetEnabled(false)
 	customKM.Confirm.Reject.SetEnabled(false)
@@ -80,9 +84,17 @@ func (m *Model) buildCommandForm() error {
 
 	case "maskpass":
 
+		availableMasks, err := orthogonal_transforms.GetAvailableSpectrumMasks()
+
+		if err != nil {
+			return fmt.Errorf("failed to get available masks: %w", err)
+		}
+
+		options := huh.NewOptions(availableMasks...)
+
 		selectMask := huh.NewSelect[string]().
 			Title("Mask Name").
-			Options(huh.NewOptions("edge1", "edge2", "edge3")...).
+			Options(options...).
 			Value(&maskName)
 		confirmSpectrum := huh.NewConfirm().
 			Title("Generate Spectrum Image?").

@@ -148,10 +148,9 @@ func phasemodExecutioner(imgPath string, args map[string]string) (string, error)
 func maskpassExecutioner(imgPath string, args map[string]string) (string, error) {
 	maskName := strings.TrimSpace(args["maskName"])
 	if maskName == "" {
-		return "", errors.New("maskName cannot be empty")
+		return "", errors.New("mask name cannot be empty")
 	}
 
-	maskName = maskName + ".bmp"
 	maskPath := filepath.Join("orthogonal_transforms", "masks", maskName)
 
 	withSpectrum, err := parseBoolArg(args, "withSpectrumImgGenerated")
