@@ -1,10 +1,10 @@
 ## Ported CLI Commands Available in TUI
 - [X] brightness
 - [X] contrast
-- [ ] negative
-- [ ] hflip
-- [ ] vflip
-- [ ] dflip
+- [X] negative
+- [X] hflip
+- [X] vflip
+- [X] dflip
 - [ ] shrink
 - [ ] enlarge
 - [ ] adaptive

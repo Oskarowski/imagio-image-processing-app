@@ -13,6 +13,10 @@ func (i CommandDefinition) FilterValue() string { return i.Name }
 var CommandDefinitions = []CommandDefinition{
 	{"brightness", "Adjust brightness of the image by given percentage. ", []string{"brightness"}},
 	{"contrast", "Adjust contrast of the image by given value", []string{"contrast"}},
+	{"negative", "Apply negative transformation to the image.", []string{}},
+	{"flip_horizontally", "Flip the image horizontally.", []string{}},
+	{"flip_vertically", "Flip the image vertically.", []string{}},
+	{"flip_diagonally", "Flip the image diagonally.", []string{}},
 	{"bandpass", "Apply bandpass filtering to the image.", []string{"lowCut", "highCut", "withSpectrumImgGenerated"}},
 	{"lowpass", "Apply lowpass filtering to the image.", []string{"cutoff", "withSpectrumImgGenerated"}},
 	{"highpass", "Apply highpass filtering to the image.", []string{"cutoff", "withSpectrumImgGenerated"}},

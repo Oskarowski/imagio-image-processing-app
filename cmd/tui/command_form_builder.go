@@ -11,8 +11,8 @@ import (
 
 func (m *Model) buildCommandForm() error {
 	var (
-		lowCut, highCut, cutoff, k, l, maskName string
-		withSpectrum                            bool
+		lowCut, highCut, cutoff, k, l, maskName, brightness, contrast string
+		withSpectrum                                                  bool
 	)
 
 	customKM := huh.NewDefaultKeyMap()
@@ -53,6 +53,12 @@ func (m *Model) buildCommandForm() error {
 			Value(&contrast)
 
 		form = huh.NewForm(huh.NewGroup(inputContrast)).WithTheme(huh.ThemeCatppuccin())
+
+	case "negative", "flip_horizontally", "flip_vertically", "flip_diagonally":
+
+		dummyNote := huh.NewNote().Title("No arguments required for this command")
+
+		form = huh.NewForm(huh.NewGroup(dummyNote)).WithTheme(huh.ThemeCatppuccin())
 
 	case "bandpass", "bandcut":
 
@@ -142,6 +148,9 @@ func (m *Model) buildCommandForm() error {
 			args["brightness"] = brightness
 		case "contrast":
 			args["contrast"] = contrast
+		case "negative", "flip_horizontally", "flip_vertically", "flip_diagonally":
+			// not the most elegant solution, but it is what it is
+			args["dummy"] = "dummy"
 		case "bandpass", "bandcut":
 			args["lowCut"] = lowCut
 			args["highCut"] = highCut

@@ -101,6 +101,98 @@ func handleContrastCommand(opts handlingCommandOptions) (successMsgString string
 	return "Contrast adjusted successfully", nil
 }
 
+func handleNegativeCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", err
+	}
+
+	imgFileName := imageio.GetPureFileName(opts.imgPath)
+	outputFileName := fmt.Sprintf("%s_negative.bmp", imgFileName)
+
+	negativeResult := manipulations.NegativeImage(img)
+
+	negativeImgResult := cmd.BasicImgResult{
+		Img:  negativeResult,
+		Name: outputFileName,
+	}
+
+	if err := saveFilteringResults([]cmd.ResultImage{negativeImgResult}); err != nil {
+		return "", err
+	}
+
+	return "Negative image created successfully", nil
+}
+
+func handleHorizontalFlipCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", err
+	}
+
+	imgFileName := imageio.GetPureFileName(opts.imgPath)
+	outputFileName := fmt.Sprintf("%s_horizontal_flipped.bmp", imgFileName)
+
+	flippedImg := manipulations.HorizontalFlip(img)
+
+	flipResult := cmd.BasicImgResult{
+		Img:  flippedImg,
+		Name: outputFileName,
+	}
+
+	if err := saveFilteringResults([]cmd.ResultImage{flipResult}); err != nil {
+		return "", err
+	}
+
+	return "Image flipped horizontally successfully", nil
+}
+
+func handleVerticalFlipCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", err
+	}
+
+	imgFileName := imageio.GetPureFileName(opts.imgPath)
+	outputFileName := fmt.Sprintf("%s_vertical_flipped.bmp", imgFileName)
+
+	flippedImg := manipulations.VerticalFlip(img)
+
+	flipResult := cmd.BasicImgResult{
+		Img:  flippedImg,
+		Name: outputFileName,
+	}
+
+	if err := saveFilteringResults([]cmd.ResultImage{flipResult}); err != nil {
+		return "", err
+	}
+
+	return "Image flipped vertically successfully", nil
+}
+
+func handleDiagonalFlipCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", err
+	}
+
+	imgFileName := imageio.GetPureFileName(opts.imgPath)
+	outputFileName := fmt.Sprintf("%s_diagonal_flipped.bmp", imgFileName)
+
+	flippedImg := manipulations.DiagonalFlip(img)
+
+	flipResult := cmd.BasicImgResult{
+		Img:  flippedImg,
+		Name: outputFileName,
+	}
+
+	if err := saveFilteringResults([]cmd.ResultImage{flipResult}); err != nil {
+		return "", err
+	}
+
+	return "Image flipped diagonally successfully", nil
+}
+
 func handleBandpassCommand(opts handlingCommandOptions) (successMsgString string, err error) {
 	img, err := imageio.OpenBmpImage(opts.imgPath)
 	if err != nil {

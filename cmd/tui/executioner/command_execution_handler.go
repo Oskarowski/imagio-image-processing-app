@@ -4,37 +4,24 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-	"strconv"
 	"strings"
 )
 
 type CommandExecutionHandler func(imgPath string, args map[string]string) (string, error)
 
 var commandRegistry = map[string]CommandExecutionHandler{
-	"brightness": brightnessExecutioner,
-	"contrast":   contrastExecutioner,
-	"bandpass":   bandpassExecutioner,
-	"lowpass":    lowpassExecutioner,
-	"highpass":   highpassExecutioner,
-	"bandcut":    bandcutExecutioner,
-	"phasemod":   phasemodExecutioner,
-	"maskpass":   maskpassExecutioner,
-}
-
-func parseIntArg(args map[string]string, key string) (int, error) {
-	value, exists := args[key]
-	if !exists {
-		return 0, fmt.Errorf("missing required argument: %s", key)
-	}
-	return strconv.Atoi(value)
-}
-
-func parseBoolArg(args map[string]string, key string) (bool, error) {
-	value, exists := args[key]
-	if !exists {
-		return false, fmt.Errorf("missing required argument: %s", key)
-	}
-	return strconv.ParseBool(value)
+	"brightness":        brightnessExecutioner,
+	"contrast":          contrastExecutioner,
+	"negative":          negativeExecutioner,
+	"flip_horizontally": flipHorizontallyExecutioner,
+	"flip_vertically":   flipVerticallyExecutioner,
+	"flip_diagonally":   flipDiagonallyExecutioner,
+	"bandpass":          bandpassExecutioner,
+	"lowpass":           lowpassExecutioner,
+	"highpass":          highpassExecutioner,
+	"bandcut":           bandcutExecutioner,
+	"phasemod":          phasemodExecutioner,
+	"maskpass":          maskpassExecutioner,
 }
 
 func brightnessExecutioner(imgPath string, args map[string]string) (string, error) {
@@ -63,6 +50,38 @@ func contrastExecutioner(imgPath string, args map[string]string) (string, error)
 	}
 
 	return handleContrastCommand(opts)
+}
+
+func negativeExecutioner(imgPath string, args map[string]string) (string, error) {
+	opts := handlingCommandOptions{
+		imgPath: imgPath,
+	}
+
+	return handleNegativeCommand(opts)
+}
+
+func flipHorizontallyExecutioner(imgPath string, args map[string]string) (string, error) {
+	opts := handlingCommandOptions{
+		imgPath: imgPath,
+	}
+
+	return handleHorizontalFlipCommand(opts)
+}
+
+func flipVerticallyExecutioner(imgPath string, args map[string]string) (string, error) {
+	opts := handlingCommandOptions{
+		imgPath: imgPath,
+	}
+
+	return handleVerticalFlipCommand(opts)
+}
+
+func flipDiagonallyExecutioner(imgPath string, args map[string]string) (string, error) {
+	opts := handlingCommandOptions{
+		imgPath: imgPath,
+	}
+
+	return handleDiagonalFlipCommand(opts)
 }
 
 func bandpassExecutioner(imgPath string, args map[string]string) (string, error) {
