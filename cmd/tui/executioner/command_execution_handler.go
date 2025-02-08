@@ -11,12 +11,14 @@ import (
 type CommandExecutionHandler func(imgPath string, args map[string]string) (string, error)
 
 var commandRegistry = map[string]CommandExecutionHandler{
-	"bandpass": bandpassExecutioner,
-	"lowpass":  lowpassExecutioner,
-	"highpass": highpassExecutioner,
-	"bandcut":  bandcutExecutioner,
-	"phasemod": phasemodExecutioner,
-	"maskpass": maskpassExecutioner,
+	"brightness": brightnessExecutioner,
+	"contrast":   contrastExecutioner,
+	"bandpass":   bandpassExecutioner,
+	"lowpass":    lowpassExecutioner,
+	"highpass":   highpassExecutioner,
+	"bandcut":    bandcutExecutioner,
+	"phasemod":   phasemodExecutioner,
+	"maskpass":   maskpassExecutioner,
 }
 
 func parseIntArg(args map[string]string, key string) (int, error) {
@@ -33,6 +35,34 @@ func parseBoolArg(args map[string]string, key string) (bool, error) {
 		return false, fmt.Errorf("missing required argument: %s", key)
 	}
 	return strconv.ParseBool(value)
+}
+
+func brightnessExecutioner(imgPath string, args map[string]string) (string, error) {
+	brightness, err := parseIntArg(args, "brightness")
+	if err != nil {
+		return "", err
+	}
+
+	opts := handlingCommandOptions{
+		imgPath:              imgPath,
+		brightnessPercentage: brightness,
+	}
+
+	return handleBrightnessCommand(opts)
+}
+
+func contrastExecutioner(imgPath string, args map[string]string) (string, error) {
+	contrast, err := parseIntArg(args, "contrast")
+	if err != nil {
+		return "", err
+	}
+
+	opts := handlingCommandOptions{
+		imgPath:  imgPath,
+		contrast: contrast,
+	}
+
+	return handleContrastCommand(opts)
 }
 
 func bandpassExecutioner(imgPath string, args map[string]string) (string, error) {

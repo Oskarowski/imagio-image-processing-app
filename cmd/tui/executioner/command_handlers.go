@@ -3,16 +3,18 @@ package executioner
 import (
 	"errors"
 	"fmt"
+	"image-processing/cmd"
 	"image-processing/imageio"
+	"image-processing/manipulations"
 	"image-processing/orthogonal_transforms"
 )
 
 type handlingCommandOptions struct {
-	imgPath                  string
-	maskPath                 string
-	lowCut, highCut          int
-	cutoff, k, l             int
-	withSpectrumImgGenerated bool
+	imgPath                                         string
+	maskPath                                        string
+	lowCut, highCut, brightnessPercentage, contrast int
+	cutoff, k, l                                    int
+	withSpectrumImgGenerated                        bool
 }
 
 func validateFrequencyRange(lowCut, highCut, imgWidth int) error {
@@ -40,6 +42,63 @@ func saveFilteringResults(handlerResult []cmd.ResultImage) error {
 	}
 
 	return nil
+}
+
+func handleBrightnessCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", err
+	}
+
+	bp := opts.brightnessPercentage
+
+	if bp < -100 || bp > 100 {
+		return "", errors.New("brightness percentage must be between -100 and 100")
+	}
+
+	imgFileName := imageio.GetPureFileName(opts.imgPath)
+	outputFileName := fmt.Sprintf("%s_brightness_%d_altered.bmp", imgFileName, bp)
+
+	adjustedImg := manipulations.AdjustBrightness(img, bp)
+
+	brightnessResult := cmd.BasicImgResult{
+		Img:  adjustedImg,
+		Name: outputFileName,
+	}
+
+	if err := saveFilteringResults([]cmd.ResultImage{brightnessResult}); err != nil {
+		return "", err
+	}
+
+	return "Brightness adjusted successfully", nil
+}
+
+func handleContrastCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", err
+	}
+
+	contrast := opts.contrast
+
+	if contrast < -255 || contrast > 255 {
+		return "", errors.New("contrast value must be between -255 and 255")
+	}
+
+	imgFileName := imageio.GetPureFileName(opts.imgPath)
+	outputFileName := fmt.Sprintf("%s_contrast_%d_altered.bmp", imgFileName, contrast)
+	resultImg := manipulations.AdjustContrast(img, contrast)
+
+	contrastResult := cmd.BasicImgResult{
+		Img:  resultImg,
+		Name: outputFileName,
+	}
+
+	if err := saveFilteringResults([]cmd.ResultImage{contrastResult}); err != nil {
+		return "", err
+	}
+
+	return "Contrast adjusted successfully", nil
 }
 
 func handleBandpassCommand(opts handlingCommandOptions) (successMsgString string, err error) {

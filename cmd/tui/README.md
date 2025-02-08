@@ -1,6 +1,6 @@
 ## Ported CLI Commands Available in TUI
-- [ ] brightness
-- [ ] contrast
+- [X] brightness
+- [X] contrast
 - [ ] negative
 - [ ] hflip
 - [ ] vflip

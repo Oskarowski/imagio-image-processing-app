@@ -3,7 +3,6 @@ package executioner
 type CommandDefinition struct {
 	Name string
 	Desc string
-	// TODO make this an array of structs implementing .Value() interface to allow creation of checkboxes and options selectors
 	Args []string
 }
 
@@ -12,6 +11,8 @@ func (i CommandDefinition) Description() string { return i.Desc }
 func (i CommandDefinition) FilterValue() string { return i.Name }
 
 var CommandDefinitions = []CommandDefinition{
+	{"brightness", "Adjust brightness of the image by given percentage. ", []string{"brightness"}},
+	{"contrast", "Adjust contrast of the image by given value", []string{"contrast"}},
 	{"bandpass", "Apply bandpass filtering to the image.", []string{"lowCut", "highCut", "withSpectrumImgGenerated"}},
 	{"lowpass", "Apply lowpass filtering to the image.", []string{"cutoff", "withSpectrumImgGenerated"}},
 	{"highpass", "Apply highpass filtering to the image.", []string{"cutoff", "withSpectrumImgGenerated"}},

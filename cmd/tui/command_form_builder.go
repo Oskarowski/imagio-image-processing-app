@@ -23,6 +23,10 @@ func (m *Model) buildCommandForm() error {
 	customKM.Select.Next = key.NewBinding(key.WithKeys("p", "j"), key.WithHelp("p", "Select"))
 	customKM.Select.Prev = key.NewBinding(key.WithKeys("k"), key.WithHelp("k", "Previous"))
 
+	customKM.Note.Submit.SetEnabled(false)
+	customKM.Note.Next.SetEnabled(false)
+	customKM.Note.Prev.SetEnabled(false)
+
 	customKM.Confirm.Submit.SetEnabled(false)
 	customKM.Confirm.Accept.SetEnabled(false)
 	customKM.Confirm.Reject.SetEnabled(false)
@@ -32,6 +36,24 @@ func (m *Model) buildCommandForm() error {
 	var form *huh.Form
 
 	switch cmd {
+	case "brightness":
+
+		inputBrightness := huh.NewInput().
+			Title("Brightness percentage, can be negative to decrease brightness").
+			Placeholder("Enter brightness percentage").
+			Value(&brightness)
+
+		form = huh.NewForm(huh.NewGroup(inputBrightness)).WithTheme(huh.ThemeCatppuccin())
+
+	case "contrast":
+
+		inputContrast := huh.NewInput().
+			Title("Contrast adjustment value").
+			Placeholder("Enter contrast adjustment value").
+			Value(&contrast)
+
+		form = huh.NewForm(huh.NewGroup(inputContrast)).WithTheme(huh.ThemeCatppuccin())
+
 	case "bandpass", "bandcut":
 
 		inputLowCut := huh.NewInput().
@@ -111,12 +133,15 @@ func (m *Model) buildCommandForm() error {
 
 	form.WithKeyMap(customKM)
 	form.Init()
-
 	m.form = form
 
 	m.formGetter = func() map[string]string {
 		args := make(map[string]string)
 		switch cmd {
+		case "brightness":
+			args["brightness"] = brightness
+		case "contrast":
+			args["contrast"] = contrast
 		case "bandpass", "bandcut":
 			args["lowCut"] = lowCut
 			args["highCut"] = highCut
