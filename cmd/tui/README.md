@@ -1,0 +1,42 @@
+## Ported CLI Commands Available in TUI
+- [ ] brightness
+- [ ] contrast
+- [ ] negative
+- [ ] hflip
+- [ ] vflip
+- [ ] dflip
+- [ ] shrink
+- [ ] enlarge
+- [ ] adaptive
+- [ ] min
+- [ ] max
+- [ ] mse
+- [ ] pmse
+- [ ] snr
+- [ ] psnr
+- [ ] md
+- [ ] histogram
+- [ ] hrayleigh
+- [ ] cmean
+- [ ] cvariance
+- [ ] cstdev
+- [ ] cvarcoi
+- [ ] casyco
+- [ ] cflatco
+- [ ] cvarcoii
+- [ ] centropy
+- [ ] sedgesharp
+- [ ] okirsf
+- [ ] dilation
+- [ ] erosion
+- [ ] opening
+- [ ] closing
+- [ ] hmt
+- [ ] thinning
+- [ ] region-grow
+- [X] bandpass
+- [X] lowpass
+- [X] highpass
+- [X] bandcut
+- [X] phasemod
+- [X] maskpass
