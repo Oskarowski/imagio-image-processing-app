@@ -5,8 +5,8 @@
 - [X] hflip
 - [X] vflip
 - [X] dflip
-- [ ] shrink
-- [ ] enlarge
+- [X] shrink
+- [X] enlarge
 - [ ] adaptive
 - [ ] min
 - [ ] max

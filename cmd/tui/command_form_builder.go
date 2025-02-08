@@ -11,8 +11,8 @@ import (
 
 func (m *Model) buildCommandForm() error {
 	var (
-		lowCut, highCut, cutoff, k, l, maskName, brightness, contrast string
-		withSpectrum                                                  bool
+		lowCut, highCut, cutoff, k, l, maskName, brightness, contrast, shrinkFactor, enlargeFactor string
+		withSpectrum                                                                               bool
 	)
 
 	customKM := huh.NewDefaultKeyMap()
@@ -59,6 +59,24 @@ func (m *Model) buildCommandForm() error {
 		dummyNote := huh.NewNote().Title("No arguments required for this command")
 
 		form = huh.NewForm(huh.NewGroup(dummyNote)).WithTheme(huh.ThemeCatppuccin())
+
+	case "shrink":
+
+		inputShrinkFactor := huh.NewInput().
+			Title("Shrink factor").
+			Placeholder("Enter shrink factor").
+			Value(&shrinkFactor)
+
+		form = huh.NewForm(huh.NewGroup(inputShrinkFactor)).WithTheme(huh.ThemeCatppuccin())
+
+	case "enlarge":
+
+		inputEnlargeFactor := huh.NewInput().
+			Title("Enlarge factor").
+			Placeholder("Enter enlarge factor").
+			Value(&enlargeFactor)
+
+		form = huh.NewForm(huh.NewGroup(inputEnlargeFactor)).WithTheme(huh.ThemeCatppuccin())
 
 	case "bandpass", "bandcut":
 
@@ -151,6 +169,10 @@ func (m *Model) buildCommandForm() error {
 		case "negative", "flip_horizontally", "flip_vertically", "flip_diagonally":
 			// not the most elegant solution, but it is what it is
 			args["dummy"] = "dummy"
+		case "shrink":
+			args["shrinkFactor"] = shrinkFactor
+		case "enlarge":
+			args["enlargeFactor"] = enlargeFactor
 		case "bandpass", "bandcut":
 			args["lowCut"] = lowCut
 			args["highCut"] = highCut

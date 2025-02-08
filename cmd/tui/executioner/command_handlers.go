@@ -10,11 +10,11 @@ import (
 )
 
 type handlingCommandOptions struct {
-	imgPath                                         string
-	maskPath                                        string
-	lowCut, highCut, brightnessPercentage, contrast int
-	cutoff, k, l                                    int
-	withSpectrumImgGenerated                        bool
+	imgPath                                                 string
+	maskPath                                                string
+	lowCut, highCut, brightnessPercentage, contrast, factor int
+	cutoff, k, l                                            int
+	withSpectrumImgGenerated                                bool
 }
 
 func validateFrequencyRange(lowCut, highCut, imgWidth int) error {
@@ -191,6 +191,62 @@ func handleDiagonalFlipCommand(opts handlingCommandOptions) (successMsgString st
 	}
 
 	return "Image flipped diagonally successfully", nil
+}
+
+func handleShrinkCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", err
+	}
+
+	imgFileName := imageio.GetPureFileName(opts.imgPath)
+	shrinkFactor := opts.factor
+	outputFileName := fmt.Sprintf("%s_shrunk_%d_times.bmp", imgFileName, shrinkFactor)
+
+	shrunkImg, err := manipulations.ShrinkImage(img, shrinkFactor)
+
+	if err != nil {
+		return "", err
+	}
+
+	shrinkResult := cmd.BasicImgResult{
+		Img:  shrunkImg,
+		Name: outputFileName,
+	}
+
+	if err := saveFilteringResults([]cmd.ResultImage{shrinkResult}); err != nil {
+		return "", err
+	}
+
+	return "Image shrunk successfully", nil
+}
+
+func handleEnlargeCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", err
+	}
+
+	imgFileName := imageio.GetPureFileName(opts.imgPath)
+	enlargeFactor := opts.factor
+	outputFileName := fmt.Sprintf("%s_enlarged_%d_times.bmp", imgFileName, enlargeFactor)
+
+	enlargedImg, err := manipulations.EnlargeImage(img, enlargeFactor)
+
+	if err != nil {
+		return "", err
+	}
+
+	enlargeResult := cmd.BasicImgResult{
+		Img:  enlargedImg,
+		Name: outputFileName,
+	}
+
+	if err := saveFilteringResults([]cmd.ResultImage{enlargeResult}); err != nil {
+		return "", err
+	}
+
+	return "Image enlarged successfully", nil
 }
 
 func handleBandpassCommand(opts handlingCommandOptions) (successMsgString string, err error) {

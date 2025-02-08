@@ -17,6 +17,8 @@ var CommandDefinitions = []CommandDefinition{
 	{"flip_horizontally", "Flip the image horizontally.", []string{}},
 	{"flip_vertically", "Flip the image vertically.", []string{}},
 	{"flip_diagonally", "Flip the image diagonally.", []string{}},
+	{"shrink", "Shrink the image by given factor.", []string{"shrinkFactor"}},
+	{"enlarge", "Enlarge the image by given factor.", []string{"enlargeFactor"}},
 	{"bandpass", "Apply bandpass filtering to the image.", []string{"lowCut", "highCut", "withSpectrumImgGenerated"}},
 	{"lowpass", "Apply lowpass filtering to the image.", []string{"cutoff", "withSpectrumImgGenerated"}},
 	{"highpass", "Apply highpass filtering to the image.", []string{"cutoff", "withSpectrumImgGenerated"}},

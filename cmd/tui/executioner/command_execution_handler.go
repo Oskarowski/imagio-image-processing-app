@@ -16,6 +16,8 @@ var commandRegistry = map[string]CommandExecutionHandler{
 	"flip_horizontally": flipHorizontallyExecutioner,
 	"flip_vertically":   flipVerticallyExecutioner,
 	"flip_diagonally":   flipDiagonallyExecutioner,
+	"shrink":            shrinkExecutioner,
+	"enlarge":           enlargeExecutioner,
 	"bandpass":          bandpassExecutioner,
 	"lowpass":           lowpassExecutioner,
 	"highpass":          highpassExecutioner,
@@ -82,6 +84,42 @@ func flipDiagonallyExecutioner(imgPath string, args map[string]string) (string, 
 	}
 
 	return handleDiagonalFlipCommand(opts)
+}
+
+func shrinkExecutioner(imgPath string, args map[string]string) (string, error) {
+	factor, err := parseIntArg(args, "shrinkFactor")
+	if err != nil {
+		return "", err
+	}
+
+	if factor < 1 {
+		return "", errors.New("shrink factor must be greater than 1")
+	}
+
+	opts := handlingCommandOptions{
+		imgPath: imgPath,
+		factor:  factor,
+	}
+
+	return handleShrinkCommand(opts)
+}
+
+func enlargeExecutioner(imgPath string, args map[string]string) (string, error) {
+	factor, err := parseIntArg(args, "enlargeFactor")
+	if err != nil {
+		return "", err
+	}
+
+	if factor < 1 {
+		return "", errors.New("enlarge factor must be greater than 1")
+	}
+
+	opts := handlingCommandOptions{
+		imgPath: imgPath,
+		factor:  factor,
+	}
+
+	return handleEnlargeCommand(opts)
 }
 
 func bandpassExecutioner(imgPath string, args map[string]string) (string, error) {
