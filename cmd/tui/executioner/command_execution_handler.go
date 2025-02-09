@@ -10,20 +10,23 @@ import (
 type CommandExecutionHandler func(imgPath string, args map[string]string) (string, error)
 
 var commandRegistry = map[string]CommandExecutionHandler{
-	"brightness":        brightnessExecutioner,
-	"contrast":          contrastExecutioner,
-	"negative":          negativeExecutioner,
-	"flip_horizontally": flipHorizontallyExecutioner,
-	"flip_vertically":   flipVerticallyExecutioner,
-	"flip_diagonally":   flipDiagonallyExecutioner,
-	"shrink":            shrinkExecutioner,
-	"enlarge":           enlargeExecutioner,
-	"bandpass":          bandpassExecutioner,
-	"lowpass":           lowpassExecutioner,
-	"highpass":          highpassExecutioner,
-	"bandcut":           bandcutExecutioner,
-	"phasemod":          phasemodExecutioner,
-	"maskpass":          maskpassExecutioner,
+	"brightness":                brightnessExecutioner,
+	"contrast":                  contrastExecutioner,
+	"negative":                  negativeExecutioner,
+	"flip_horizontally":         flipHorizontallyExecutioner,
+	"flip_vertically":           flipVerticallyExecutioner,
+	"flip_diagonally":           flipDiagonallyExecutioner,
+	"shrink":                    shrinkExecutioner,
+	"enlarge":                   enlargeExecutioner,
+	"adaptive_filter_denoising": adaptiveNoiseFilterExecutioner,
+	"min_filter_denoising":      minNoiseFilterExecutioner,
+	"max_filter_denoising":      maxNoiseFilterExecutioner,
+	"bandpass":                  bandpassExecutioner,
+	"lowpass":                   lowpassExecutioner,
+	"highpass":                  highpassExecutioner,
+	"bandcut":                   bandcutExecutioner,
+	"phasemod":                  phasemodExecutioner,
+	"maskpass":                  maskpassExecutioner,
 }
 
 func brightnessExecutioner(imgPath string, args map[string]string) (string, error) {
@@ -120,6 +123,54 @@ func enlargeExecutioner(imgPath string, args map[string]string) (string, error) 
 	}
 
 	return handleEnlargeCommand(opts)
+}
+
+func adaptiveNoiseFilterExecutioner(imgPath string, args map[string]string) (string, error) {
+	minWindowSize, err := parseIntArg(args, "minWindowSize")
+	if err != nil {
+		return "", err
+	}
+
+	maxWindowSize, err := parseIntArg(args, "maxWindowSize")
+	if err != nil {
+		return "", err
+	}
+
+	opts := handlingCommandOptions{
+		imgPath:       imgPath,
+		minWindowSize: minWindowSize,
+		maxWindowSize: maxWindowSize,
+	}
+
+	return handleAdaptiveNoiseFilterCommand(opts)
+}
+
+func minNoiseFilterExecutioner(imgPath string, args map[string]string) (string, error) {
+	minWindowSize, err := parseIntArg(args, "minWindowSize")
+	if err != nil {
+		return "", err
+	}
+
+	opts := handlingCommandOptions{
+		imgPath:       imgPath,
+		minWindowSize: minWindowSize,
+	}
+
+	return handleMinNoiseFilterCommand(opts)
+}
+
+func maxNoiseFilterExecutioner(imgPath string, args map[string]string) (string, error) {
+	maxWindowSize, err := parseIntArg(args, "maxWindowSize")
+	if err != nil {
+		return "", err
+	}
+
+	opts := handlingCommandOptions{
+		imgPath:       imgPath,
+		maxWindowSize: maxWindowSize,
+	}
+
+	return handleMaxNoiseFilterCommand(opts)
 }
 
 func bandpassExecutioner(imgPath string, args map[string]string) (string, error) {

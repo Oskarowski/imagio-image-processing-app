@@ -7,9 +7,9 @@
 - [X] dflip
 - [X] shrink
 - [X] enlarge
-- [ ] adaptive
-- [ ] min
-- [ ] max
+- [X] adaptive
+- [X] min
+- [X] max
 - [ ] mse
 - [ ] pmse
 - [ ] snr

@@ -19,6 +19,10 @@ var CommandDefinitions = []CommandDefinition{
 	{"flip_diagonally", "Flip the image diagonally.", []string{}},
 	{"shrink", "Shrink the image by given factor.", []string{"shrinkFactor"}},
 	{"enlarge", "Enlarge the image by given factor.", []string{"enlargeFactor"}},
+	{"adaptive_filter_denoising", "Apply adaptive median noise removal filter to the image.", []string{"minWindowSize", "maxWindowSize"}},
+	{"min_filter_denoising", "Apply min noise removal filter to the image.", []string{"minWindowSize"}},
+	{"max_filter_denoising", "Apply max noise removal filter to the image.", []string{"maxWindowSize"}},
+
 	{"bandpass", "Apply bandpass filtering to the image.", []string{"lowCut", "highCut", "withSpectrumImgGenerated"}},
 	{"lowpass", "Apply lowpass filtering to the image.", []string{"cutoff", "withSpectrumImgGenerated"}},
 	{"highpass", "Apply highpass filtering to the image.", []string{"cutoff", "withSpectrumImgGenerated"}},

@@ -11,8 +11,8 @@ import (
 
 func (m *Model) buildCommandForm() error {
 	var (
-		lowCut, highCut, cutoff, k, l, maskName, brightness, contrast, shrinkFactor, enlargeFactor string
-		withSpectrum                                                                               bool
+		lowCut, highCut, cutoff, k, l, maskName, brightness, contrast, shrinkFactor, enlargeFactor, minWindowSize, maxWindowSize string
+		withSpectrum                                                                                                             bool
 	)
 
 	customKM := huh.NewDefaultKeyMap()
@@ -77,6 +77,38 @@ func (m *Model) buildCommandForm() error {
 			Value(&enlargeFactor)
 
 		form = huh.NewForm(huh.NewGroup(inputEnlargeFactor)).WithTheme(huh.ThemeCatppuccin())
+
+	case "adaptive_filter_denoising":
+
+		inputMinWindowSize := huh.NewInput().
+			Title("Minimal size of window size for filter").
+			Placeholder("Enter minimal size of window size for filter").
+			Value(&minWindowSize)
+
+		inputMaxWindowSize := huh.NewInput().
+			Title("Maximal size of window size for filter").
+			Placeholder("Enter maximal size of window size for filter").
+			Value(&maxWindowSize)
+
+		form = huh.NewForm(huh.NewGroup(inputMinWindowSize, inputMaxWindowSize)).WithTheme(huh.ThemeCatppuccin())
+
+	case "min_filter_denoising":
+
+		inputMinWindowSize := huh.NewInput().
+			Title("Minimal size of window size for filter").
+			Placeholder("Enter minimal size of window size for filter").
+			Value(&minWindowSize)
+
+		form = huh.NewForm(huh.NewGroup(inputMinWindowSize)).WithTheme(huh.ThemeCatppuccin())
+
+	case "max_filter_denoising":
+
+		inputMaxWindowSize := huh.NewInput().
+			Title("Maximal size of window size for filter").
+			Placeholder("Enter maximal size of window size for filter").
+			Value(&maxWindowSize)
+
+		form = huh.NewForm(huh.NewGroup(inputMaxWindowSize)).WithTheme(huh.ThemeCatppuccin())
 
 	case "bandpass", "bandcut":
 
@@ -173,6 +205,13 @@ func (m *Model) buildCommandForm() error {
 			args["shrinkFactor"] = shrinkFactor
 		case "enlarge":
 			args["enlargeFactor"] = enlargeFactor
+		case "adaptive_filter_denoising":
+			args["minWindowSize"] = minWindowSize
+			args["maxWindowSize"] = maxWindowSize
+		case "min_filter_denoising":
+			args["minWindowSize"] = minWindowSize
+		case "max_filter_denoising":
+			args["maxWindowSize"] = maxWindowSize
 		case "bandpass", "bandcut":
 			args["lowCut"] = lowCut
 			args["highCut"] = highCut

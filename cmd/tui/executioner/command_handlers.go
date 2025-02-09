@@ -6,6 +6,7 @@ import (
 	"image-processing/cmd"
 	"image-processing/imageio"
 	"image-processing/manipulations"
+	"image-processing/noise"
 	"image-processing/orthogonal_transforms"
 )
 
@@ -13,7 +14,7 @@ type handlingCommandOptions struct {
 	imgPath                                                 string
 	maskPath                                                string
 	lowCut, highCut, brightnessPercentage, contrast, factor int
-	cutoff, k, l                                            int
+	cutoff, k, l, maxWindowSize, minWindowSize              int
 	withSpectrumImgGenerated                                bool
 }
 
@@ -247,6 +248,103 @@ func handleEnlargeCommand(opts handlingCommandOptions) (successMsgString string,
 	}
 
 	return "Image enlarged successfully", nil
+}
+
+func handleAdaptiveNoiseFilterCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	if opts.minWindowSize < 1 || opts.maxWindowSize < 1 {
+		return "", errors.New("window sizes must be greater than 1")
+	}
+
+	if opts.minWindowSize > opts.maxWindowSize {
+		return "", errors.New("minWindowSize must be less than maxWindowSize")
+	}
+
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", err
+	}
+
+	if opts.minWindowSize > img.Bounds().Dx()/2 || opts.maxWindowSize > img.Bounds().Dx()/2 {
+		return "", errors.New("window sizes must be less than half the image width")
+	}
+
+	imgFileName := imageio.GetPureFileName(opts.imgPath)
+	outputFileName := fmt.Sprintf("%s_denoised_via_adaptive_filter.bmp", imgFileName)
+
+	denoisedImg := noise.AdaptiveMedianFilter(img, opts.minWindowSize, opts.maxWindowSize)
+
+	denoisedResult := cmd.BasicImgResult{
+		Img:  denoisedImg,
+		Name: outputFileName,
+	}
+
+	if err := saveFilteringResults([]cmd.ResultImage{denoisedResult}); err != nil {
+		return "", err
+	}
+
+	return "Image denoised via adaptive filter successfully", nil
+}
+
+func handleMinNoiseFilterCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	if opts.minWindowSize < 1 {
+		return "", errors.New("window size must be greater than 1")
+	}
+
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", err
+	}
+
+	if opts.minWindowSize > img.Bounds().Dx()/2 {
+		return "", errors.New("window size must be less than half the image width")
+	}
+
+	imgFileName := imageio.GetPureFileName(opts.imgPath)
+	outputFileName := fmt.Sprintf("%s_denoised_via_min_filter.bmp", imgFileName)
+
+	denoisedImg := noise.MinFilter(img, opts.minWindowSize)
+
+	denoisedResult := cmd.BasicImgResult{
+		Img:  denoisedImg,
+		Name: outputFileName,
+	}
+
+	if err := saveFilteringResults([]cmd.ResultImage{denoisedResult}); err != nil {
+		return "", err
+	}
+
+	return "Image denoised via min filter successfully", nil
+}
+
+func handleMaxNoiseFilterCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	if opts.maxWindowSize < 1 {
+		return "", errors.New("window size must be greater than 1")
+	}
+
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", err
+	}
+
+	if opts.maxWindowSize > img.Bounds().Dx()/2 {
+		return "", errors.New("window size must be less than half the image width")
+	}
+
+	imgFileName := imageio.GetPureFileName(opts.imgPath)
+	outputFileName := fmt.Sprintf("%s_denoised_via_max_filter.bmp", imgFileName)
+
+	denoisedImg := noise.MaxFilter(img, opts.maxWindowSize)
+
+	denoisedResult := cmd.BasicImgResult{
+		Img:  denoisedImg,
+		Name: outputFileName,
+	}
+
+	if err := saveFilteringResults([]cmd.ResultImage{denoisedResult}); err != nil {
+		return "", err
+	}
+
+	return "Image denoised via max filter successfully", nil
 }
 
 func handleBandpassCommand(opts handlingCommandOptions) (successMsgString string, err error) {
