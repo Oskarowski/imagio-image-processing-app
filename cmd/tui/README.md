@@ -10,11 +10,11 @@
 - [X] adaptive
 - [X] min
 - [X] max
-- [ ] mse
-- [ ] pmse
-- [ ] snr
-- [ ] psnr
-- [ ] md
+- [X] mse
+- [X] pmse
+- [X] snr
+- [X] psnr
+- [X] md
 - [ ] histogram
 - [ ] hrayleigh
 - [ ] cmean

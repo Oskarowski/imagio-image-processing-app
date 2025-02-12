@@ -3,7 +3,9 @@ package tui
 import (
 	"fmt"
 	"image-processing/orthogonal_transforms"
+	"os"
 	"strconv"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/huh"
@@ -11,8 +13,9 @@ import (
 
 func (m *Model) buildCommandForm() error {
 	var (
-		lowCut, highCut, cutoff, k, l, maskName, brightness, contrast, shrinkFactor, enlargeFactor, minWindowSize, maxWindowSize string
-		withSpectrum                                                                                                             bool
+		lowCut, highCut, cutoff, k, l, maskName, brightness, contrast, shrinkFactor, enlargeFactor, minWindowSize, maxWindowSize, comparisonImagePath string
+		selectedComparisonCommands                                                                                                                    []string
+		withSpectrum                                                                                                                                  bool
 	)
 
 	customKM := huh.NewDefaultKeyMap()
@@ -30,6 +33,18 @@ func (m *Model) buildCommandForm() error {
 	customKM.Confirm.Submit.SetEnabled(false)
 	customKM.Confirm.Accept.SetEnabled(false)
 	customKM.Confirm.Reject.SetEnabled(false)
+
+	customKM.FilePicker.Open = key.NewBinding(key.WithKeys("p", "right"), key.WithHelp("p", "Pick file"))
+	customKM.FilePicker.Select = key.NewBinding(key.WithKeys("p"), key.WithHelp("p", "Pick file"))
+	customKM.FilePicker.Up = key.NewBinding(key.WithKeys("up"), key.WithHelp("↑", "up"))
+	customKM.FilePicker.Down = key.NewBinding(key.WithKeys("down"), key.WithHelp("↓", "down"))
+	customKM.FilePicker.Next = key.NewBinding(key.WithKeys("j"), key.WithHelp("j", "Next field"))
+	customKM.FilePicker.Prev = key.NewBinding(key.WithKeys("k"), key.WithHelp("k", "Previous field"))
+
+	customKM.MultiSelect.Next = key.NewBinding(key.WithKeys("j"), key.WithHelp("j", "Next field"))
+	customKM.MultiSelect.Prev = key.NewBinding(key.WithKeys("k"), key.WithHelp("k", "Previous field"))
+	customKM.MultiSelect.Up = key.NewBinding(key.WithKeys("up"), key.WithHelp("↑", "up"))
+	customKM.MultiSelect.Down = key.NewBinding(key.WithKeys("down"), key.WithHelp("↓", "down"))
 
 	cmd := m.CommandState.selectedCommand
 
@@ -109,6 +124,24 @@ func (m *Model) buildCommandForm() error {
 			Value(&maxWindowSize)
 
 		form = huh.NewForm(huh.NewGroup(inputMaxWindowSize)).WithTheme(huh.ThemeCatppuccin())
+
+	case "img_comparison_commands":
+		wd, _ := os.Getwd()
+
+		fpComparison := huh.NewFilePicker().
+			Title("Select comparison image").
+			AllowedTypes([]string{".bmp", ".png"}).
+			Value(&comparisonImagePath).
+			CurrentDirectory(wd)
+
+		comparisonOptions := huh.NewOptions("MSE", "PMSE", "SNR", "PSNR", "MD")
+
+		msComparison := huh.NewMultiSelect[string]().
+			Title("Select comparison commands").
+			Options(comparisonOptions...).
+			Value(&selectedComparisonCommands)
+
+		form = huh.NewForm(huh.NewGroup(fpComparison, msComparison)).WithTheme(huh.ThemeCatppuccin())
 
 	case "bandpass", "bandcut":
 
@@ -212,6 +245,10 @@ func (m *Model) buildCommandForm() error {
 			args["minWindowSize"] = minWindowSize
 		case "max_filter_denoising":
 			args["maxWindowSize"] = maxWindowSize
+		case "img_comparison_commands":
+			args["comparisonImagePath"] = comparisonImagePath
+			// i love this totally not hacky type save solution
+			args["selectedComparisonCommands"] = strings.Join(selectedComparisonCommands, "|")
 		case "bandpass", "bandcut":
 			args["lowCut"] = lowCut
 			args["highCut"] = highCut

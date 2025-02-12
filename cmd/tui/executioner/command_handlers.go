@@ -3,19 +3,20 @@ package executioner
 import (
 	"errors"
 	"fmt"
+	"image-processing/analysis"
 	"image-processing/cmd"
 	"image-processing/imageio"
 	"image-processing/manipulations"
 	"image-processing/noise"
 	"image-processing/orthogonal_transforms"
+	"strings"
 )
 
 type handlingCommandOptions struct {
-	imgPath                                                 string
-	maskPath                                                string
-	lowCut, highCut, brightnessPercentage, contrast, factor int
-	cutoff, k, l, maxWindowSize, minWindowSize              int
-	withSpectrumImgGenerated                                bool
+	imgPath, maskPath, selectedComparisonCommands, comparisonImagePath string
+	lowCut, highCut, brightnessPercentage, contrast, factor            int
+	cutoff, k, l, maxWindowSize, minWindowSize                         int
+	withSpectrumImgGenerated                                           bool
 }
 
 func validateFrequencyRange(lowCut, highCut, imgWidth int) error {
@@ -345,6 +346,30 @@ func handleMaxNoiseFilterCommand(opts handlingCommandOptions) (successMsgString 
 	}
 
 	return "Image denoised via max filter successfully", nil
+}
+
+func handleImgComparisonCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", err
+	}
+
+	comparisonImg, err := imageio.OpenBmpImage(opts.comparisonImagePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to open comparison image: %w", err)
+	}
+
+	selectedCommands := strings.Split(opts.selectedComparisonCommands, "|")
+
+	var results []string
+
+	for _, comparison := range selectedCommands {
+		result, description := analysis.CalculateComparisonCharacteristic(comparison, img, comparisonImg)
+		fullyFormattedResult := fmt.Sprintf("%s: %s", description, result)
+		results = append(results, fullyFormattedResult)
+	}
+
+	return strings.Join(results, "\n"), nil
 }
 
 func handleBandpassCommand(opts handlingCommandOptions) (successMsgString string, err error) {

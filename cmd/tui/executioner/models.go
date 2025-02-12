@@ -22,6 +22,7 @@ var CommandDefinitions = []CommandDefinition{
 	{"adaptive_filter_denoising", "Apply adaptive median noise removal filter to the image.", []string{"minWindowSize", "maxWindowSize"}},
 	{"min_filter_denoising", "Apply min noise removal filter to the image.", []string{"minWindowSize"}},
 	{"max_filter_denoising", "Apply max noise removal filter to the image.", []string{"maxWindowSize"}},
+	{"img_comparison_commands", "Compare the image with another image.", []string{"dummy"}},
 
 	{"bandpass", "Apply bandpass filtering to the image.", []string{"lowCut", "highCut", "withSpectrumImgGenerated"}},
 	{"lowpass", "Apply lowpass filtering to the image.", []string{"cutoff", "withSpectrumImgGenerated"}},

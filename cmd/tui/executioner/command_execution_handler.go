@@ -21,6 +21,7 @@ var commandRegistry = map[string]CommandExecutionHandler{
 	"adaptive_filter_denoising": adaptiveNoiseFilterExecutioner,
 	"min_filter_denoising":      minNoiseFilterExecutioner,
 	"max_filter_denoising":      maxNoiseFilterExecutioner,
+	"img_comparison_commands":   imgComparisonExecutioner,
 	"bandpass":                  bandpassExecutioner,
 	"lowpass":                   lowpassExecutioner,
 	"highpass":                  highpassExecutioner,
@@ -171,6 +172,16 @@ func maxNoiseFilterExecutioner(imgPath string, args map[string]string) (string, 
 	}
 
 	return handleMaxNoiseFilterCommand(opts)
+}
+
+func imgComparisonExecutioner(imgPath string, args map[string]string) (string, error) {
+	opts := handlingCommandOptions{
+		imgPath:                    imgPath,
+		comparisonImagePath:        args["comparisonImagePath"],
+		selectedComparisonCommands: args["selectedComparisonCommands"],
+	}
+
+	return handleImgComparisonCommand(opts)
 }
 
 func bandpassExecutioner(imgPath string, args map[string]string) (string, error) {
