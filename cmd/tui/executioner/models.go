@@ -24,6 +24,7 @@ var CommandDefinitions = []CommandDefinition{
 	{"max_filter_denoising", "Apply max noise removal filter to the image.", []string{"maxWindowSize"}},
 	{"img_comparison_commands", "Compare the image with another image.", []string{"dummy"}},
 	{"generate_img_histogram", "Generate and save a graphical representation of the histogram of the image.", []string{"dummy"}},
+	{"histogram_img_characteristics", "Calculate image characteristics based on it's histogram", []string{"dummy"}},
 
 	{"bandpass", "Apply bandpass filtering to the image.", []string{"lowCut", "highCut", "withSpectrumImgGenerated"}},
 	{"lowpass", "Apply lowpass filtering to the image.", []string{"cutoff", "withSpectrumImgGenerated"}},

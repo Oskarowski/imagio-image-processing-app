@@ -14,7 +14,7 @@ import (
 func (m *Model) buildCommandForm() error {
 	var (
 		lowCut, highCut, cutoff, k, l, maskName, brightness, contrast, shrinkFactor, enlargeFactor, minWindowSize, maxWindowSize, comparisonImagePath string
-		selectedComparisonCommands                                                                                                                    []string
+		selectedComparisonCommands, selectedHistogramCharacteristicsCommands                                                                          []string
 		withSpectrum                                                                                                                                  bool
 	)
 
@@ -155,6 +155,26 @@ func (m *Model) buildCommandForm() error {
 
 		form = huh.NewForm(huh.NewGroup(dummyNote)).WithTheme(huh.ThemeCatppuccin())
 
+	case "histogram_img_characteristics":
+
+		characteristicsOptions := []huh.Option[string]{
+			huh.NewOption("Mean", "cmean"),
+			huh.NewOption("Variance intensity", "cvariance"),
+			huh.NewOption("Standard deviation", "cstdev"),
+			huh.NewOption("Coefficient of variation I", "cvarcoi"),
+			huh.NewOption("Asymmetry coefficient", "casyco"),
+			huh.NewOption("Flattening coefficient", "cflatco"),
+			huh.NewOption("Coefficient of variation II", "cvarcoii"),
+			huh.NewOption("Entropy", "centropy"),
+		}
+
+		msCharacteristics := huh.NewMultiSelect[string]().
+			Title("Select characteristics to calculate").
+			Options(characteristicsOptions...).
+			Value(&selectedHistogramCharacteristicsCommands)
+
+		form = huh.NewForm(huh.NewGroup(msCharacteristics)).WithTheme(huh.ThemeCatppuccin())
+
 	case "bandpass", "bandcut":
 
 		inputLowCut := huh.NewInput().
@@ -263,6 +283,8 @@ func (m *Model) buildCommandForm() error {
 			args["selectedComparisonCommands"] = strings.Join(selectedComparisonCommands, "|")
 		case "generate_img_histogram":
 			args["dummy"] = "dummy"
+		case "histogram_img_characteristics":
+			args["selectedHistogramCharacteristicsCommands"] = strings.Join(selectedHistogramCharacteristicsCommands, "|")
 		case "bandpass", "bandcut":
 			args["lowCut"] = lowCut
 			args["highCut"] = highCut

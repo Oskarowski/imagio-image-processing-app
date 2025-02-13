@@ -17,14 +17,14 @@
 - [X] md
 - [X] histogram
 - [ ] hrayleigh
-- [ ] cmean
-- [ ] cvariance
-- [ ] cstdev
-- [ ] cvarcoi
-- [ ] casyco
-- [ ] cflatco
-- [ ] cvarcoii
-- [ ] centropy
+- [X] cmean
+- [X] cvariance
+- [X] cstdev
+- [X] cvarcoi
+- [X] casyco
+- [X] cflatco
+- [X] cvarcoii
+- [X] centropy
 - [ ] sedgesharp
 - [ ] okirsf
 - [ ] dilation
@@ -40,3 +40,4 @@
 - [X] bandcut
 - [X] phasemod
 - [X] maskpass
+- 

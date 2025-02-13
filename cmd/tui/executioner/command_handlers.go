@@ -13,10 +13,10 @@ import (
 )
 
 type handlingCommandOptions struct {
-	imgPath, maskPath, selectedComparisonCommands, comparisonImagePath string
-	lowCut, highCut, brightnessPercentage, contrast, factor            int
-	cutoff, k, l, maxWindowSize, minWindowSize                         int
-	withSpectrumImgGenerated                                           bool
+	imgPath, maskPath, selectedComparisonCommands, comparisonImagePath, selectedHistogramCharacteristicsCommands string
+	lowCut, highCut, brightnessPercentage, contrast, factor                                                      int
+	cutoff, k, l, maxWindowSize, minWindowSize                                                                   int
+	withSpectrumImgGenerated                                                                                     bool
 }
 
 func validateFrequencyRange(lowCut, highCut, imgWidth int) error {
@@ -348,7 +348,7 @@ func handleMaxNoiseFilterCommand(opts handlingCommandOptions) (successMsgString 
 	return "Image denoised via max filter successfully", nil
 }
 
-func handleImgComparisonCommand(opts handlingCommandOptions) (successMsgString string, output []analysis.ImageComparisonEntry, err error) {
+func handleImgComparisonCommand(opts handlingCommandOptions) (successMsgString string, output []analysis.CharacteristicsEntry, err error) {
 	img, err := imageio.OpenBmpImage(opts.imgPath)
 	if err != nil {
 		return "", nil, err
@@ -365,7 +365,7 @@ func handleImgComparisonCommand(opts handlingCommandOptions) (successMsgString s
 		return "", nil, errors.New("no comparison methods selected")
 	}
 
-	var entries []analysis.ImageComparisonEntry
+	var entries []analysis.CharacteristicsEntry
 
 	img1Name := imageio.GetFileName(opts.imgPath)
 	img2Name := imageio.GetFileName(opts.comparisonImagePath)
@@ -399,6 +399,33 @@ func handleImgHistogramCommand(opts handlingCommandOptions) (successMsgString st
 	}
 
 	return "Histogram calculated successfully", nil
+}
+
+func handleHistogramImgCharacteristicsCommand(opts handlingCommandOptions) (successMsgString string, output []analysis.CharacteristicsEntry, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", nil, err
+	}
+
+	selectedCharacteristics := strings.Split(opts.selectedHistogramCharacteristicsCommands, "|")
+
+	if len(selectedCharacteristics) == 0 {
+		return "", nil, errors.New("no histogram characteristics selected")
+	}
+
+	imgPureName := imageio.GetPureFileName(opts.imgPath)
+	imgName := imageio.GetFileName(opts.imgPath)
+
+	var characteristics []analysis.CharacteristicsEntry
+
+	for _, characteristic := range selectedCharacteristics {
+		histogram := manipulations.CalculateHistogram(img)
+		result := analysis.CalculateHistogramCharacteristic(characteristic, histogram, imgPureName)
+		result.Img1Name = imgName
+		characteristics = append(characteristics, result)
+	}
+
+	return "Histogram characteristics calculated successfully", characteristics, nil
 }
 
 func handleBandpassCommand(opts handlingCommandOptions) (successMsgString string, err error) {

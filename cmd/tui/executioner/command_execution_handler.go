@@ -3,7 +3,6 @@ package executioner
 import (
 	"errors"
 	"fmt"
-	"log"
 	"path/filepath"
 	"strings"
 )
@@ -17,25 +16,26 @@ type ExecutionResult struct {
 type CommandExecutionHandler func(imgPath string, args map[string]string) ExecutionResult
 
 var commandRegistry = map[string]CommandExecutionHandler{
-	"brightness":                brightnessExecutioner,
-	"contrast":                  contrastExecutioner,
-	"negative":                  negativeExecutioner,
-	"flip_horizontally":         flipHorizontallyExecutioner,
-	"flip_vertically":           flipVerticallyExecutioner,
-	"flip_diagonally":           flipDiagonallyExecutioner,
-	"shrink":                    shrinkExecutioner,
-	"enlarge":                   enlargeExecutioner,
-	"adaptive_filter_denoising": adaptiveNoiseFilterExecutioner,
-	"min_filter_denoising":      minNoiseFilterExecutioner,
-	"max_filter_denoising":      maxNoiseFilterExecutioner,
-	"img_comparison_commands":   imgComparisonExecutioner,
-	"generate_img_histogram":    generateImgHistogramExecutioner,
-	"bandpass":                  bandpassExecutioner,
-	"lowpass":                   lowpassExecutioner,
-	"highpass":                  highpassExecutioner,
-	"bandcut":                   bandcutExecutioner,
-	"phasemod":                  phasemodExecutioner,
-	"maskpass":                  maskpassExecutioner,
+	"brightness":                    brightnessExecutioner,
+	"contrast":                      contrastExecutioner,
+	"negative":                      negativeExecutioner,
+	"flip_horizontally":             flipHorizontallyExecutioner,
+	"flip_vertically":               flipVerticallyExecutioner,
+	"flip_diagonally":               flipDiagonallyExecutioner,
+	"shrink":                        shrinkExecutioner,
+	"enlarge":                       enlargeExecutioner,
+	"adaptive_filter_denoising":     adaptiveNoiseFilterExecutioner,
+	"min_filter_denoising":          minNoiseFilterExecutioner,
+	"max_filter_denoising":          maxNoiseFilterExecutioner,
+	"img_comparison_commands":       imgComparisonExecutioner,
+	"generate_img_histogram":        generateImgHistogramExecutioner,
+	"histogram_img_characteristics": histogramImgCharacteristicsExecutioner,
+	"bandpass":                      bandpassExecutioner,
+	"lowpass":                       lowpassExecutioner,
+	"highpass":                      highpassExecutioner,
+	"bandcut":                       bandcutExecutioner,
+	"phasemod":                      phasemodExecutioner,
+	"maskpass":                      maskpassExecutioner,
 }
 
 func brightnessExecutioner(imgPath string, args map[string]string) ExecutionResult {
@@ -275,8 +275,6 @@ func imgComparisonExecutioner(imgPath string, args map[string]string) ExecutionR
 		selectedComparisonCommands: args["selectedComparisonCommands"],
 	}
 
-	log.Default().Println(opts.selectedComparisonCommands)
-
 	msg, output, err := handleImgComparisonCommand(opts)
 
 	return ExecutionResult{
@@ -295,6 +293,21 @@ func generateImgHistogramExecutioner(imgPath string, args map[string]string) Exe
 
 	return ExecutionResult{
 		Message: msg,
+		Err:     err,
+	}
+}
+
+func histogramImgCharacteristicsExecutioner(imgPath string, args map[string]string) ExecutionResult {
+	opts := handlingCommandOptions{
+		imgPath:                                  imgPath,
+		selectedHistogramCharacteristicsCommands: args["selectedHistogramCharacteristicsCommands"],
+	}
+
+	msg, output, err := handleHistogramImgCharacteristicsCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Output:  output,
 		Err:     err,
 	}
 }
