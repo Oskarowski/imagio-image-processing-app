@@ -2,6 +2,7 @@ package tui
 
 import (
 	"errors"
+	"image-processing/analysis"
 	"image-processing/cmd/tui/executioner"
 	"strings"
 	"time"
@@ -115,13 +116,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							return m, clearErrorAfter(2 * time.Second)
 						}
 
-						result, err := executioner.ExecuteCommand(m.selectedFile, m.CommandState.selectedCommand, m.CommandState.commandArgs)
-						if err != nil {
-							m.UIState.err = err
+						result := executioner.ExecuteCommand(m.selectedFile, m.CommandState.selectedCommand, m.CommandState.commandArgs)
+
+						if result.Err != nil {
+							m.UIState.err = result.Err
 							return m, clearErrorAfter(3 * time.Second)
 						}
 
-						m.UIState.successMessage = result
+						if entries, ok := result.Output.([]analysis.ImageComparisonEntry); ok && len(entries) > 0 {
+							m.UIState.imageComparisonResults = entries
+						} else {
+							m.UIState.imageComparisonResults = nil
+						}
+
+						m.UIState.successMessage = result.Message
 						return m, clearSuccessAfter(3 * time.Second)
 					}
 				}

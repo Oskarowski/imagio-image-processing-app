@@ -1,5 +1,7 @@
 package tui
 
+import "image-processing/analysis"
+
 type clearErrorMsg struct{}
 type clearSuccessMsg struct{}
 
@@ -13,8 +15,9 @@ const (
 )
 
 type UIState struct {
-	err            error
-	successMessage string
+	err                    error
+	successMessage         string
+	imageComparisonResults []analysis.ImageComparisonEntry
 }
 
 type CommandState struct {
