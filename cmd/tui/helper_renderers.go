@@ -1,40 +1,36 @@
 package tui
 
 import (
-	"fmt"
 	"image-processing/analysis"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 )
 
-// TODO the header and tbody are off by one space
-func renderComparisonResults(entries []analysis.ImageComparisonEntry) string {
+func renderComparisonResults(entries []analysis.CharacteristicsEntry) string {
 	if len(entries) == 0 {
 		return ""
 	}
 
 	metricWidth := 10
-	descWidth := 40
-	resultWidth := 20
-	imgWidth := 15
+	descWidth := 70
+	resultWidth := 18
+	imgWidth := 20
 
-	headerStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("205"))
-	cellStyle := lipgloss.NewStyle().Padding(0, 1)
+	metricHeader := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("205")).Width(metricWidth).Render("Metric")
+	resultHeader := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("205")).Width(resultWidth).Render("Result")
+	img1Header := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("205")).Width(imgWidth).Render("Img1")
+	img2Header := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("205")).Width(imgWidth).Render("Img2")
+	descHeader := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("205")).Width(descWidth).Render("Description")
 
-	header := fmt.Sprintf("%-*s | %-*s | %-*s | %-*s | %-*s",
-		metricWidth, "Metric",
-		descWidth, "Description",
-		resultWidth, "Result",
-		imgWidth, "Img1",
-		imgWidth, "Img2",
-	)
-	separator := strings.Repeat("-", len(header))
+	sep := " | "
+	header := strings.Join([]string{
+		metricHeader, resultHeader, img1Header, img2Header, descHeader,
+	}, sep)
 
-	var b strings.Builder
-	b.WriteString(headerStyle.Render(header) + "\n")
-	b.WriteString(headerStyle.Render(separator) + "\n")
+	separator := strings.Repeat("-", lipgloss.Width(header))
 
+	var rows []string
 	for _, entry := range entries {
 		parts := strings.Split(entry.Result, ":")
 		var resultDisplay string
@@ -44,15 +40,25 @@ func renderComparisonResults(entries []analysis.ImageComparisonEntry) string {
 			resultDisplay = entry.Result
 		}
 
-		line := fmt.Sprintf("%-*s | %-*s | %-*s | %-*s | %-*s",
-			metricWidth, entry.MetricMethod,
-			descWidth, entry.Description,
-			resultWidth, resultDisplay,
-			imgWidth, entry.Img1Name,
-			imgWidth, entry.Img2Name,
-		)
-		b.WriteString(cellStyle.Render(line) + "\n")
+		img2 := entry.Img2Name
+		if strings.TrimSpace(img2) == "" {
+			img2 = "N/A"
+		}
+
+		metricCell := lipgloss.NewStyle().Width(metricWidth).Render(entry.MetricMethod)
+		resultCell := lipgloss.NewStyle().Width(resultWidth).Render(resultDisplay)
+		img1Cell := lipgloss.NewStyle().Width(imgWidth).Render(entry.Img1Name)
+		img2Cell := lipgloss.NewStyle().Width(imgWidth).Render(img2)
+		descCell := lipgloss.NewStyle().Width(descWidth).Render(entry.Description)
+
+		row := strings.Join([]string{
+			metricCell, resultCell, img1Cell, img2Cell, descCell,
+		}, sep)
+		rows = append(rows, row)
 	}
 
-	return b.String()
+	table := strings.Join(append([]string{header, separator}, rows...), "\n")
+	table = lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Render(table)
+
+	return table
 }
