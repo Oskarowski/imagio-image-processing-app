@@ -6,7 +6,15 @@ import (
 	"strings"
 )
 
-func CalculateComparisonCharacteristic(metricMethod string, img1, img2 image.Image) (string, string) {
+type ImageComparisonEntry struct {
+	MetricMethod string
+	Description  string
+	Result       string
+	Img1Name     string
+	Img2Name     string
+}
+
+func CalculateComparisonCharacteristic(metricMethod string, img1, img2 image.Image) ImageComparisonEntry {
 	var result string
 	var description string
 
@@ -43,5 +51,9 @@ func CalculateComparisonCharacteristic(metricMethod string, img1, img2 image.Ima
 		result = "N/A"
 	}
 
-	return result, description
+	return ImageComparisonEntry{
+		MetricMethod: strings.ToUpper(metricMethod),
+		Description:  description,
+		Result:       result,
+	}
 }

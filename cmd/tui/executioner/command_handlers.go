@@ -348,28 +348,36 @@ func handleMaxNoiseFilterCommand(opts handlingCommandOptions) (successMsgString 
 	return "Image denoised via max filter successfully", nil
 }
 
-func handleImgComparisonCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+func handleImgComparisonCommand(opts handlingCommandOptions) (successMsgString string, output []analysis.ImageComparisonEntry, err error) {
 	img, err := imageio.OpenBmpImage(opts.imgPath)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	comparisonImg, err := imageio.OpenBmpImage(opts.comparisonImagePath)
 	if err != nil {
-		return "", fmt.Errorf("failed to open comparison image: %w", err)
+		return "", nil, fmt.Errorf("failed to open comparison image: %w", err)
 	}
 
 	selectedCommands := strings.Split(opts.selectedComparisonCommands, "|")
 
-	var results []string
-
-	for _, comparison := range selectedCommands {
-		result, description := analysis.CalculateComparisonCharacteristic(comparison, img, comparisonImg)
-		fullyFormattedResult := fmt.Sprintf("%s: %s", description, result)
-		results = append(results, fullyFormattedResult)
+	if len(selectedCommands) == 0 {
+		return "", nil, errors.New("no comparison methods selected")
 	}
 
-	return strings.Join(results, "\n"), nil
+	var entries []analysis.ImageComparisonEntry
+
+	img1Name := imageio.GetFileName(opts.imgPath)
+	img2Name := imageio.GetFileName(opts.comparisonImagePath)
+
+	for _, comparison := range selectedCommands {
+		result := analysis.CalculateComparisonCharacteristic(comparison, img, comparisonImg)
+		result.Img1Name = img1Name
+		result.Img2Name = img2Name
+		entries = append(entries, result)
+	}
+
+	return "Images compared successfully", entries, nil
 }
 
 func handleBandpassCommand(opts handlingCommandOptions) (successMsgString string, err error) {
