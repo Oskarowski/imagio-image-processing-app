@@ -93,6 +93,10 @@ func (m Model) commandExecutionView() string {
 		s.WriteString("\n\n" + successStyle.Render("Success: "+m.UIState.successMessage))
 	}
 
+	if len(m.UIState.imageComparisonResults) > 0 {
+		s.WriteString("\n\n" + renderComparisonResults(m.UIState.imageComparisonResults))
+	}
+
 	return s.String()
 
 }
