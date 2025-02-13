@@ -134,7 +134,13 @@ func (m *Model) buildCommandForm() error {
 			Value(&comparisonImagePath).
 			CurrentDirectory(wd)
 
-		comparisonOptions := huh.NewOptions("MSE", "PMSE", "SNR", "PSNR", "MD")
+		comparisonOptions := []huh.Option[string]{
+			huh.NewOption("MSE (Mean Square Error)", "MSE"),
+			huh.NewOption("PMSE (Peak Mean Square Error)", "PMSE"),
+			huh.NewOption("SNR (Signal-to-Noise Ratio)", "SNR"),
+			huh.NewOption("PSNR (Peak Signal-to-Noise Ratio)", "PSNR"),
+			huh.NewOption("MD (Max Difference)", "MD"),
+		}
 
 		msComparison := huh.NewMultiSelect[string]().
 			Title("Select comparison commands").
