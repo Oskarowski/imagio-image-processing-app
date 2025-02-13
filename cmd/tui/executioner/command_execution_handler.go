@@ -3,11 +3,18 @@ package executioner
 import (
 	"errors"
 	"fmt"
+	"log"
 	"path/filepath"
 	"strings"
 )
 
-type CommandExecutionHandler func(imgPath string, args map[string]string) (string, error)
+type ExecutionResult struct {
+	Message string
+	Err     error
+	Output  interface{}
+}
+
+type CommandExecutionHandler func(imgPath string, args map[string]string) ExecutionResult
 
 var commandRegistry = map[string]CommandExecutionHandler{
 	"brightness":                brightnessExecutioner,
@@ -30,10 +37,13 @@ var commandRegistry = map[string]CommandExecutionHandler{
 	"maskpass":                  maskpassExecutioner,
 }
 
-func brightnessExecutioner(imgPath string, args map[string]string) (string, error) {
+func brightnessExecutioner(imgPath string, args map[string]string) ExecutionResult {
 	brightness, err := parseIntArg(args, "brightness")
 	if err != nil {
-		return "", err
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
 	}
 
 	opts := handlingCommandOptions{
@@ -41,13 +51,22 @@ func brightnessExecutioner(imgPath string, args map[string]string) (string, erro
 		brightnessPercentage: brightness,
 	}
 
-	return handleBrightnessCommand(opts)
+	msg, err := handleBrightnessCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
+
 }
 
-func contrastExecutioner(imgPath string, args map[string]string) (string, error) {
+func contrastExecutioner(imgPath string, args map[string]string) ExecutionResult {
 	contrast, err := parseIntArg(args, "contrast")
 	if err != nil {
-		return "", err
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
 	}
 
 	opts := handlingCommandOptions{
@@ -55,49 +74,80 @@ func contrastExecutioner(imgPath string, args map[string]string) (string, error)
 		contrast: contrast,
 	}
 
-	return handleContrastCommand(opts)
+	msg, err := handleContrastCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
 }
 
-func negativeExecutioner(imgPath string, args map[string]string) (string, error) {
+func negativeExecutioner(imgPath string, args map[string]string) ExecutionResult {
 	opts := handlingCommandOptions{
 		imgPath: imgPath,
 	}
 
-	return handleNegativeCommand(opts)
+	msg, err := handleNegativeCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
 }
 
-func flipHorizontallyExecutioner(imgPath string, args map[string]string) (string, error) {
+func flipHorizontallyExecutioner(imgPath string, args map[string]string) ExecutionResult {
 	opts := handlingCommandOptions{
 		imgPath: imgPath,
 	}
 
-	return handleHorizontalFlipCommand(opts)
+	msg, err := handleHorizontalFlipCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
 }
 
-func flipVerticallyExecutioner(imgPath string, args map[string]string) (string, error) {
+func flipVerticallyExecutioner(imgPath string, args map[string]string) ExecutionResult {
 	opts := handlingCommandOptions{
 		imgPath: imgPath,
 	}
 
-	return handleVerticalFlipCommand(opts)
+	msg, err := handleVerticalFlipCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
 }
 
-func flipDiagonallyExecutioner(imgPath string, args map[string]string) (string, error) {
+func flipDiagonallyExecutioner(imgPath string, args map[string]string) ExecutionResult {
 	opts := handlingCommandOptions{
 		imgPath: imgPath,
 	}
 
-	return handleDiagonalFlipCommand(opts)
+	msg, err := handleDiagonalFlipCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
 }
 
-func shrinkExecutioner(imgPath string, args map[string]string) (string, error) {
+func shrinkExecutioner(imgPath string, args map[string]string) ExecutionResult {
 	factor, err := parseIntArg(args, "shrinkFactor")
 	if err != nil {
-		return "", err
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
 	}
 
 	if factor < 1 {
-		return "", errors.New("shrink factor must be greater than 1")
+		return ExecutionResult{
+			Message: "",
+			Err:     errors.New("shrink factor must be greater than 1"),
+		}
 	}
 
 	opts := handlingCommandOptions{
@@ -105,17 +155,28 @@ func shrinkExecutioner(imgPath string, args map[string]string) (string, error) {
 		factor:  factor,
 	}
 
-	return handleShrinkCommand(opts)
+	msg, err := handleShrinkCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
 }
 
-func enlargeExecutioner(imgPath string, args map[string]string) (string, error) {
+func enlargeExecutioner(imgPath string, args map[string]string) ExecutionResult {
 	factor, err := parseIntArg(args, "enlargeFactor")
 	if err != nil {
-		return "", err
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
 	}
 
 	if factor < 1 {
-		return "", errors.New("enlarge factor must be greater than 1")
+		return ExecutionResult{
+			Message: "",
+			Err:     errors.New("enlarge factor must be greater than 1"),
+		}
 	}
 
 	opts := handlingCommandOptions{
@@ -123,18 +184,29 @@ func enlargeExecutioner(imgPath string, args map[string]string) (string, error) 
 		factor:  factor,
 	}
 
-	return handleEnlargeCommand(opts)
+	msg, err := handleEnlargeCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
 }
 
-func adaptiveNoiseFilterExecutioner(imgPath string, args map[string]string) (string, error) {
+func adaptiveNoiseFilterExecutioner(imgPath string, args map[string]string) ExecutionResult {
 	minWindowSize, err := parseIntArg(args, "minWindowSize")
 	if err != nil {
-		return "", err
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
 	}
 
 	maxWindowSize, err := parseIntArg(args, "maxWindowSize")
 	if err != nil {
-		return "", err
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
 	}
 
 	opts := handlingCommandOptions{
@@ -143,13 +215,21 @@ func adaptiveNoiseFilterExecutioner(imgPath string, args map[string]string) (str
 		maxWindowSize: maxWindowSize,
 	}
 
-	return handleAdaptiveNoiseFilterCommand(opts)
+	msg, err := handleAdaptiveNoiseFilterCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
 }
 
-func minNoiseFilterExecutioner(imgPath string, args map[string]string) (string, error) {
+func minNoiseFilterExecutioner(imgPath string, args map[string]string) ExecutionResult {
 	minWindowSize, err := parseIntArg(args, "minWindowSize")
 	if err != nil {
-		return "", err
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
 	}
 
 	opts := handlingCommandOptions{
@@ -157,13 +237,21 @@ func minNoiseFilterExecutioner(imgPath string, args map[string]string) (string, 
 		minWindowSize: minWindowSize,
 	}
 
-	return handleMinNoiseFilterCommand(opts)
+	msg, err := handleMinNoiseFilterCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
 }
 
-func maxNoiseFilterExecutioner(imgPath string, args map[string]string) (string, error) {
+func maxNoiseFilterExecutioner(imgPath string, args map[string]string) ExecutionResult {
 	maxWindowSize, err := parseIntArg(args, "maxWindowSize")
 	if err != nil {
-		return "", err
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
 	}
 
 	opts := handlingCommandOptions{
@@ -171,33 +259,55 @@ func maxNoiseFilterExecutioner(imgPath string, args map[string]string) (string, 
 		maxWindowSize: maxWindowSize,
 	}
 
-	return handleMaxNoiseFilterCommand(opts)
+	msg, err := handleMaxNoiseFilterCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
 }
 
-func imgComparisonExecutioner(imgPath string, args map[string]string) (string, error) {
+func imgComparisonExecutioner(imgPath string, args map[string]string) ExecutionResult {
 	opts := handlingCommandOptions{
 		imgPath:                    imgPath,
 		comparisonImagePath:        args["comparisonImagePath"],
 		selectedComparisonCommands: args["selectedComparisonCommands"],
 	}
 
-	return handleImgComparisonCommand(opts)
+	log.Default().Println(opts.selectedComparisonCommands)
+
+	msg, output, err := handleImgComparisonCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Output:  output,
+		Err:     err,
+	}
 }
 
-func bandpassExecutioner(imgPath string, args map[string]string) (string, error) {
+func bandpassExecutioner(imgPath string, args map[string]string) ExecutionResult {
 	lowCut, err := parseIntArg(args, "lowCut")
 	if err != nil {
-		return "", err
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
 	}
 
 	highCut, err := parseIntArg(args, "highCut")
 	if err != nil {
-		return "", err
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
 	}
 
 	withSpectrum, err := parseBoolArg(args, "withSpectrumImgGenerated")
 	if err != nil {
-		return "", err
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
 	}
 
 	opts := handlingCommandOptions{
@@ -207,18 +317,29 @@ func bandpassExecutioner(imgPath string, args map[string]string) (string, error)
 		withSpectrumImgGenerated: withSpectrum,
 	}
 
-	return handleBandpassCommand(opts)
+	msg, err := handleBandpassCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
 }
 
-func lowpassExecutioner(imgPath string, args map[string]string) (string, error) {
+func lowpassExecutioner(imgPath string, args map[string]string) ExecutionResult {
 	cutoff, err := parseIntArg(args, "cutoff")
 	if err != nil {
-		return "", err
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
 	}
 
 	withSpectrum, err := parseBoolArg(args, "withSpectrumImgGenerated")
 	if err != nil {
-		return "", err
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
 	}
 
 	opts := handlingCommandOptions{
@@ -227,18 +348,30 @@ func lowpassExecutioner(imgPath string, args map[string]string) (string, error) 
 		withSpectrumImgGenerated: withSpectrum,
 	}
 
-	return handleLowpassCommand(opts)
+	msg, err := handleLowpassCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
+
 }
 
-func highpassExecutioner(imgPath string, args map[string]string) (string, error) {
+func highpassExecutioner(imgPath string, args map[string]string) ExecutionResult {
 	cutoff, err := parseIntArg(args, "cutoff")
 	if err != nil {
-		return "", err
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
 	}
 
 	withSpectrum, err := parseBoolArg(args, "withSpectrumImgGenerated")
 	if err != nil {
-		return "", err
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
 	}
 
 	opts := handlingCommandOptions{
@@ -247,21 +380,35 @@ func highpassExecutioner(imgPath string, args map[string]string) (string, error)
 		withSpectrumImgGenerated: withSpectrum,
 	}
 
-	return handleHighpassCommand(opts)
+	msg, err := handleHighpassCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
 }
 
-func bandcutExecutioner(imgPath string, args map[string]string) (string, error) {
+func bandcutExecutioner(imgPath string, args map[string]string) ExecutionResult {
 	lowCut, err := parseIntArg(args, "lowCut")
 	if err != nil {
-		return "", err
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
 	}
 	highCut, err := parseIntArg(args, "highCut")
 	if err != nil {
-		return "", err
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
 	}
 	withSpectrum, err := parseBoolArg(args, "withSpectrumImgGenerated")
 	if err != nil {
-		return "", err
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
 	}
 
 	opts := handlingCommandOptions{
@@ -271,18 +418,29 @@ func bandcutExecutioner(imgPath string, args map[string]string) (string, error) 
 		withSpectrumImgGenerated: withSpectrum,
 	}
 
-	return handleBandcutCommand(opts)
+	msg, err := handleBandcutCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
 }
 
-func phasemodExecutioner(imgPath string, args map[string]string) (string, error) {
+func phasemodExecutioner(imgPath string, args map[string]string) ExecutionResult {
 	k, err := parseIntArg(args, "k")
 	if err != nil {
-		return "", err
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
 	}
 
 	l, err := parseIntArg(args, "l")
 	if err != nil {
-		return "", err
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
 	}
 
 	opts := handlingCommandOptions{
@@ -291,20 +449,31 @@ func phasemodExecutioner(imgPath string, args map[string]string) (string, error)
 		l:       l,
 	}
 
-	return handlePhasemodCommand(opts)
+	msg, err := handlePhasemodCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
 }
 
-func maskpassExecutioner(imgPath string, args map[string]string) (string, error) {
+func maskpassExecutioner(imgPath string, args map[string]string) ExecutionResult {
 	maskName := strings.TrimSpace(args["maskName"])
 	if maskName == "" {
-		return "", errors.New("mask name cannot be empty")
+		return ExecutionResult{
+			Message: "",
+			Err:     errors.New("mask name cannot be empty"),
+		}
 	}
 
 	maskPath := filepath.Join("orthogonal_transforms", "masks", maskName)
 
 	withSpectrum, err := parseBoolArg(args, "withSpectrumImgGenerated")
 	if err != nil {
-		return "", err
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
 	}
 
 	opts := handlingCommandOptions{
@@ -313,13 +482,21 @@ func maskpassExecutioner(imgPath string, args map[string]string) (string, error)
 		withSpectrumImgGenerated: withSpectrum,
 	}
 
-	return handleMaskpassCommand(opts)
+	msg, err := handleMaskpassCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
 }
 
-func ExecuteCommand(imgPath, cmdName string, cmdArgs map[string]string) (string, error) {
+func ExecuteCommand(imgPath, cmdName string, cmdArgs map[string]string) ExecutionResult {
 	handler, exists := commandRegistry[cmdName]
 	if !exists {
-		return "", fmt.Errorf("command not found: %s", cmdName)
+		return ExecutionResult{
+			Message: "",
+			Err:     fmt.Errorf("command not found: %s", cmdName),
+		}
 	}
 	return handler(imgPath, cmdArgs)
 }
