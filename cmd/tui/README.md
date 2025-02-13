@@ -1,4 +1,4 @@
-## Ported CLI Commands Available in TUI
+****## Ported CLI Commands Available in TUI
 - [X] brightness
 - [X] contrast
 - [X] negative
@@ -15,7 +15,7 @@
 - [X] snr
 - [X] psnr
 - [X] md
-- [ ] histogram
+- [X] histogram
 - [ ] hrayleigh
 - [ ] cmean
 - [ ] cvariance

@@ -380,6 +380,27 @@ func handleImgComparisonCommand(opts handlingCommandOptions) (successMsgString s
 	return "Images compared successfully", entries, nil
 }
 
+func handleImgHistogramCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", err
+	}
+
+	imgFileName := imageio.GetPureFileName(opts.imgPath)
+	histogramImg := manipulations.GenerateGraphicalRepresentationOfHistogram(manipulations.CalculateHistogram(img))
+
+	histogramResult := cmd.BasicImgResult{
+		Img:  histogramImg,
+		Name: fmt.Sprintf("%s_histogram.bmp", imgFileName),
+	}
+
+	if err := saveFilteringResults([]cmd.ResultImage{histogramResult}); err != nil {
+		return "", err
+	}
+
+	return "Histogram calculated successfully", nil
+}
+
 func handleBandpassCommand(opts handlingCommandOptions) (successMsgString string, err error) {
 	img, err := imageio.OpenBmpImage(opts.imgPath)
 	if err != nil {

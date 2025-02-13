@@ -149,6 +149,12 @@ func (m *Model) buildCommandForm() error {
 
 		form = huh.NewForm(huh.NewGroup(fpComparison, msComparison)).WithTheme(huh.ThemeCatppuccin())
 
+	case "generate_img_histogram":
+
+		dummyNote := huh.NewNote().Title("No arguments required for this command")
+
+		form = huh.NewForm(huh.NewGroup(dummyNote)).WithTheme(huh.ThemeCatppuccin())
+
 	case "bandpass", "bandcut":
 
 		inputLowCut := huh.NewInput().
@@ -255,6 +261,8 @@ func (m *Model) buildCommandForm() error {
 			args["comparisonImagePath"] = comparisonImagePath
 			// i love this totally not hacky type save solution
 			args["selectedComparisonCommands"] = strings.Join(selectedComparisonCommands, "|")
+		case "generate_img_histogram":
+			args["dummy"] = "dummy"
 		case "bandpass", "bandcut":
 			args["lowCut"] = lowCut
 			args["highCut"] = highCut

@@ -29,6 +29,7 @@ var commandRegistry = map[string]CommandExecutionHandler{
 	"min_filter_denoising":      minNoiseFilterExecutioner,
 	"max_filter_denoising":      maxNoiseFilterExecutioner,
 	"img_comparison_commands":   imgComparisonExecutioner,
+	"generate_img_histogram":    generateImgHistogramExecutioner,
 	"bandpass":                  bandpassExecutioner,
 	"lowpass":                   lowpassExecutioner,
 	"highpass":                  highpassExecutioner,
@@ -281,6 +282,19 @@ func imgComparisonExecutioner(imgPath string, args map[string]string) ExecutionR
 	return ExecutionResult{
 		Message: msg,
 		Output:  output,
+		Err:     err,
+	}
+}
+
+func generateImgHistogramExecutioner(imgPath string, args map[string]string) ExecutionResult {
+	opts := handlingCommandOptions{
+		imgPath: imgPath,
+	}
+
+	msg, err := handleImgHistogramCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
 		Err:     err,
 	}
 }
