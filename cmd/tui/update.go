@@ -123,7 +123,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							return m, clearErrorAfter(3 * time.Second)
 						}
 
-						if entries, ok := result.Output.([]analysis.ImageComparisonEntry); ok && len(entries) > 0 {
+						if entries, ok := result.Output.([]analysis.CharacteristicsEntry); ok && len(entries) > 0 {
 							m.UIState.imageComparisonResults = entries
 						} else {
 							m.UIState.imageComparisonResults = nil

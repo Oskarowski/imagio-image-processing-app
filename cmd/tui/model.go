@@ -17,7 +17,7 @@ const (
 type UIState struct {
 	err                    error
 	successMessage         string
-	imageComparisonResults []analysis.ImageComparisonEntry
+	imageComparisonResults []analysis.CharacteristicsEntry
 }
 
 type CommandState struct {

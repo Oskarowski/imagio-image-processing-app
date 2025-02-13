@@ -355,7 +355,9 @@ func RunAsCliApp() {
 				histogram = manipulations.CalculateHistogram(histogramImg)
 			}
 
-			cmdResult.Result, cmdResult.Description = analysis.CalculateHistogramCharacteristic(command.Name, histogram, histogramImgFilename)
+			result := analysis.CalculateHistogramCharacteristic(command.Name, histogram, histogramImgFilename)
+			cmdResult.Result = result.Result
+			cmdResult.Description = result.Description
 
 		case "hrayleigh":
 
