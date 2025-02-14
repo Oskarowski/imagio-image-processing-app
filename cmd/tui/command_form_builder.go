@@ -13,9 +13,9 @@ import (
 
 func (m *Model) buildCommandForm() error {
 	var (
-		lowCut, highCut, cutoff, k, l, maskName, brightness, contrast, shrinkFactor, enlargeFactor, minWindowSize, maxWindowSize, comparisonImagePath string
-		selectedComparisonCommands, selectedHistogramCharacteristicsCommands                                                                          []string
-		withSpectrum                                                                                                                                  bool
+		lowCut, highCut, cutoff, k, l, maskName, brightness, contrast, shrinkFactor, enlargeFactor, minWindowSize, maxWindowSize, comparisonImagePath, alpha string
+		selectedComparisonCommands, selectedHistogramCharacteristicsCommands                                                                                 []string
+		withSpectrum                                                                                                                                         bool
 	)
 
 	customKM := huh.NewDefaultKeyMap()
@@ -175,6 +175,25 @@ func (m *Model) buildCommandForm() error {
 
 		form = huh.NewForm(huh.NewGroup(msCharacteristics)).WithTheme(huh.ThemeCatppuccin())
 
+	case "rayleigh_transform":
+
+		inputMinBrightness := huh.NewInput().
+			Title("Minimum value in the range [0, 255]").
+			Placeholder("Enter minimum value").
+			Value(&lowCut)
+
+		inputMaxBrightness := huh.NewInput().
+			Title("Maximum value in the range [0, 255], must be greater than min").
+			Placeholder("Enter maximum value").
+			Value(&highCut)
+
+		inputAlpha := huh.NewInput().
+			Title("Alpha value for transformation").
+			Placeholder("Enter alpha value").
+			Value(&alpha)
+
+		form = huh.NewForm(huh.NewGroup(inputMinBrightness, inputMaxBrightness, inputAlpha)).WithTheme(huh.ThemeCatppuccin())
+
 	case "bandpass", "bandcut":
 
 		inputLowCut := huh.NewInput().
@@ -285,6 +304,10 @@ func (m *Model) buildCommandForm() error {
 			args["dummy"] = "dummy"
 		case "histogram_img_characteristics":
 			args["selectedHistogramCharacteristicsCommands"] = strings.Join(selectedHistogramCharacteristicsCommands, "|")
+		case "rayleigh_transform":
+			args["lowCut"] = lowCut
+			args["highCut"] = highCut
+			args["alpha"] = alpha
 		case "bandpass", "bandcut":
 			args["lowCut"] = lowCut
 			args["highCut"] = highCut

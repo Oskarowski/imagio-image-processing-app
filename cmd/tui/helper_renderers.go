@@ -7,6 +7,18 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+func truncateText(s string, length int) string {
+	if len(s) < length {
+		return s
+	}
+
+	if length > 3 {
+		return s[:length-3] + "..."
+	}
+
+	return s[:length]
+}
+
 func renderComparisonResults(entries []analysis.CharacteristicsEntry) string {
 	if len(entries) == 0 {
 		return ""
@@ -15,7 +27,7 @@ func renderComparisonResults(entries []analysis.CharacteristicsEntry) string {
 	metricWidth := 10
 	descWidth := 70
 	resultWidth := 18
-	imgWidth := 20
+	imgWidth := 45
 
 	metricHeader := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("205")).Width(metricWidth).Render("Metric")
 	resultHeader := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("205")).Width(resultWidth).Render("Result")
@@ -45,11 +57,11 @@ func renderComparisonResults(entries []analysis.CharacteristicsEntry) string {
 			img2 = "N/A"
 		}
 
-		metricCell := lipgloss.NewStyle().Width(metricWidth).Render(entry.MetricMethod)
-		resultCell := lipgloss.NewStyle().Width(resultWidth).Render(resultDisplay)
-		img1Cell := lipgloss.NewStyle().Width(imgWidth).Render(entry.Img1Name)
-		img2Cell := lipgloss.NewStyle().Width(imgWidth).Render(img2)
-		descCell := lipgloss.NewStyle().Width(descWidth).Render(entry.Description)
+		metricCell := lipgloss.NewStyle().Width(metricWidth).MaxWidth(metricWidth).Inline(true).Render(entry.MetricMethod)
+		resultCell := lipgloss.NewStyle().Width(resultWidth).MaxWidth(resultWidth).Inline(true).Render(resultDisplay)
+		img1Cell := lipgloss.NewStyle().Width(imgWidth).MaxWidth(imgWidth).Inline(true).Render(entry.Img1Name)
+		img2Cell := lipgloss.NewStyle().Width(imgWidth).MaxWidth(imgWidth).Inline(true).Render(img2)
+		descCell := lipgloss.NewStyle().Width(descWidth).MaxWidth(descWidth).Inline(true).Render(entry.Description)
 
 		row := strings.Join([]string{
 			metricCell, resultCell, img1Cell, img2Cell, descCell,

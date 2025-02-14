@@ -20,3 +20,11 @@ func parseBoolArg(args map[string]string, key string) (bool, error) {
 	}
 	return strconv.ParseBool(value)
 }
+
+func parseFloatArg(args map[string]string, key string) (float64, error) {
+	value, exists := args[key]
+	if !exists {
+		return 0, fmt.Errorf("missing required argument: %s", key)
+	}
+	return strconv.ParseFloat(value, 64)
+}

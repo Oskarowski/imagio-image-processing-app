@@ -30,6 +30,7 @@ var commandRegistry = map[string]CommandExecutionHandler{
 	"img_comparison_commands":       imgComparisonExecutioner,
 	"generate_img_histogram":        generateImgHistogramExecutioner,
 	"histogram_img_characteristics": histogramImgCharacteristicsExecutioner,
+	"rayleigh_transform":            rayleighTransformExecutioner,
 	"bandpass":                      bandpassExecutioner,
 	"lowpass":                       lowpassExecutioner,
 	"highpass":                      highpassExecutioner,
@@ -308,6 +309,46 @@ func histogramImgCharacteristicsExecutioner(imgPath string, args map[string]stri
 	return ExecutionResult{
 		Message: msg,
 		Output:  output,
+		Err:     err,
+	}
+}
+
+func rayleighTransformExecutioner(imgPath string, args map[string]string) ExecutionResult {
+	lowCut, err := parseIntArg(args, "lowCut")
+	if err != nil {
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
+	}
+
+	highCut, err := parseIntArg(args, "highCut")
+	if err != nil {
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
+	}
+
+	alphaValue, err := parseFloatArg(args, "alpha")
+	if err != nil {
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
+	}
+
+	opts := handlingCommandOptions{
+		imgPath:    imgPath,
+		lowCut:     lowCut,
+		highCut:    highCut,
+		alphaValue: alphaValue,
+	}
+
+	msg, err := handleRayleighTransformCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
 		Err:     err,
 	}
 }

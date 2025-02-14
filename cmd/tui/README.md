@@ -16,7 +16,7 @@
 - [X] psnr
 - [X] md
 - [X] histogram
-- [ ] hrayleigh
+- [X] hrayleigh
 - [X] cmean
 - [X] cvariance
 - [X] cstdev

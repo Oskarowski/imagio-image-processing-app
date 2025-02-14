@@ -16,6 +16,7 @@ type handlingCommandOptions struct {
 	imgPath, maskPath, selectedComparisonCommands, comparisonImagePath, selectedHistogramCharacteristicsCommands string
 	lowCut, highCut, brightnessPercentage, contrast, factor                                                      int
 	cutoff, k, l, maxWindowSize, minWindowSize                                                                   int
+	alphaValue                                                                                                   float64
 	withSpectrumImgGenerated                                                                                     bool
 }
 
@@ -426,6 +427,39 @@ func handleHistogramImgCharacteristicsCommand(opts handlingCommandOptions) (succ
 	}
 
 	return "Histogram characteristics calculated successfully", characteristics, nil
+}
+
+func handleRayleighTransformCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", err
+	}
+
+	gMin := opts.lowCut
+	gMax := opts.highCut
+	alpha := opts.alphaValue
+
+	if gMin < 0 || gMax > 255 || gMin >= gMax {
+		return "", errors.New("lowCutoff and highCutoff must be between 0 and 255 and lowCutoff must be less than highCutoff")
+	}
+
+	rayleighTransformedImg := manipulations.EnhanceImageWithRayleigh(img, float64(gMin), float64(gMax), alpha)
+
+	imgFileName := imageio.GetPureFileName(opts.imgPath)
+	outputFileName := fmt.Sprintf("%s_rayleigh_transformed_min%d_max%d_alpha%.2f.bmp", imgFileName, gMin, gMax, alpha)
+
+	rayleighResult := cmd.BasicImgResult{
+		Img:  rayleighTransformedImg,
+		Name: outputFileName,
+	}
+
+	if err := saveFilteringResults([]cmd.ResultImage{rayleighResult}); err != nil {
+		return "", err
+	}
+
+	successMsg := fmt.Sprintf("Rayleigh transformation applied successfully with min: %d, max: %d, alpha: %.2f", gMin, gMax, alpha)
+
+	return successMsg, nil
 }
 
 func handleBandpassCommand(opts handlingCommandOptions) (successMsgString string, err error) {
