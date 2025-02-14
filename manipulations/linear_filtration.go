@@ -1,34 +1,10 @@
 package manipulations
 
 import (
-	"encoding/json"
-	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
-	"os"
 )
-
-func LoadMasksFromJSON(filename string) (map[string][][]int, error) {
-	bytes, err := os.ReadFile(filename)
-	if err != nil {
-		return nil, fmt.Errorf("could not read JSON file: %w", err)
-	}
-
-	// TODO add validation for masks format
-	var masks map[string][][]int
-	if err := json.Unmarshal(bytes, &masks); err != nil {
-		return nil, fmt.Errorf("could not parse JSON: %w", err)
-	}
-	return masks, nil
-}
-
-func GetMask(masks map[string][][]int, maskName string) ([][]int, error) {
-	if mask, exists := masks[maskName]; exists {
-		return mask, nil
-	}
-	return nil, fmt.Errorf("mask %s not found", maskName)
-}
 
 func ApplyConvolutionUniversal(img image.Image, mask [][]int) *image.RGBA {
 	bounds := img.Bounds()

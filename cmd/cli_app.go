@@ -54,11 +54,6 @@ func RunAsCliApp() {
 
 	commands := ParseCommands(os.Args[1 : len(os.Args)-1])
 
-	loadedMasks, err := manipulations.LoadMasksFromJSON("masks.json")
-	if err != nil {
-		log.Fatalf("Error loading masks: %v", err)
-	}
-
 	loadedStructureElements, err := morphological.LoadStructureElementsFromJSON("structure_elements.json")
 	if err != nil {
 		log.Fatalf("Error loading structure elements: %v", err)
@@ -388,8 +383,7 @@ func RunAsCliApp() {
 
 			chosenMask := GetOrDefault(command.Args["mask"], "edge1")
 
-			mask, err := manipulations.GetMask(loadedMasks, chosenMask)
-
+			mask, err := manipulations.GetMask(chosenMask)
 			if err != nil {
 				log.Fatalf("Error getting mask: %v", err)
 			}
