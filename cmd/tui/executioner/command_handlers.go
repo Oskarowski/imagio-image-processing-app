@@ -13,11 +13,12 @@ import (
 )
 
 type handlingCommandOptions struct {
-	imgPath, maskPath, selectedComparisonCommands, comparisonImagePath, selectedHistogramCharacteristicsCommands string
-	lowCut, highCut, brightnessPercentage, contrast, factor                                                      int
-	cutoff, k, l, maxWindowSize, minWindowSize                                                                   int
-	alphaValue                                                                                                   float64
-	withSpectrumImgGenerated                                                                                     bool
+	imgPath, maskPath, selectedComparisonCommands, comparisonImagePath, selectedHistogramCharacteristicsCommands, maskName string
+	lowCut, highCut, brightnessPercentage, contrast, factor                                                                int
+	cutoff, k, l, maxWindowSize, minWindowSize                                                                             int
+	alphaValue                                                                                                             float64
+	withSpectrumImgGenerated                                                                                               bool
+	edgeSharpeningMask                                                                                                     [][]int
 }
 
 func validateFrequencyRange(lowCut, highCut, imgWidth int) error {
@@ -460,6 +461,30 @@ func handleRayleighTransformCommand(opts handlingCommandOptions) (successMsgStri
 	successMsg := fmt.Sprintf("Rayleigh transformation applied successfully with min: %d, max: %d, alpha: %.2f", gMin, gMax, alpha)
 
 	return successMsg, nil
+}
+
+func handleMaskEdgeSharpeningCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", err
+	}
+
+	sharpenedImg := manipulations.ApplyConvolutionUniversal(img, opts.edgeSharpeningMask)
+
+	imgFileName := imageio.GetPureFileName(opts.imgPath)
+	outputFileName := fmt.Sprintf("%s_sharpened_with_%s_mask.bmp", imgFileName, opts.maskName)
+
+	sharpenedResult := cmd.BasicImgResult{
+		Img:  sharpenedImg,
+		Name: outputFileName,
+	}
+
+	if err := saveFilteringResults([]cmd.ResultImage{sharpenedResult}); err != nil {
+		return "", err
+	}
+
+	msg := fmt.Sprintf("Edge sharpening mask applied successfully with mask: %s", opts.maskName)
+	return msg, nil
 }
 
 func handleBandpassCommand(opts handlingCommandOptions) (successMsgString string, err error) {

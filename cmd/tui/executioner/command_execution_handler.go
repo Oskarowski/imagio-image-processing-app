@@ -3,6 +3,7 @@ package executioner
 import (
 	"errors"
 	"fmt"
+	"image-processing/manipulations"
 	"path/filepath"
 	"strings"
 )
@@ -31,6 +32,7 @@ var commandRegistry = map[string]CommandExecutionHandler{
 	"generate_img_histogram":        generateImgHistogramExecutioner,
 	"histogram_img_characteristics": histogramImgCharacteristicsExecutioner,
 	"rayleigh_transform":            rayleighTransformExecutioner,
+	"mask_edge_sharpening":          maskEdgeSharpeningExecutioner,
 	"bandpass":                      bandpassExecutioner,
 	"lowpass":                       lowpassExecutioner,
 	"highpass":                      highpassExecutioner,
@@ -346,6 +348,37 @@ func rayleighTransformExecutioner(imgPath string, args map[string]string) Execut
 	}
 
 	msg, err := handleRayleighTransformCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
+}
+
+func maskEdgeSharpeningExecutioner(imgPath string, args map[string]string) ExecutionResult {
+	maskName := strings.TrimSpace(args["maskName"])
+	if maskName == "" {
+		return ExecutionResult{
+			Message: "",
+			Err:     errors.New("mask name cannot be empty"),
+		}
+	}
+
+	mask, err := manipulations.GetMask(maskName)
+	if err != nil {
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
+	}
+
+	opts := handlingCommandOptions{
+		imgPath:            imgPath,
+		maskName:           maskName,
+		edgeSharpeningMask: mask,
+	}
+
+	msg, err := handleMaskEdgeSharpeningCommand(opts)
 
 	return ExecutionResult{
 		Message: msg,

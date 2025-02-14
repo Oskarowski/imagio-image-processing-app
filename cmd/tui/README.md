@@ -25,7 +25,7 @@
 - [X] cflatco
 - [X] cvarcoii
 - [X] centropy
-- [ ] sedgesharp
+- [X] sedgesharp
 - [ ] okirsf
 - [ ] dilation
 - [ ] erosion

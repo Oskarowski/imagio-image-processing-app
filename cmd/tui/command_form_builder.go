@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"image-processing/manipulations"
 	"image-processing/orthogonal_transforms"
 	"os"
 	"strconv"
@@ -194,6 +195,22 @@ func (m *Model) buildCommandForm() error {
 
 		form = huh.NewForm(huh.NewGroup(inputMinBrightness, inputMaxBrightness, inputAlpha)).WithTheme(huh.ThemeCatppuccin())
 
+	case "mask_edge_sharpening":
+
+		availableMasks, err := manipulations.GetAvailableEdgeSharpeningMasksNames()
+		if err != nil {
+			return fmt.Errorf("failed to get available edge sharpening masks: %w", err)
+		}
+
+		maskOptions := huh.NewOptions(availableMasks...)
+
+		selectMask := huh.NewSelect[string]().
+			Title("Mask Name").
+			Options(maskOptions...).
+			Value(&maskName)
+
+		form = huh.NewForm(huh.NewGroup(selectMask)).WithTheme(huh.ThemeCatppuccin())
+
 	case "bandpass", "bandcut":
 
 		inputLowCut := huh.NewInput().
@@ -308,6 +325,8 @@ func (m *Model) buildCommandForm() error {
 			args["lowCut"] = lowCut
 			args["highCut"] = highCut
 			args["alpha"] = alpha
+		case "mask_edge_sharpening":
+			args["maskName"] = maskName
 		case "bandpass", "bandcut":
 			args["lowCut"] = lowCut
 			args["highCut"] = highCut
