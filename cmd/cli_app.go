@@ -54,11 +54,6 @@ func RunAsCliApp() {
 
 	commands := ParseCommands(os.Args[1 : len(os.Args)-1])
 
-	loadedStructureElements, err := morphological.LoadStructureElementsFromJSON("structure_elements.json")
-	if err != nil {
-		log.Fatalf("Error loading structure elements: %v", err)
-	}
-
 	originalName := filepath.Base(imagePath)
 	originalNameWithoutExt := originalName[:len(originalName)-len(filepath.Ext(originalName))]
 
@@ -406,7 +401,7 @@ func RunAsCliApp() {
 
 			chosenStructureElement := GetOrDefault(command.Args["se"], "iv")
 
-			se, err := morphological.GetStructureElement(loadedStructureElements, chosenStructureElement)
+			se, err := morphological.GetStructureElement(chosenStructureElement)
 
 			if err != nil {
 				log.Fatalf("Error getting structural element: %v", err)
@@ -422,7 +417,7 @@ func RunAsCliApp() {
 
 			chosenStructureElement := GetOrDefault(command.Args["se"], "iv")
 
-			se, err := morphological.GetStructureElement(loadedStructureElements, chosenStructureElement)
+			se, err := morphological.GetStructureElement(chosenStructureElement)
 
 			if err != nil {
 				log.Fatalf("Error getting structural element: %v", err)
@@ -438,7 +433,7 @@ func RunAsCliApp() {
 
 			chosenStructureElement := GetOrDefault(command.Args["se"], "iv")
 
-			se, err := morphological.GetStructureElement(loadedStructureElements, chosenStructureElement)
+			se, err := morphological.GetStructureElement(chosenStructureElement)
 
 			if err != nil {
 				log.Fatalf("Error getting structural element: %v", err)
@@ -454,7 +449,7 @@ func RunAsCliApp() {
 
 			chosenStructureElement := GetOrDefault(command.Args["se"], "iv")
 
-			se, err := morphological.GetStructureElement(loadedStructureElements, chosenStructureElement)
+			se, err := morphological.GetStructureElement(chosenStructureElement)
 
 			if err != nil {
 				log.Fatalf("Error getting structural element: %v", err)
@@ -471,8 +466,8 @@ func RunAsCliApp() {
 			foregroundStructureElement := GetOrDefault(command.Args["se1"], "xi-l")
 			backgroundStructureElement := GetOrDefault(command.Args["se2"], "xi-c")
 
-			se1, err1 := morphological.GetStructureElement(loadedStructureElements, foregroundStructureElement)
-			se2, err2 := morphological.GetStructureElement(loadedStructureElements, backgroundStructureElement)
+			se1, err1 := morphological.GetStructureElement(foregroundStructureElement)
+			se2, err2 := morphological.GetStructureElement(backgroundStructureElement)
 
 			if err1 != nil || err2 != nil {
 				log.Fatalf("Error getting structural element: %v | %v", err, err2)

@@ -1,33 +1,12 @@
 package morphological
 
 import (
-	"encoding/json"
-	"fmt"
 	"image"
-	"io"
-	"os"
 )
 
 // Helpful presentation: https://www.ee.nthu.edu.tw/clhuang/09420EE368000DIP/chapter09.pdf
 
 type BinaryImage [][]int
-
-type StructuringElement struct {
-	Data    [][]int `json:"data"`
-	OriginX int     `json:"originX"`
-	OriginY int     `json:"originY"`
-}
-
-type StructureElementsJSON struct {
-	StructureElements map[string]StructuringElement `json:"structure_elements"`
-}
-
-func GetStructureElement(structureElements map[string]StructuringElement, seName string) (StructuringElement, error) {
-	if structureElement, exists := structureElements[seName]; exists {
-		return structureElement, nil
-	}
-	return StructuringElement{}, fmt.Errorf("structural Element %s not found", seName)
-}
 
 func ConvertIntoBinaryImage(img image.Image) BinaryImage {
 	bounds := img.Bounds()
@@ -83,25 +62,4 @@ func Fits(image BinaryImage, se StructuringElement, x, y int) bool {
 		}
 	}
 	return true
-}
-
-func LoadStructureElementsFromJSON(filepath string) (map[string]StructuringElement, error) {
-	file, err := os.Open(filepath)
-	if err != nil {
-		return nil, fmt.Errorf("error opening file: %v", err)
-	}
-	defer file.Close()
-
-	data, err := io.ReadAll(file)
-	if err != nil {
-		return nil, fmt.Errorf("error reading file: %v", err)
-	}
-
-	var structureElementsJSON StructureElementsJSON
-	err = json.Unmarshal(data, &structureElementsJSON)
-	if err != nil {
-		return nil, fmt.Errorf("error unmarshaling JSON: %v", err)
-	}
-
-	return structureElementsJSON.StructureElements, nil
 }
