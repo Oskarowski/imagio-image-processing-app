@@ -33,6 +33,7 @@ var commandRegistry = map[string]CommandExecutionHandler{
 	"histogram_img_characteristics": histogramImgCharacteristicsExecutioner,
 	"rayleigh_transform":            rayleighTransformExecutioner,
 	"mask_edge_sharpening":          maskEdgeSharpeningExecutioner,
+	"kirsh_edge_detection":          kirshEdgeDetectionExecutioner,
 	"bandpass":                      bandpassExecutioner,
 	"lowpass":                       lowpassExecutioner,
 	"highpass":                      highpassExecutioner,
@@ -379,6 +380,19 @@ func maskEdgeSharpeningExecutioner(imgPath string, args map[string]string) Execu
 	}
 
 	msg, err := handleMaskEdgeSharpeningCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
+}
+
+func kirshEdgeDetectionExecutioner(imgPath string, args map[string]string) ExecutionResult {
+	opts := handlingCommandOptions{
+		imgPath: imgPath,
+	}
+
+	msg, err := handleKirshEdgeDetectionCommand(opts)
 
 	return ExecutionResult{
 		Message: msg,

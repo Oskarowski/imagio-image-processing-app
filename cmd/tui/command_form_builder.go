@@ -195,6 +195,12 @@ func (m *Model) buildCommandForm() error {
 
 		form = huh.NewForm(huh.NewGroup(inputMinBrightness, inputMaxBrightness, inputAlpha)).WithTheme(huh.ThemeCatppuccin())
 
+	case "kirsh_edge_detection":
+
+		dummyNote := huh.NewNote().Title("No arguments required for this command")
+
+		form = huh.NewForm(huh.NewGroup(dummyNote)).WithTheme(huh.ThemeCatppuccin())
+
 	case "mask_edge_sharpening":
 
 		availableMasks, err := manipulations.GetAvailableEdgeSharpeningMasksNames()
@@ -327,6 +333,8 @@ func (m *Model) buildCommandForm() error {
 			args["alpha"] = alpha
 		case "mask_edge_sharpening":
 			args["maskName"] = maskName
+		case "kirsh_edge_detection":
+			args["dummy"] = "dummy"
 		case "bandpass", "bandcut":
 			args["lowCut"] = lowCut
 			args["highCut"] = highCut

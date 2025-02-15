@@ -487,6 +487,30 @@ func handleMaskEdgeSharpeningCommand(opts handlingCommandOptions) (successMsgStr
 	return msg, nil
 }
 
+func handleKirshEdgeDetectionCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", err
+	}
+
+	edgeDetectedImg := manipulations.ApplyKirshEdgeDetection(img)
+
+	imgFileName := imageio.GetPureFileName(opts.imgPath)
+	outputFileName := fmt.Sprintf("%s_kirsh_edge_detected.bmp", imgFileName)
+
+	edgeDetectedResult := cmd.BasicImgResult{
+		Img:  edgeDetectedImg,
+		Name: outputFileName,
+	}
+
+	if err := saveFilteringResults([]cmd.ResultImage{edgeDetectedResult}); err != nil {
+		return "", err
+	}
+
+	msg := fmt.Sprintf("Kirsh edge detection applied successfully to %s", imgFileName)
+	return msg, nil
+}
+
 func handleBandpassCommand(opts handlingCommandOptions) (successMsgString string, err error) {
 	img, err := imageio.OpenBmpImage(opts.imgPath)
 	if err != nil {

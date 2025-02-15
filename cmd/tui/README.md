@@ -26,7 +26,7 @@
 - [X] cvarcoii
 - [X] centropy
 - [X] sedgesharp
-- [ ] okirsf
+- [X] okirsf
 - [ ] dilation
 - [ ] erosion
 - [ ] opening

@@ -27,6 +27,7 @@ var CommandDefinitions = []CommandDefinition{
 	{"histogram_img_characteristics", "Calculate image characteristics based on it's histogram", []string{"dummy"}},
 	{"rayleigh_transform", "Apply Rayleigh transform to the image.", []string{"lowCut", "highCut", "alphaValue"}},
 	{"mask_edge_sharpening", "Apply edge sharpening mask to the image.", []string{"maskName"}},
+	{"kirsh_edge_detection", "Apply Kirsh edge detection to the image.", []string{"dummy"}},
 
 	{"bandpass", "Apply bandpass filtering to the image.", []string{"lowCut", "highCut", "withSpectrumImgGenerated"}},
 	{"lowpass", "Apply lowpass filtering to the image.", []string{"cutoff", "withSpectrumImgGenerated"}},
