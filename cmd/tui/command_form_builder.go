@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 	"image-processing/manipulations"
+	"image-processing/morphological"
 	"image-processing/orthogonal_transforms"
 	"os"
 	"strconv"
@@ -14,9 +15,9 @@ import (
 
 func (m *Model) buildCommandForm() error {
 	var (
-		lowCut, highCut, cutoff, k, l, maskName, brightness, contrast, shrinkFactor, enlargeFactor, minWindowSize, maxWindowSize, comparisonImagePath, alpha string
-		selectedComparisonCommands, selectedHistogramCharacteristicsCommands                                                                                 []string
-		withSpectrum                                                                                                                                         bool
+		lowCut, highCut, cutoff, k, l, maskName, brightness, contrast, shrinkFactor, enlargeFactor, minWindowSize, maxWindowSize, comparisonImagePath, alpha, structureElementName string
+		selectedComparisonCommands, selectedHistogramCharacteristicsCommands                                                                                                       []string
+		withSpectrum                                                                                                                                                               bool
 	)
 
 	customKM := huh.NewDefaultKeyMap()
@@ -217,6 +218,22 @@ func (m *Model) buildCommandForm() error {
 
 		form = huh.NewForm(huh.NewGroup(selectMask)).WithTheme(huh.ThemeCatppuccin())
 
+	case "dilation", "erosion":
+
+		availableStructuringElements, err := morphological.GetAvailableStructureElementsNames()
+		if err != nil {
+			return fmt.Errorf("failed to get available structuring elements: %w", err)
+		}
+
+		seOptions := huh.NewOptions(availableStructuringElements...)
+
+		selectSE := huh.NewSelect[string]().
+			Title("Structuring Element Name").
+			Options(seOptions...).
+			Value(&structureElementName)
+
+		form = huh.NewForm(huh.NewGroup(selectSE)).WithTheme(huh.ThemeCatppuccin())
+
 	case "bandpass", "bandcut":
 
 		inputLowCut := huh.NewInput().
@@ -335,6 +352,8 @@ func (m *Model) buildCommandForm() error {
 			args["maskName"] = maskName
 		case "kirsh_edge_detection":
 			args["dummy"] = "dummy"
+		case "dilation", "erosion":
+			args["structureElementName"] = structureElementName
 		case "bandpass", "bandcut":
 			args["lowCut"] = lowCut
 			args["highCut"] = highCut

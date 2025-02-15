@@ -27,8 +27,8 @@
 - [X] centropy
 - [X] sedgesharp
 - [X] okirsf
-- [ ] dilation
-- [ ] erosion
+- [X] dilation
+- [X] erosion
 - [ ] opening
 - [ ] closing
 - [ ] hmt

@@ -34,6 +34,8 @@ var commandRegistry = map[string]CommandExecutionHandler{
 	"rayleigh_transform":            rayleighTransformExecutioner,
 	"mask_edge_sharpening":          maskEdgeSharpeningExecutioner,
 	"kirsh_edge_detection":          kirshEdgeDetectionExecutioner,
+	"dilation":                      dilationExecutioner,
+	"erosion":                       erosionExecutioner,
 	"bandpass":                      bandpassExecutioner,
 	"lowpass":                       lowpassExecutioner,
 	"highpass":                      highpassExecutioner,
@@ -393,6 +395,50 @@ func kirshEdgeDetectionExecutioner(imgPath string, args map[string]string) Execu
 	}
 
 	msg, err := handleKirshEdgeDetectionCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
+}
+
+func dilationExecutioner(imgPath string, args map[string]string) ExecutionResult {
+	seElementName := strings.TrimSpace(args["structureElementName"])
+	if strings.TrimSpace(seElementName) == "" {
+		return ExecutionResult{
+			Message: "",
+			Err:     errors.New("structure element name cannot be empty"),
+		}
+	}
+
+	opts := handlingCommandOptions{
+		imgPath:              imgPath,
+		structureElementName: seElementName,
+	}
+
+	msg, err := handleDilationCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
+}
+
+func erosionExecutioner(imgPath string, args map[string]string) ExecutionResult {
+	seElementName := strings.TrimSpace(args["structureElementName"])
+	if strings.TrimSpace(seElementName) == "" {
+		return ExecutionResult{
+			Message: "",
+			Err:     errors.New("structure element name cannot be empty"),
+		}
+	}
+
+	opts := handlingCommandOptions{
+		imgPath:              imgPath,
+		structureElementName: seElementName,
+	}
+
+	msg, err := handleErosionCommand(opts)
 
 	return ExecutionResult{
 		Message: msg,

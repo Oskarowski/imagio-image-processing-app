@@ -7,18 +7,19 @@ import (
 	"image-processing/cmd"
 	"image-processing/imageio"
 	"image-processing/manipulations"
+	"image-processing/morphological"
 	"image-processing/noise"
 	"image-processing/orthogonal_transforms"
 	"strings"
 )
 
 type handlingCommandOptions struct {
-	imgPath, maskPath, selectedComparisonCommands, comparisonImagePath, selectedHistogramCharacteristicsCommands, maskName string
-	lowCut, highCut, brightnessPercentage, contrast, factor                                                                int
-	cutoff, k, l, maxWindowSize, minWindowSize                                                                             int
-	alphaValue                                                                                                             float64
-	withSpectrumImgGenerated                                                                                               bool
-	edgeSharpeningMask                                                                                                     [][]int
+	imgPath, maskPath, selectedComparisonCommands, comparisonImagePath, selectedHistogramCharacteristicsCommands, maskName, structureElementName string
+	lowCut, highCut, brightnessPercentage, contrast, factor                                                                                      int
+	cutoff, k, l, maxWindowSize, minWindowSize                                                                                                   int
+	alphaValue                                                                                                                                   float64
+	withSpectrumImgGenerated                                                                                                                     bool
+	edgeSharpeningMask                                                                                                                           [][]int
 }
 
 func validateFrequencyRange(lowCut, highCut, imgWidth int) error {
@@ -508,6 +509,68 @@ func handleKirshEdgeDetectionCommand(opts handlingCommandOptions) (successMsgStr
 	}
 
 	msg := fmt.Sprintf("Kirsh edge detection applied successfully to %s", imgFileName)
+	return msg, nil
+}
+
+func handleDilationCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", err
+	}
+
+	structuringElement, err := morphological.GetStructureElement(opts.structureElementName)
+	if err != nil {
+		return "", err
+	}
+
+	binaryImg := morphological.ConvertIntoBinaryImage(img)
+	dilatedBinaryImg := morphological.Dilation(binaryImg, structuringElement)
+	dilatedImg := morphological.ConvertIntoImage(dilatedBinaryImg)
+
+	pureImgName := imageio.GetPureFileName(opts.imgPath)
+	outputFileName := fmt.Sprintf("%s_dilated_with_%s.bmp", pureImgName, opts.structureElementName)
+
+	dilatedResult := cmd.BasicImgResult{
+		Img:  dilatedImg,
+		Name: outputFileName,
+	}
+
+	if err := saveFilteringResults([]cmd.ResultImage{dilatedResult}); err != nil {
+		return "", err
+	}
+
+	msg := fmt.Sprintf("Dilation applied successfully with %s structural element", opts.structureElementName)
+	return msg, nil
+}
+
+func handleErosionCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", err
+	}
+
+	structuringElement, err := morphological.GetStructureElement(opts.structureElementName)
+	if err != nil {
+		return "", err
+	}
+
+	binaryImg := morphological.ConvertIntoBinaryImage(img)
+	dilatedBinaryImg := morphological.Erosion(binaryImg, structuringElement)
+	dilatedImg := morphological.ConvertIntoImage(dilatedBinaryImg)
+
+	pureImgName := imageio.GetPureFileName(opts.imgPath)
+	outputFileName := fmt.Sprintf("%s_eroded_with_%s.bmp", pureImgName, opts.structureElementName)
+
+	dilatedResult := cmd.BasicImgResult{
+		Img:  dilatedImg,
+		Name: outputFileName,
+	}
+
+	if err := saveFilteringResults([]cmd.ResultImage{dilatedResult}); err != nil {
+		return "", err
+	}
+
+	msg := fmt.Sprintf("Erosion applied successfully with %s structural element", opts.structureElementName)
 	return msg, nil
 }
 
