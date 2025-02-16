@@ -32,7 +32,9 @@ var CommandDefinitions = []CommandDefinition{
 	{"erosion", "Apply erosion operation using the chosen structural element.", []string{"structureElementName"}},
 	{"opening", "Apply opening operation using the chosen structural element.", []string{"structureElementName"}},
 	{"closing", "Apply closing operation using the chosen structural element.", []string{"structureElementName"}},
-
+	{"hit_or_miss", "Apply hit-or-miss operations with 2 chosen structural elements.", []string{"foregroundStructureElementName", "backgroundStructureElementName"}},
+	{"thinning", "Apply thinning aka skeletonization operation to the image.", []string{"dummy"}},
+	{"region_grow", "Perform region growing segmentation on the image.", []string{"dummy"}},
 	{"bandpass", "Apply bandpass filtering to the image.", []string{"lowCut", "highCut", "withSpectrumImgGenerated"}},
 	{"lowpass", "Apply lowpass filtering to the image.", []string{"cutoff", "withSpectrumImgGenerated"}},
 	{"highpass", "Apply highpass filtering to the image.", []string{"cutoff", "withSpectrumImgGenerated"}},

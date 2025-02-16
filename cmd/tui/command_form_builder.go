@@ -15,9 +15,10 @@ import (
 
 func (m *Model) buildCommandForm() error {
 	var (
-		lowCut, highCut, cutoff, k, l, maskName, brightness, contrast, shrinkFactor, enlargeFactor, minWindowSize, maxWindowSize, comparisonImagePath, alpha, structureElementName string
-		selectedComparisonCommands, selectedHistogramCharacteristicsCommands                                                                                                       []string
-		withSpectrum                                                                                                                                                               bool
+		lowCut, highCut, cutoff, k, l, maskName, brightness, contrast, shrinkFactor, enlargeFactor, minWindowSize, maxWindowSize, comparisonImagePath, alpha, structureElementName, foregroundStructureElementName, backgroundStructureElementName, seedPointsStr, thresholdStr string
+		selectedComparisonCommands, selectedHistogramCharacteristicsCommands                                                                                                                                                                                                    []string
+		withSpectrum                                                                                                                                                                                                                                                            bool
+		distanceMetric                                                                                                                                                                                                                                                          int
 	)
 
 	customKM := huh.NewDefaultKeyMap()
@@ -25,8 +26,11 @@ func (m *Model) buildCommandForm() error {
 	customKM.Input.Prev = key.NewBinding(key.WithKeys("up", "k"), key.WithHelp("↑/k", "Previous field"))
 	customKM.Confirm.Next = key.NewBinding(key.WithKeys("down", "j"), key.WithHelp("↓/j", "Next field"))
 	customKM.Confirm.Prev = key.NewBinding(key.WithKeys("up", "k"), key.WithHelp("↑/k", "Previous field"))
+
 	customKM.Select.Next = key.NewBinding(key.WithKeys("p", "j"), key.WithHelp("p", "Select"))
 	customKM.Select.Prev = key.NewBinding(key.WithKeys("k"), key.WithHelp("k", "Previous"))
+	customKM.Select.Down = key.NewBinding(key.WithKeys("down"), key.WithHelp("↓", "down"))
+	customKM.Select.Up = key.NewBinding(key.WithKeys("up"), key.WithHelp("↑", "up"))
 
 	customKM.Note.Submit.SetEnabled(false)
 	customKM.Note.Next.SetEnabled(false)
@@ -196,7 +200,7 @@ func (m *Model) buildCommandForm() error {
 
 		form = huh.NewForm(huh.NewGroup(inputMinBrightness, inputMaxBrightness, inputAlpha)).WithTheme(huh.ThemeCatppuccin())
 
-	case "kirsh_edge_detection":
+	case "kirsh_edge_detection", "thinning":
 
 		dummyNote := huh.NewNote().Title("No arguments required for this command")
 
@@ -233,6 +237,62 @@ func (m *Model) buildCommandForm() error {
 			Value(&structureElementName)
 
 		form = huh.NewForm(huh.NewGroup(selectSE)).WithTheme(huh.ThemeCatppuccin())
+
+	case "hit_or_miss":
+
+		availableStructuringElements, err := morphological.GetAvailableStructureElementsNames()
+		if err != nil {
+			return fmt.Errorf("failed to get available structuring elements: %w", err)
+		}
+		seOptions := huh.NewOptions(availableStructuringElements...)
+
+		selectForegroundSE := huh.NewSelect[string]().
+			Title("Foreground Structuring Element Name").
+			Options(seOptions...).
+			Value(&foregroundStructureElementName)
+
+		selectBackgroundSE := huh.NewSelect[string]().
+			Title("Background Structuring Element Name").
+			Options(seOptions...).
+			Value(&backgroundStructureElementName)
+
+		form = huh.NewForm(huh.NewGroup(selectForegroundSE, selectBackgroundSE)).WithTheme(huh.ThemeCatppuccin())
+
+	case "region_grow":
+
+		//TODO enhance this part of adding seed points
+		seedPointInput := huh.NewInput().
+			Title("Seed points").
+			Placeholder("Enter seeds as [x,y][x,y]...").
+			Value(&seedPointsStr)
+
+		distanceMetricOptions := []huh.Option[int]{
+			huh.NewOption("Euclidean (0)", 0),
+			huh.NewOption("Manhattan (1)", 1),
+			huh.NewOption("Chebyshev (2)", 2),
+		}
+
+		distanceMetricSelect := huh.NewSelect[int]().
+			Title("Distance metric").
+			Options(distanceMetricOptions...).
+			Value(&distanceMetric)
+
+		thresholdInput := huh.NewInput().
+			Title("Threshold").
+			Placeholder("Enter similarity threshold (e.g. 20.0)").
+			Value(&thresholdStr).
+			Validate(func(s string) error {
+				t, err := strconv.ParseFloat(s, 64)
+				if err != nil {
+					return fmt.Errorf("failed to parse threshold value: %w", err)
+				}
+				if t < 0 {
+					return fmt.Errorf("threshold value must be greater than 0")
+				}
+				return nil
+			})
+
+		form = huh.NewForm(huh.NewGroup(seedPointInput, distanceMetricSelect, thresholdInput)).WithTheme(huh.ThemeCatppuccin())
 
 	case "bandpass", "bandcut":
 
@@ -354,6 +414,15 @@ func (m *Model) buildCommandForm() error {
 			args["dummy"] = "dummy"
 		case "dilation", "erosion", "opening", "closing":
 			args["structureElementName"] = structureElementName
+		case "hit_or_miss":
+			args["foregroundStructureElementName"] = foregroundStructureElementName
+			args["backgroundStructureElementName"] = backgroundStructureElementName
+		case "thinning":
+			args["dummy"] = "dummy"
+		case "region_grow":
+			args["seedPoints"] = seedPointsStr
+			args["distanceMetric"] = strconv.Itoa(distanceMetric)
+			args["threshold"] = thresholdStr
 		case "bandpass", "bandcut":
 			args["lowCut"] = lowCut
 			args["highCut"] = highCut

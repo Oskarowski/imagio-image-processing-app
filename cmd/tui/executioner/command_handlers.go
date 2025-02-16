@@ -14,12 +14,12 @@ import (
 )
 
 type handlingCommandOptions struct {
-	imgPath, maskPath, selectedComparisonCommands, comparisonImagePath, selectedHistogramCharacteristicsCommands, maskName, structureElementName string
-	lowCut, highCut, brightnessPercentage, contrast, factor                                                                                      int
-	cutoff, k, l, maxWindowSize, minWindowSize                                                                                                   int
-	alphaValue                                                                                                                                   float64
-	withSpectrumImgGenerated                                                                                                                     bool
-	edgeSharpeningMask                                                                                                                           [][]int
+	imgPath, maskPath, selectedComparisonCommands, comparisonImagePath, selectedHistogramCharacteristicsCommands, maskName, structureElementName, foregroundSE, backgroundSE, seedPointsStr string
+	lowCut, highCut, brightnessPercentage, contrast, factor, distanceMetric                                                                                                                 int
+	cutoff, k, l, maxWindowSize, minWindowSize                                                                                                                                              int
+	alphaValue, thresholdValue                                                                                                                                                              float64
+	withSpectrumImgGenerated                                                                                                                                                                bool
+	edgeSharpeningMask                                                                                                                                                                      [][]int
 }
 
 func validateFrequencyRange(lowCut, highCut, imgWidth int) error {
@@ -633,6 +633,108 @@ func handleClosingCommand(opts handlingCommandOptions) (successMsgString string,
 	}
 
 	msg := fmt.Sprintf("Closing applied successfully with %s structural element", opts.structureElementName)
+	return msg, nil
+}
+
+func handleHitOrMissCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", err
+	}
+
+	fse, err := morphological.GetStructureElement(opts.foregroundSE)
+	if err != nil {
+		return "", err
+	}
+
+	bse, err := morphological.GetStructureElement(opts.backgroundSE)
+	if err != nil {
+		return "", err
+	}
+
+	binaryImg := morphological.ConvertIntoBinaryImage(img)
+	hitOrMissBinaryImg := morphological.HitOrMiss(binaryImg, fse, bse)
+	hitOrMissImg := morphological.ConvertIntoImage(hitOrMissBinaryImg)
+
+	pureImgName := imageio.GetPureFileName(opts.imgPath)
+	outputFileName := fmt.Sprintf("%s_hit_or_miss_fse_%s_bse_%s.bmp", pureImgName, opts.foregroundSE, opts.backgroundSE)
+
+	hitOrMissResult := cmd.BasicImgResult{
+		Img:  hitOrMissImg,
+		Name: outputFileName,
+	}
+
+	if err := saveFilteringResults([]cmd.ResultImage{hitOrMissResult}); err != nil {
+		return "", err
+	}
+
+	msg := fmt.Sprintf("Hit or miss applied successfully with foreground SE: %s and background SE: %s", opts.foregroundSE, opts.backgroundSE)
+	return msg, nil
+}
+
+func handleThinningCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", err
+	}
+
+	binaryImg := morphological.ConvertIntoBinaryImage(img)
+	seSeries := morphological.SeriesXIISE
+	thinnedBinaryImg := morphological.Thinning(binaryImg, seSeries)
+	thinnedImg := morphological.ConvertIntoImage(thinnedBinaryImg)
+
+	pureImgName := imageio.GetPureFileName(opts.imgPath)
+	outputFileName := fmt.Sprintf("%s_thinned.bmp", pureImgName)
+
+	thinnedResult := cmd.BasicImgResult{
+		Img:  thinnedImg,
+		Name: outputFileName,
+	}
+
+	if err := saveFilteringResults([]cmd.ResultImage{thinnedResult}); err != nil {
+		return "", err
+	}
+
+	return "Thinning applied successfully", nil
+}
+
+func handleRegionGrowCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", err
+	}
+
+	seeds, err := morphological.ParseSeedPoints(opts.seedPointsStr)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse seed points: %w", err)
+	}
+
+	metric := morphological.DistanceCriterion(opts.distanceMetric)
+	threshold := opts.thresholdValue
+
+	if metric < 0 || metric > 2 {
+		return "", errors.New("metric must be between 0 and 2")
+	}
+
+	if threshold < 0 {
+		return "", errors.New("threshold must be positive number")
+	}
+
+	_, imgWithMarkedRegions := morphological.RegionGrowing(img, seeds, metric, threshold)
+
+	imgName := imageio.GetFileName(opts.imgPath)
+	outputFileName := fmt.Sprintf("%s_region_grown.bmp", imgName)
+
+	result := cmd.BasicImgResult{
+		Img:  imgWithMarkedRegions,
+		Name: outputFileName,
+	}
+
+	if err := saveFilteringResults([]cmd.ResultImage{result}); err != nil {
+		return "", err
+	}
+
+	msg := fmt.Sprintf("Region growing applied successfully with metric: %d and threshold: %.2f", metric, threshold)
 	return msg, nil
 }
 

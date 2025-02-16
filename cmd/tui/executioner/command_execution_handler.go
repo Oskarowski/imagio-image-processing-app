@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image-processing/manipulations"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -38,6 +39,9 @@ var commandRegistry = map[string]CommandExecutionHandler{
 	"erosion":                       erosionExecutioner,
 	"opening":                       openingExecutioner,
 	"closing":                       closingExecutioner,
+	"hit_or_miss":                   hitOrMissExecutioner,
+	"thinning":                      thinningExecutioner,
+	"region_grow":                   regionGrowExecutioner,
 	"bandpass":                      bandpassExecutioner,
 	"lowpass":                       lowpassExecutioner,
 	"highpass":                      highpassExecutioner,
@@ -485,6 +489,99 @@ func closingExecutioner(imgPath string, args map[string]string) ExecutionResult 
 	}
 
 	msg, err := handleClosingCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
+}
+
+func hitOrMissExecutioner(imgPath string, args map[string]string) ExecutionResult {
+	foregroundSE := strings.TrimSpace(args["foregroundStructureElementName"])
+	backgroundSE := strings.TrimSpace(args["backgroundStructureElementName"])
+
+	if foregroundSE == "" || backgroundSE == "" {
+		return ExecutionResult{
+			Message: "",
+			Err:     errors.New("structure element names cannot be empty for hit-or-miss operation"),
+		}
+	}
+
+	opts := handlingCommandOptions{
+		imgPath:      imgPath,
+		foregroundSE: foregroundSE,
+		backgroundSE: backgroundSE,
+	}
+
+	msg, err := handleHitOrMissCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
+}
+
+func thinningExecutioner(imgPath string, args map[string]string) ExecutionResult {
+	opts := handlingCommandOptions{
+		imgPath: imgPath,
+	}
+
+	msg, err := handleThinningCommand(opts)
+
+	return ExecutionResult{
+		Message: msg,
+		Err:     err,
+	}
+}
+
+func regionGrowExecutioner(imgPath string, args map[string]string) ExecutionResult {
+	seedPoints := strings.TrimSpace(args["seedPoints"])
+	if seedPoints == "" {
+		return ExecutionResult{
+			Message: "",
+			Err:     errors.New("seed points cannot be empty"),
+		}
+	}
+
+	distanceMetricStr := strings.TrimSpace(args["distanceMetric"])
+	if distanceMetricStr == "" {
+		return ExecutionResult{
+			Message: "",
+			Err:     errors.New("distance metric cannot be empty"),
+		}
+	}
+
+	distanceMetric, err := strconv.Atoi(distanceMetricStr)
+	if err != nil {
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
+	}
+
+	thresholdStr := strings.TrimSpace(args["threshold"])
+	if thresholdStr == "" {
+		return ExecutionResult{
+			Message: "",
+			Err:     errors.New("threshold cannot be empty"),
+		}
+	}
+	threshold, err := strconv.ParseFloat(thresholdStr, 64)
+	if err != nil {
+		return ExecutionResult{
+			Message: "",
+			Err:     err,
+		}
+	}
+
+	opts := handlingCommandOptions{
+		imgPath:        imgPath,
+		seedPointsStr:  seedPoints,
+		distanceMetric: distanceMetric,
+		thresholdValue: threshold,
+	}
+
+	msg, err := handleRegionGrowCommand(opts)
 
 	return ExecutionResult{
 		Message: msg,

@@ -1,4 +1,4 @@
-****## Ported CLI Commands Available in TUI
+## Ported CLI Commands Available in TUI
 - [X] brightness
 - [X] contrast
 - [X] negative
@@ -31,9 +31,9 @@
 - [X] erosion
 - [X] opening
 - [X] closing
-- [ ] hmt
-- [ ] thinning
-- [ ] region-grow
+- [X] hmt
+- [X] thinning
+- [X] region-grow
 - [X] bandpass
 - [X] lowpass
 - [X] highpass
