@@ -30,6 +30,8 @@ var CommandDefinitions = []CommandDefinition{
 	{"kirsh_edge_detection", "Apply Kirsh edge detection to the image.", []string{"dummy"}},
 	{"dilation", "Apply dilation operation using the chosen structural element.", []string{"structureElementName"}},
 	{"erosion", "Apply erosion operation using the chosen structural element.", []string{"structureElementName"}},
+	{"opening", "Apply opening operation using the chosen structural element.", []string{"structureElementName"}},
+	{"closing", "Apply closing operation using the chosen structural element.", []string{"structureElementName"}},
 
 	{"bandpass", "Apply bandpass filtering to the image.", []string{"lowCut", "highCut", "withSpectrumImgGenerated"}},
 	{"lowpass", "Apply lowpass filtering to the image.", []string{"cutoff", "withSpectrumImgGenerated"}},

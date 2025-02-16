@@ -218,7 +218,7 @@ func (m *Model) buildCommandForm() error {
 
 		form = huh.NewForm(huh.NewGroup(selectMask)).WithTheme(huh.ThemeCatppuccin())
 
-	case "dilation", "erosion":
+	case "dilation", "erosion", "opening", "closing":
 
 		availableStructuringElements, err := morphological.GetAvailableStructureElementsNames()
 		if err != nil {
@@ -352,7 +352,7 @@ func (m *Model) buildCommandForm() error {
 			args["maskName"] = maskName
 		case "kirsh_edge_detection":
 			args["dummy"] = "dummy"
-		case "dilation", "erosion":
+		case "dilation", "erosion", "opening", "closing":
 			args["structureElementName"] = structureElementName
 		case "bandpass", "bandcut":
 			args["lowCut"] = lowCut

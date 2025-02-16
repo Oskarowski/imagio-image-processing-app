@@ -29,8 +29,8 @@
 - [X] okirsf
 - [X] dilation
 - [X] erosion
-- [ ] opening
-- [ ] closing
+- [X] opening
+- [X] closing
 - [ ] hmt
 - [ ] thinning
 - [ ] region-grow

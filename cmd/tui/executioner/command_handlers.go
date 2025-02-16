@@ -574,6 +574,68 @@ func handleErosionCommand(opts handlingCommandOptions) (successMsgString string,
 	return msg, nil
 }
 
+func handleOpeningCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", err
+	}
+
+	structuringElement, err := morphological.GetStructureElement(opts.structureElementName)
+	if err != nil {
+		return "", err
+	}
+
+	binaryImg := morphological.ConvertIntoBinaryImage(img)
+	dilatedBinaryImg := morphological.Opening(binaryImg, structuringElement)
+	dilatedImg := morphological.ConvertIntoImage(dilatedBinaryImg)
+
+	pureImgName := imageio.GetPureFileName(opts.imgPath)
+	outputFileName := fmt.Sprintf("%s_opened_with_%s.bmp", pureImgName, opts.structureElementName)
+
+	dilatedResult := cmd.BasicImgResult{
+		Img:  dilatedImg,
+		Name: outputFileName,
+	}
+
+	if err := saveFilteringResults([]cmd.ResultImage{dilatedResult}); err != nil {
+		return "", err
+	}
+
+	msg := fmt.Sprintf("Opening applied successfully with %s structural element", opts.structureElementName)
+	return msg, nil
+}
+
+func handleClosingCommand(opts handlingCommandOptions) (successMsgString string, err error) {
+	img, err := imageio.OpenBmpImage(opts.imgPath)
+	if err != nil {
+		return "", err
+	}
+
+	structuringElement, err := morphological.GetStructureElement(opts.structureElementName)
+	if err != nil {
+		return "", err
+	}
+
+	binaryImg := morphological.ConvertIntoBinaryImage(img)
+	dilatedBinaryImg := morphological.Closing(binaryImg, structuringElement)
+	dilatedImg := morphological.ConvertIntoImage(dilatedBinaryImg)
+
+	pureImgName := imageio.GetPureFileName(opts.imgPath)
+	outputFileName := fmt.Sprintf("%s_closed_with_%s.bmp", pureImgName, opts.structureElementName)
+
+	dilatedResult := cmd.BasicImgResult{
+		Img:  dilatedImg,
+		Name: outputFileName,
+	}
+
+	if err := saveFilteringResults([]cmd.ResultImage{dilatedResult}); err != nil {
+		return "", err
+	}
+
+	msg := fmt.Sprintf("Closing applied successfully with %s structural element", opts.structureElementName)
+	return msg, nil
+}
+
 func handleBandpassCommand(opts handlingCommandOptions) (successMsgString string, err error) {
 	img, err := imageio.OpenBmpImage(opts.imgPath)
 	if err != nil {
