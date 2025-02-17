@@ -7,6 +7,21 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+func (m Model) currentContentView() string {
+	switch m.currentView {
+	case FILE_PICKER_VIEW:
+		return m.filePickerView()
+	case IMAGE_PREVIEW_VIEW:
+		return m.imagePreviewView()
+	case COMMAND_SELECTION_VIEW:
+		return m.commandSelectionView()
+	case COMMAND_EXECUTION_VIEW:
+		return m.commandExecutionView()
+	default:
+		return "Unknown view"
+	}
+}
+
 func (m Model) filePickerView() string {
 	titleStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("205"))
 	errorStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("9")).Bold(true)

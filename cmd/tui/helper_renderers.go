@@ -7,18 +7,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func truncateText(s string, length int) string {
-	if len(s) < length {
-		return s
-	}
-
-	if length > 3 {
-		return s[:length-3] + "..."
-	}
-
-	return s[:length]
-}
-
 func renderComparisonResults(entries []analysis.CharacteristicsEntry) string {
 	if len(entries) == 0 {
 		return ""

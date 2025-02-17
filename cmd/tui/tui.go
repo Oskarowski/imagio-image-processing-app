@@ -37,18 +37,7 @@ func (m Model) View() string {
 	}
 
 	navBar := m.renderNavBar()
-
-	var content string
-	switch m.currentView {
-	case FILE_PICKER_VIEW:
-		content = m.filePickerView()
-	case IMAGE_PREVIEW_VIEW:
-		content = m.imagePreviewView()
-	case COMMAND_SELECTION_VIEW:
-		content = m.commandSelectionView()
-	case COMMAND_EXECUTION_VIEW:
-		content = m.commandExecutionView()
-	}
+	content := m.currentContentView()
 
 	fullContent := lipgloss.JoinVertical(lipgloss.Left, navBar, content)
 
@@ -69,10 +58,7 @@ func RunAsTUIApp() {
 	fp.ShowPermissions = false
 	fp.CurrentDirectory, _ = os.Getwd()
 
-	var commandItems []list.Item
-	for _, cmd := range executioner.CommandDefinitions {
-		commandItems = append(commandItems, cmd)
-	}
+	commandItems := buildCommandListItems(executioner.CommandDefinitions)
 	commandList := list.New(commandItems, list.NewDefaultDelegate(), 0, 0)
 	commandList.Title = "Available Commands"
 
@@ -83,10 +69,9 @@ func RunAsTUIApp() {
 	}
 
 	p := tea.NewProgram(m, tea.WithAltScreen())
-
 	if _, err := p.Run(); err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println("\nSee you next time " + m.filepicker.Styles.Selected.Render("👋"))
+	fmt.Println("See you next time " + m.filepicker.Styles.Selected.Render("👋"))
 }
