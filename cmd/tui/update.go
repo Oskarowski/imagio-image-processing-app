@@ -3,7 +3,7 @@ package tui
 import (
 	"errors"
 	"image-processing/analysis"
-	"image-processing/cmd/tui/executioner"
+	"image-processing/cmd/executioner"
 	"strings"
 	"time"
 
