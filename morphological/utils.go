@@ -1,12 +1,15 @@
 package morphological
 
 import (
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"sync"
 )
+
+//go:embed structure_elements.json
+var structureElementsJSON []byte
 
 var (
 	cachedStructureElements    map[string]StructuringElement
@@ -20,19 +23,18 @@ type StructuringElement struct {
 	OriginY int     `json:"originY"`
 }
 
+func loadEmbeddedStructureElements() (map[string]StructuringElement, error) {
+	var elements map[string]StructuringElement
+	if err := json.Unmarshal(structureElementsJSON, &elements); err != nil {
+		return nil, fmt.Errorf("could not parse embedded structure elements content: %w", err)
+	}
+	return elements, nil
+}
+
 func getStructureElements() (map[string]StructuringElement, error) {
 	once.Do(func() {
-		wd, err := os.Getwd()
-		if err != nil {
-			cachedStructureElementsErr = err
-			return
-		}
-
-		structureElementsFilePath := filepath.Join(wd, "morphological", "structure_elements.json")
-
-		cachedStructureElements, cachedStructureElementsErr = LoadStructureElementsFromJSON(structureElementsFilePath)
+		cachedStructureElements, cachedStructureElementsErr = loadEmbeddedStructureElements()
 	})
-
 	return cachedStructureElements, cachedStructureElementsErr
 }
 
