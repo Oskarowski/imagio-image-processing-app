@@ -32,6 +32,8 @@
         "Gmax",
         "Gmed",
         "Gmin",
+        "goarch",
+        "goreleaser",
         "Grayscale",
         "hflip",
         "Highpass",
