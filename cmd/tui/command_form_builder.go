@@ -398,7 +398,7 @@ func (m *Model) buildCommandForm() error {
 			args["maxWindowSize"] = maxWindowSize
 		case "img_comparison_commands":
 			args["comparisonImagePath"] = comparisonImagePath
-			// i love this totally not hacky type save solution
+			// i love this totally not hacky type safe solution
 			args["selectedComparisonCommands"] = strings.Join(selectedComparisonCommands, "|")
 		case "generate_img_histogram":
 			args["dummy"] = "dummy"

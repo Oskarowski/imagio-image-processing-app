@@ -1,12 +1,14 @@
 package manipulations
 
 import (
+	_ "embed"
 	"encoding/json"
 	"fmt"
-	"os"
-	"path/filepath"
 	"sync"
 )
+
+//go:embed masks.json
+var masksJSON []byte
 
 var (
 	cachedMasks    map[string][][]int
@@ -14,18 +16,13 @@ var (
 	once           sync.Once
 )
 
-func LoadMasksFromJSON(filenamePath string) (map[string][][]int, error) {
-	bytes, err := os.ReadFile(filenamePath)
-	if err != nil {
-		return nil, fmt.Errorf("could not read JSON file: %w", err)
-	}
-
+func LoadMasksFromEmbeddedJSON() (map[string][][]int, error) {
 	var masks map[string][][]int
-	if err := json.Unmarshal(bytes, &masks); err != nil {
-		return nil, fmt.Errorf("could not parse JSON content: %w", err)
+	if err := json.Unmarshal(masksJSON, &masks); err != nil {
+		return nil, fmt.Errorf("could not parse embedded JSON content: %w", err)
 	}
 
-	// basic validation
+	// Basic validation: check that each mask is non-empty and rectangular.
 	for maskName, mask := range masks {
 		if len(mask) == 0 {
 			return nil, fmt.Errorf("mask %s is empty", maskName)
@@ -44,15 +41,7 @@ func LoadMasksFromJSON(filenamePath string) (map[string][][]int, error) {
 
 func getMasks() (map[string][][]int, error) {
 	once.Do(func() {
-		wd, err := os.Getwd()
-		if err != nil {
-			cachedMasksErr = err
-			return
-		}
-
-		maskFilePath := filepath.Join(wd, "manipulations", "masks.json")
-
-		cachedMasks, cachedMasksErr = LoadMasksFromJSON(maskFilePath)
+		cachedMasks, cachedMasksErr = LoadMasksFromEmbeddedJSON()
 	})
 
 	return cachedMasks, cachedMasksErr
