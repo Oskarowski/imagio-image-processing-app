@@ -1,8 +1,8 @@
 package main
 
 import (
-	"image-processing/cmd"
-	"image-processing/cmd/tui"
+	"imagio/cmd"
+	"imagio/cmd/tui"
 	"log"
 	"os"
 )

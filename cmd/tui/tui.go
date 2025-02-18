@@ -2,7 +2,7 @@ package tui
 
 import (
 	"fmt"
-	"image-processing/cmd/executioner"
+	"imagio/cmd/executioner"
 	"log"
 	"os"
 

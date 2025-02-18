@@ -3,7 +3,7 @@ package executioner
 import (
 	"errors"
 	"fmt"
-	"image-processing/manipulations"
+	"imagio/manipulations"
 	"path/filepath"
 	"strconv"
 	"strings"

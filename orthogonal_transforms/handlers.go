@@ -2,7 +2,7 @@ package orthogonal_transforms
 
 import (
 	"image"
-	"image-processing/morphological"
+	"imagio/morphological"
 	"strconv"
 )
 

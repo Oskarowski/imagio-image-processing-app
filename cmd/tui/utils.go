@@ -1,7 +1,7 @@
 package tui
 
 import (
-	"image-processing/cmd/executioner"
+	"imagio/cmd/executioner"
 	"time"
 
 	"github.com/charmbracelet/bubbles/list"

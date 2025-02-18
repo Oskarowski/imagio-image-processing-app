@@ -2,8 +2,8 @@ package tui
 
 import (
 	"fmt"
-	"image-processing/imageio"
-	"image-processing/internal/ascii_preview"
+	"imagio/imageio"
+	"imagio/internal/ascii_preview"
 )
 
 func (m *Model) loadImagePreview(path string) {

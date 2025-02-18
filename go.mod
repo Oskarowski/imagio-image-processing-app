@@ -1,4 +1,4 @@
-module image-processing
+module imagio
 
 go 1.23.0
 

@@ -1,6 +1,6 @@
 package tui
 
-import "image-processing/analysis"
+import "imagio/analysis"
 
 type clearErrorMsg struct{}
 type clearSuccessMsg struct{}

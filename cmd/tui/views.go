@@ -1,7 +1,7 @@
 package tui
 
 import (
-	"image-processing/imageio"
+	"imagio/imageio"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"

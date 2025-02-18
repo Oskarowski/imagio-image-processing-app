@@ -1,8 +1,8 @@
 package orthogonal_transforms
 
 import (
-	"image-processing/imageio"
-	"image-processing/morphological"
+	"imagio/imageio"
+	"imagio/morphological"
 	"log"
 	"testing"
 )

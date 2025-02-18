@@ -2,9 +2,9 @@ package tui
 
 import (
 	"fmt"
-	"image-processing/manipulations"
-	"image-processing/morphological"
-	"image-processing/orthogonal_transforms"
+	"imagio/manipulations"
+	"imagio/morphological"
+	"imagio/orthogonal_transforms"
 	"os"
 	"strconv"
 	"strings"

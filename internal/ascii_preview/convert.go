@@ -4,8 +4,8 @@ package ascii_preview
 import (
 	"bytes"
 	"image"
-	"image-processing/internal/ascii_preview/ascii"
 	"image/color"
+	"imagio/internal/ascii_preview/ascii"
 
 	_ "image/jpeg"
 	_ "image/png"

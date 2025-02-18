@@ -4,7 +4,7 @@ import (
 	"image"
 	"log"
 
-	"image-processing/internal/ascii_preview/terminal"
+	"imagio/internal/ascii_preview/terminal"
 
 	"github.com/nfnt/resize"
 )

@@ -1,7 +1,7 @@
 package orthogonal_transforms
 
 import (
-	"image-processing/morphological"
+	"imagio/morphological"
 	"math"
 	"math/cmplx"
 )

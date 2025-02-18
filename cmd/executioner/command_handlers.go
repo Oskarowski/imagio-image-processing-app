@@ -3,13 +3,13 @@ package executioner
 import (
 	"errors"
 	"fmt"
-	"image-processing/analysis"
-	"image-processing/cmd"
-	"image-processing/imageio"
-	"image-processing/manipulations"
-	"image-processing/morphological"
-	"image-processing/noise"
-	"image-processing/orthogonal_transforms"
+	"imagio/analysis"
+	"imagio/cmd"
+	"imagio/imageio"
+	"imagio/manipulations"
+	"imagio/morphological"
+	"imagio/noise"
+	"imagio/orthogonal_transforms"
 	"strings"
 )
 

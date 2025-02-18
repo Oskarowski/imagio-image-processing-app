@@ -2,8 +2,8 @@ package tui
 
 import (
 	"errors"
-	"image-processing/analysis"
-	"image-processing/cmd/executioner"
+	"imagio/analysis"
+	"imagio/cmd/executioner"
 	"strings"
 	"time"
 
