@@ -1,6 +1,9 @@
 package orthogonal_transforms
 
-import "math"
+import (
+	"math"
+	"os"
+)
 
 func scaleMask(mask [][]int, targetHeight, targetWidth int) [][]int {
 	sourceHeight := len(mask)
@@ -38,4 +41,25 @@ func scaleMask(mask [][]int, targetHeight, targetWidth int) [][]int {
 	}
 
 	return scaledMask
+}
+
+func GetAvailableSpectrumMasks() ([]string, error) {
+	wd, err := os.Getwd()
+
+	if err != nil {
+		return nil, err
+	}
+	masksDir := wd + "/orthogonal_transforms/masks"
+	files, err := os.ReadDir(masksDir)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var maskNames []string
+	for _, file := range files {
+		maskNames = append(maskNames, file.Name())
+	}
+
+	return maskNames, nil
 }

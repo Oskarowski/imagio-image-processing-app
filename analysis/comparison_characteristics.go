@@ -3,13 +3,24 @@ package analysis
 import (
 	"fmt"
 	"image"
+	"strings"
 )
 
-func CalculateComparisonCharacteristic(metricMethod string, img1, img2 image.Image) (string, string) {
+type CharacteristicsEntry struct {
+	MetricMethod string
+	Description  string
+	Result       string
+	Img1Name     string
+	Img2Name     string
+}
+
+func CalculateComparisonCharacteristic(metricMethod string, img1, img2 image.Image) CharacteristicsEntry {
 	var result string
 	var description string
 
-	switch metricMethod {
+	lowerMetricMethod := strings.ToLower(strings.Trim(metricMethod, " "))
+
+	switch lowerMetricMethod {
 	case "mse":
 		mse := MeanSquareError(img1, img2)
 		description = "Mean Square Error calculated"
@@ -40,5 +51,9 @@ func CalculateComparisonCharacteristic(metricMethod string, img1, img2 image.Ima
 		result = "N/A"
 	}
 
-	return result, description
+	return CharacteristicsEntry{
+		MetricMethod: strings.ToUpper(metricMethod),
+		Description:  description,
+		Result:       result,
+	}
 }

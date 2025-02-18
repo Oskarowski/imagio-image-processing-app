@@ -2,8 +2,8 @@ package noise
 
 import (
 	"image"
-	"image-processing/manipulations"
 	"image/color"
+	"imagio/manipulations"
 	"slices"
 )
 

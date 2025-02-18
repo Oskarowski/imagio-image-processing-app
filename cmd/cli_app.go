@@ -3,12 +3,12 @@ package cmd
 import (
 	"fmt"
 	"image"
-	"image-processing/analysis"
-	"image-processing/imageio"
-	"image-processing/manipulations"
-	"image-processing/morphological"
-	"image-processing/noise"
-	"image-processing/orthogonal_transforms"
+	"imagio/analysis"
+	"imagio/imageio"
+	"imagio/manipulations"
+	"imagio/morphological"
+	"imagio/noise"
+	"imagio/orthogonal_transforms"
 	"log"
 	"os"
 	"path/filepath"
@@ -53,16 +53,6 @@ func RunAsCliApp() {
 	}
 
 	commands := ParseCommands(os.Args[1 : len(os.Args)-1])
-
-	loadedMasks, err := manipulations.LoadMasksFromJSON("masks.json")
-	if err != nil {
-		log.Fatalf("Error loading masks: %v", err)
-	}
-
-	loadedStructureElements, err := morphological.LoadStructureElementsFromJSON("structure_elements.json")
-	if err != nil {
-		log.Fatalf("Error loading structure elements: %v", err)
-	}
 
 	originalName := filepath.Base(imagePath)
 	originalNameWithoutExt := originalName[:len(originalName)-len(filepath.Ext(originalName))]
@@ -355,7 +345,9 @@ func RunAsCliApp() {
 				histogram = manipulations.CalculateHistogram(histogramImg)
 			}
 
-			cmdResult.Result, cmdResult.Description = analysis.CalculateHistogramCharacteristic(command.Name, histogram, histogramImgFilename)
+			result := analysis.CalculateHistogramCharacteristic(command.Name, histogram, histogramImgFilename)
+			cmdResult.Result = result.Result
+			cmdResult.Description = result.Description
 
 		case "hrayleigh":
 
@@ -386,8 +378,7 @@ func RunAsCliApp() {
 
 			chosenMask := GetOrDefault(command.Args["mask"], "edge1")
 
-			mask, err := manipulations.GetMask(loadedMasks, chosenMask)
-
+			mask, err := manipulations.GetMask(chosenMask)
 			if err != nil {
 				log.Fatalf("Error getting mask: %v", err)
 			}
@@ -410,7 +401,7 @@ func RunAsCliApp() {
 
 			chosenStructureElement := GetOrDefault(command.Args["se"], "iv")
 
-			se, err := morphological.GetStructureElement(loadedStructureElements, chosenStructureElement)
+			se, err := morphological.GetStructureElement(chosenStructureElement)
 
 			if err != nil {
 				log.Fatalf("Error getting structural element: %v", err)
@@ -426,7 +417,7 @@ func RunAsCliApp() {
 
 			chosenStructureElement := GetOrDefault(command.Args["se"], "iv")
 
-			se, err := morphological.GetStructureElement(loadedStructureElements, chosenStructureElement)
+			se, err := morphological.GetStructureElement(chosenStructureElement)
 
 			if err != nil {
 				log.Fatalf("Error getting structural element: %v", err)
@@ -442,7 +433,7 @@ func RunAsCliApp() {
 
 			chosenStructureElement := GetOrDefault(command.Args["se"], "iv")
 
-			se, err := morphological.GetStructureElement(loadedStructureElements, chosenStructureElement)
+			se, err := morphological.GetStructureElement(chosenStructureElement)
 
 			if err != nil {
 				log.Fatalf("Error getting structural element: %v", err)
@@ -458,7 +449,7 @@ func RunAsCliApp() {
 
 			chosenStructureElement := GetOrDefault(command.Args["se"], "iv")
 
-			se, err := morphological.GetStructureElement(loadedStructureElements, chosenStructureElement)
+			se, err := morphological.GetStructureElement(chosenStructureElement)
 
 			if err != nil {
 				log.Fatalf("Error getting structural element: %v", err)
@@ -475,8 +466,8 @@ func RunAsCliApp() {
 			foregroundStructureElement := GetOrDefault(command.Args["se1"], "xi-l")
 			backgroundStructureElement := GetOrDefault(command.Args["se2"], "xi-c")
 
-			se1, err1 := morphological.GetStructureElement(loadedStructureElements, foregroundStructureElement)
-			se2, err2 := morphological.GetStructureElement(loadedStructureElements, backgroundStructureElement)
+			se1, err1 := morphological.GetStructureElement(foregroundStructureElement)
+			se2, err2 := morphological.GetStructureElement(backgroundStructureElement)
 
 			if err1 != nil || err2 != nil {
 				log.Fatalf("Error getting structural element: %v | %v", err, err2)
@@ -587,7 +578,8 @@ func RunAsCliApp() {
 		case "maskpass":
 
 			withSpectrum := GetOrDefault(command.Args["spectrum"], 0)
-			mask := GetOrDefault(command.Args["mask"], "F5mask1.bmp")
+			maskName := GetOrDefault(command.Args["mask"], "F5mask1")
+			mask := maskName + ".bmp"
 
 			maskPath := filepath.Join("orthogonal_transforms", "masks", mask)
 			maskImg, err := imageio.OpenBmpImage(maskPath)

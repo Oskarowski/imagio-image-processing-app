@@ -3,6 +3,7 @@ package analysis
 import (
 	"fmt"
 	"math"
+	"strings"
 )
 
 func calculateMean(histogram [256]int) float64 {
@@ -133,7 +134,7 @@ func calculateInformationSourceEntropy(histogram [256]int) float64 {
 	return -entropy / N
 }
 
-func CalculateHistogramCharacteristic(metricMethod string, providedHistogram [256]int, filenameWithoutExt string) (string, string) {
+func CalculateHistogramCharacteristic(metricMethod string, providedHistogram [256]int, filenameWithoutExt string) CharacteristicsEntry {
 	var result string
 	var description string
 
@@ -183,5 +184,9 @@ func CalculateHistogramCharacteristic(metricMethod string, providedHistogram [25
 		result = "N/A"
 	}
 
-	return result, description
+	return CharacteristicsEntry{
+		MetricMethod: strings.ToUpper(metricMethod),
+		Description:  description,
+		Result:       result,
+	}
 }

@@ -2,7 +2,7 @@ package orthogonal_transforms
 
 import (
 	"image"
-	"image-processing/morphological"
+	"imagio/morphological"
 	"strconv"
 )
 
@@ -10,6 +10,9 @@ type SpectrumImage struct {
 	Img  image.RGBA
 	Name string
 }
+
+func (s SpectrumImage) GetImage() *image.RGBA { return &s.Img }
+func (s SpectrumImage) GetName() string       { return s.Name }
 
 func HandleBandpassFiltering(img image.Image, filename string, lowCut, highCut int, withSpectrum bool) []SpectrumImage {
 	complexMatrix := ConvertImageToComplex(img)
