@@ -316,8 +316,8 @@ Duration: 11.0808ms
 Total operation time: 11.0808ms
 ```
 
-| Original              | Altered                                                 |
-| --------------------- | ------------------------------------------------------- |
+| Original              | Altered                                       |
+| --------------------- | --------------------------------------------- |
 | ![](./imgs/lenac.bmp) | ![](./assets/cli/examples/lenac_negative.bmp) |
 
 </details>
@@ -343,8 +343,8 @@ Duration: 0s
 Total operation time: 0s
 ```
 
-| Original              | Altered                                                 |
-| --------------------- | ------------------------------------------------------- |
+| Original              | Altered                                           |
+| --------------------- | ------------------------------------------------- |
 | ![](./imgs/lenac.bmp) | ![](./assets/cli/examples/lenac_shrunk_by_4x.bmp) |
 
 </details>
@@ -370,8 +370,8 @@ Duration: 1.0786711s
 Total operation time: 1.0786711s
 ```
 
-| Original              | Altered                                                 |
-| --------------------- | ------------------------------------------------------- |
+| Original                                    | Altered                                                             |
+| ------------------------------------------- | ------------------------------------------------------------------- |
 | ![](./imgs/impulse_noise/lena_impulse3.bmp) | ![](./assets/cli/examples/lena_impulse3_adaptive_median_filter.bmp) |
 
 </details>
@@ -440,35 +440,180 @@ Duration: 11.8931ms
 Total operation time: 11.8931ms
 ```
 
-| Source              | Result                                                 |
-| --------------------- | ------------------------------------------------------- |
+| Source                | Result                                         |
+| --------------------- | ---------------------------------------------- |
 | ![](./imgs/lenac.bmp) | ![](./assets/cli/examples/lenac_histogram.bmp) |
 
 </details>
 
-<details open>
-<summary>Img histogram characteristics</summary>
-World!
+<details>
+<summary><strong>Img histogram characteristics</strong></summary>
+
+Console input:
+
+```bash
+./imagio --cmean --cvariance --cstdev --cvarcoi --casyco --cflatco --cvarcoii --centropy .\imgs\lenag.bmp
+```
+
+Console output:
+
+```bash
+Execution Report:
+Command: cmean
+Description: Calculated Mean intensity for lenag_histogram.bmp
+Result: Mean: 123.623981
+Duration: 5.7521ms
+
+Command: cvariance
+Description: Calculated Variance intensity for lenag_histogram.bmp
+Result: Variance: 2298.556826
+Duration: 4.8798ms
+
+Command: cstdev
+Description: Calculated Standard Deviation for lenag_histogram.bmp
+Result: Standard Deviation: 47.943267
+Duration: 5.0413ms
+
+Command: cvarcoi
+Description: Calculated Variation Coefficient I for lenag_histogram.bmp
+Result: Variation Coefficient I: 0.387815
+Duration: 5.4409ms
+
+Command: casyco
+Description: Calculated Asymmetry Coefficient for lenag_histogram.bmp
+Result: Asymmetry Coefficient: -0.085942
+Duration: 4.0027ms
+
+Command: cflatco
+Description: Calculated Flattening Coefficient for lenag_histogram.bmp
+Result: Flattening Coefficient: -0.841599
+Duration: 7.2003ms
+
+Command: cvarcoii
+Description: Calculated Variation Coefficient II for lenag_histogram.bmp
+Result: Variation Coefficient II: 0.006280
+Duration: 2.6453ms
+
+Command: centropy
+Description: Calculated Information Source Entropy for lenag_histogram.bmp
+Result: Information Source Entropy: 7.448825
+Duration: 6.8301ms
+
+Total operation time: 41.7925ms
+```
+
 </details>
 
-<details open>
-<summary>Edge sharpening</summary>
-World!
+<details>
+<summary><strong>Edge sharpening</strong></summary>
+
+Console input:
+
+```bash
+./imagio --sedgesharp -mask="edge2" .\imgs\lenag.bmp
+```
+
+Console output:
+
+```bash
+Image saved successfully as: lenag_sharpened_edges_edge2.bmp
+Execution Report:
+Command: sedgesharp
+Description:
+Duration: 33.7506ms
+
+Total operation time: 33.7506ms
+```
+
+| Source                | Result                                                     |
+| --------------------- | ---------------------------------------------------------- |
+| ![](./imgs/lenag.bmp) | ![](./assets/cli/examples/lenag_sharpened_edges_edge2.bmp) |
+
 </details>
 
-<details open>
-<summary>Img thinning</summary>
-World!
+<details>
+<summary><strong>Img thinning</strong></summary>
+
+Console input:
+
+```bash
+./imagio --thinning .\imgs\boatbw.bmp
+```
+
+Console output:
+
+```bash
+Image saved successfully as: boatbw_thinned_se_xii_series_applied.bmp
+Execution Report:
+Command: thinning
+Description:
+Duration: 3.5059098s
+
+Total operation time: 3.5059098s
+```
+
+| Source                 | Result                                                              |
+| ---------------------- | ------------------------------------------------------------------- |
+| ![](./imgs/boatbw.bmp) | ![](./assets/cli/examples/boatbw_thinned_se_xii_series_applied.bmp) |
+
 </details>
 
-<details open>
-<summary>Region growing</summary>
-World!
+<details>
+<summary><strong>Region growing</strong></summary>
+Console input:
+
+```bash
+./imagio --region-grow -seeds="[250,350][160,160][340,205][345,55][185,61]" -metric=2 -threshold=35 .\imgs\mandrilc.bmp
+```
+
+Console output:
+
+```bash
+Image saved successfully as: mandrilc_region_growing_threshold_35_method_2.bmp
+Execution Report:
+Command: region-grow
+Description:
+Duration: 27.9623ms
+
+Total operation time: 27.9623ms
+```
+
+| Source                   | Result                                                                       |
+| ------------------------ | ---------------------------------------------------------------------------- |
+| ![](./imgs/mandrilc.bmp) | ![](./assets/cli/examples/mandrilc_region_growing_threshold_35_method_2.bmp) |
+
 </details>
 
-<details open>
-<summary>Bandpass filter</summary>
-World!
+<details>
+<summary><strong>Bandpass filter</strong></summary>
+Console input:
+
+```bash
+./imagio --bandpass -low=10 -high=50 -spectrum=1 .\imgs\boat.bmp
+```
+
+Console output:
+
+```bash
+Image saved successfully as: boat_magnitude_spectrum.bmp
+Image saved successfully as: boat_bandpass_filtered_magnitude_spectrum_f_10_t_50.bmp
+Image saved successfully as: boat_bandpass_f_10_t_50.bmp
+Execution Report:
+Command: bandpass
+Description:
+Duration: 250.7403ms
+
+Total operation time: 250.7403ms
+```
+
+| Source               | Result                                                 |
+| -------------------- | ------------------------------------------------------ |
+| ![](./imgs/boat.bmp) | ![](./assets/cli/examples/boat_bandpass_f_10_t_50.bmp) |
+
+| Spectrum                                               | Filtered Spectrum                                                                  |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| ![](./assets/cli/examples/boat_magnitude_spectrum.bmp) | ![](./assets/cli/examples/boat_bandpass_filtered_magnitude_spectrum_f_10_t_50.bmp) |
+
 </details>
 
 ---
