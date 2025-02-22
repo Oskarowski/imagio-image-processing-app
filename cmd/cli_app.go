@@ -522,7 +522,7 @@ func RunAsCliApp() {
 
 			lowCut := GetOrDefault(command.Args["low"], 15)
 			highCut := GetOrDefault(command.Args["high"], 50)
-			withSpectrum := GetOrDefault(command.Args["spectrum"], 1)
+			withSpectrum := GetOrDefault(command.Args["spectrum"], 0)
 
 			output := orthogonal_transforms.HandleBandpassFiltering(img, originalNameWithoutExt, lowCut, highCut, withSpectrum == 1)
 
@@ -533,7 +533,7 @@ func RunAsCliApp() {
 		case "lowpass":
 
 			cutoff := GetOrDefault(command.Args["cutoff"], 15)
-			withSpectrum := GetOrDefault(command.Args["spectrum"], 1)
+			withSpectrum := GetOrDefault(command.Args["spectrum"], 0)
 
 			output := orthogonal_transforms.HandleLowpassFiltering(img, originalNameWithoutExt, cutoff, withSpectrum == 1)
 
@@ -544,7 +544,7 @@ func RunAsCliApp() {
 		case "highpass":
 
 			cutoff := GetOrDefault(command.Args["cutoff"], 25)
-			withSpectrum := GetOrDefault(command.Args["spectrum"], 1)
+			withSpectrum := GetOrDefault(command.Args["spectrum"], 0)
 
 			output := orthogonal_transforms.HandleHighpassFiltering(img, originalNameWithoutExt, cutoff, withSpectrum == 1)
 
@@ -556,7 +556,7 @@ func RunAsCliApp() {
 
 			lowCut := GetOrDefault(command.Args["low"], 25)
 			highCut := GetOrDefault(command.Args["high"], 70)
-			withSpectrum := GetOrDefault(command.Args["spectrum"], 1)
+			withSpectrum := GetOrDefault(command.Args["spectrum"], 0)
 
 			output := orthogonal_transforms.HandleBandcutFiltering(img, originalNameWithoutExt, lowCut, highCut, withSpectrum == 1)
 
