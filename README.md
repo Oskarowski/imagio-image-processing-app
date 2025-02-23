@@ -49,7 +49,7 @@ Imagio is a Go-based image processing application that supports two modes:
 | Img phase modification        | Modify the image phase.                                                                                                                                                                                                                                                                                                                                                        |
 | Maskpass filter               | Apply mask-based filtering.                                                                                                                                                                                                                                                                                                                                                    |
 
-### CLI Usage & Examples
+### 🔹CLI Usage & Examples
 
 ```bash
 Usage: ./imagio <command> [-argument=value [...]] <bmp_image_path> [<second_image_path>]
@@ -618,7 +618,7 @@ Total operation time: 250.7403ms
 
 ---
 
-### TUI Usage & Examples
+### 🎮TUI Usage & Examples
 
 ```bash
 Usage: ./imagio
@@ -627,13 +627,13 @@ Usage: ./imagio
 <details>
   <summary><i>After entering ./imagio</i></summary>
 
-![file_picker_view](./assets/tui/file_selection_screen.png)
+![file_picker_view](./assets/tui/file_picker_view.png)
 
 </details>
 
 <details open>
-  <summary>Change img brightness</summary>
-  World!
+  <summary><strong>Change img brightness</strong></summary>
+  <img src="./assets/tui/examples_rendered/change_img_brightness.gif" width="100%" alt="Change img brightness GIF">
 </details>
 
 <details open>
