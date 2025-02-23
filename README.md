@@ -7,14 +7,21 @@
 
 ## 📝Table of Content
 
-### 💡Overview
+- [📸Imagio](#imagio)
+  - [📝Table of Content](#table-of-content)
+  - [💡Overview](#overview)
+  - [📜Available commends:](#available-commends)
+  - [🔹CLI Usage \& Examples](#cli-usage--examples)
+  - [🎮TUI Usage \& Examples](#tui-usage--examples)
 
-Imagio is a Go-based image processing application that supports two modes:
+## 💡Overview
+
+> Imagio is a Go-based image processing application that supports two modes:
 
 -   **CLI Mode**: Run commands directly from the terminal.
--   **TUI Mode**: An interactive text–user interface (TUI) for exploring and applying commands.
+-   **TUI Mode**: An interactive text–user interface TUI for exploring and applying commands.
 
-### 📜Available commends:
+## 📜Available commends:
 
 | Available Commands            | Description                                                                                                                                                                                                                                                                                                                                                                    |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -49,7 +56,7 @@ Imagio is a Go-based image processing application that supports two modes:
 | Img phase modification        | Modify the image phase.                                                                                                                                                                                                                                                                                                                                                        |
 | Maskpass filter               | Apply mask-based filtering.                                                                                                                                                                                                                                                                                                                                                    |
 
-### 🔹CLI Usage & Examples
+## 🔹CLI Usage & Examples
 
 ```bash
 Usage: ./imagio <command> [-argument=value [...]] <bmp_image_path> [<second_image_path>]
@@ -618,70 +625,54 @@ Total operation time: 250.7403ms
 
 ---
 
-### 🎮TUI Usage & Examples
+## 🎮TUI Usage & Examples
 
 ```bash
 Usage: ./imagio
 ```
 
 <details>
-  <summary><i>After entering ./imagio</i></summary>
+  <summary><strong><i>After entering ./imagio</i></strong></summary>
 
-![file_picker_view](./assets/tui/file_picker_view.png)
-
+  <img src="./assets/tui/examples_rendered/tui_preview.gif" width="100%" alt="TUI preview GIF">
 </details>
 
-<details open>
+<details>
   <summary><strong>Change img brightness</strong></summary>
   <img src="./assets/tui/examples_rendered/change_img_brightness.gif" width="100%" alt="Change img brightness GIF">
 </details>
 
-<details open>
-  <summary>Get negative img</summary>
-  World!
+<details>
+  <summary><strong>Get negative img</strong></summary>
+  <img src="./assets/tui/examples_rendered/get_negative_img.gif" width="100%" alt="GIF">
 </details>
 
-<details open>
-  <summary>Enlarge img</summary>
-  World!
+<details>
+  <summary><strong>Enlarge img</strong></summary>
+  <img src="./assets/tui/examples_rendered/enlarge_img.gif" width="100%" alt="GIF">
 </details>
 
-<details open>
-  <summary>Adaptive denoising filter</summary>
-  World!
+<details>
+  <summary><strong>Adaptive denoising filter</strong></summary>
+  <img src="./assets/tui/examples_rendered/adaptive_denoising_filter.gif" width="100%" alt="GIF">
 </details>
 
-<details open>
-  <summary>Img comparison commands</summary>
-  World!
+<details>
+  <summary><strong>Img comparison commands</strong></summary>
+    <img src="./assets/tui/examples_rendered/Img_comparison_commands.gif" width="100%" alt="GIF">
 </details>
 
-<details open>
-  <summary>Generate img histogram</summary>
-  World!
+<details>
+  <summary><strong>Img histogram characteristics</strong></summary>
+  <img src="./assets/tui/examples_rendered/Img_histogram_characteristics.gif" width="100%" alt="GIF">
 </details>
 
-<details open>
-  <summary>Img histogram characteristics</summary>
-  World!
+<details>
+  <summary><strong>Region growing</strong></summary>
+  <img src="./assets/tui/examples_rendered/region_growing.gif" width="100%" alt="GIF">
 </details>
 
-<details open>
-  <summary>Edge sharpening</summary>
-  World!
-</details>
-
-<details open>
-  <summary>Img thinning</summary>
-  World!
-</details>
-
-<details open>
-  <summary>Region growing</summary>
-  World!
-</details>
-
-<details open>
-  <summary>Bandpass filter</summary>
-  World!
+<details>
+  <summary><strong>Bandpass filter</strong></summary>
+  <img src="./assets/tui/examples_rendered/bandpass_filter.gif" width="100%" alt="GIF">
 </details>
