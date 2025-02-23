@@ -109,7 +109,7 @@ func (m Model) commandExecutionView() string {
 	}
 
 	if len(m.UIState.imageComparisonResults) > 0 {
-		s.WriteString("\n\n" + renderComparisonResults(m.UIState.imageComparisonResults))
+		s.WriteString("\n\n" + m.renderComparisonResults(m.UIState.imageComparisonResults))
 	}
 
 	return s.String()
