@@ -1,18 +1,153 @@
+// taken from unmaintained repository: https://github.com/qeesung/image2ascii
+
 package ascii_preview
 
 import (
+	"bytes"
 	"image"
+	"image/color"
+	"imagio/internal/ascii_preview/ascii"
 	"log"
 
-	"imagio/internal/ascii_preview/terminal"
+	"errors"
+	_ "image/jpeg"
+	_ "image/png"
+	"os"
+	"runtime"
 
+	"github.com/mattn/go-isatty"
 	"github.com/nfnt/resize"
+	terminal "github.com/wayneashleyberry/terminal-dimensions"
 )
+
+const (
+	charWidthWindows = 0.714
+	charWidthOther   = 0.5
+)
+
+// NewTerminalAccessor create a new terminal accessor
+func NewTerminalAccessor() Terminal {
+	return Accessor{}
+}
+
+// Terminal get the terminal basic information
+type Terminal interface {
+	CharWidth() float64
+	ScreenSize() (width, height int, err error)
+	IsWindows() bool
+}
+
+// Accessor implement the Terminal interface and
+// fetch the terminal basic information
+type Accessor struct {
+}
+
+// CharWidth get the terminal char width
+func (accessor Accessor) CharWidth() float64 {
+	if accessor.IsWindows() {
+		return charWidthWindows
+	}
+	return charWidthOther
+}
+
+// IsWindows check if current system is windows
+func (accessor Accessor) IsWindows() bool {
+	return runtime.GOOS == "windows"
+}
+
+// ScreenSize get the terminal screen size
+func (accessor Accessor) ScreenSize() (newWidth, newHeight int, err error) {
+	if !isatty.IsTerminal(os.Stdout.Fd()) && !isatty.IsCygwinTerminal(os.Stdout.Fd()) {
+		return 0, 0,
+			errors.New("can not detect the terminal")
+	}
+
+	x, _ := terminal.Width()
+	y, _ := terminal.Height()
+
+	return int(x), int(y), nil
+}
+
+// Options to convert the image to ASCII
+type Options struct {
+	Ratio           float64
+	FixedWidth      int
+	FixedHeight     int
+	FitScreen       bool // only work on terminal
+	StretchedScreen bool // only work on terminal
+	Colored         bool // only work on terminal
+	Reversed        bool
+}
+
+// DefaultOptions for convert image
+var DefaultOptions = Options{
+	Ratio:           1,
+	FixedWidth:      -1,
+	FixedHeight:     -1,
+	FitScreen:       true,
+	Colored:         true,
+	Reversed:        false,
+	StretchedScreen: false,
+}
+
+// NewImageConverter create a new image converter
+func NewImageConverter() *ImageConverter {
+	return &ImageConverter{
+		resizeHandler:  NewResizeHandler(),
+		pixelConverter: ascii.NewPixelConverter(),
+	}
+}
+
+// Converter define the convert image basic operations
+type Converter interface {
+	Image2ASCIIString(image image.Image, options *Options) string
+}
+
+// ImageConverter implement the Convert interface, and responsible
+// to image conversion
+type ImageConverter struct {
+	resizeHandler  ResizeHandler
+	pixelConverter ascii.PixelConverter
+}
+
+// Image2ASCIIMatrix converts a image to ASCII matrix
+func (converter *ImageConverter) Image2ASCIIMatrix(image image.Image, imageConvertOptions *Options) []string {
+	// Resize the convert first
+	newImage := converter.resizeHandler.ScaleImage(image, imageConvertOptions)
+	sz := newImage.Bounds()
+	newWidth := sz.Max.X
+	newHeight := sz.Max.Y
+	rawCharValues := make([]string, 0, int(newWidth*newHeight+newWidth))
+	for i := 0; i < int(newHeight); i++ {
+		for j := 0; j < int(newWidth); j++ {
+			pixel := color.NRGBAModel.Convert(newImage.At(j, i))
+			// Convert the pixel to ascii char
+			pixelConvertOptions := ascii.NewOptions()
+			pixelConvertOptions.Colored = imageConvertOptions.Colored
+			pixelConvertOptions.Reversed = imageConvertOptions.Reversed
+			rawChar := converter.pixelConverter.ConvertPixelToASCII(pixel, &pixelConvertOptions)
+			rawCharValues = append(rawCharValues, rawChar)
+		}
+		rawCharValues = append(rawCharValues, "\n")
+	}
+	return rawCharValues
+}
+
+// Image2ASCIIString converts a image to ascii matrix, and the join the matrix to a string
+func (converter *ImageConverter) Image2ASCIIString(image image.Image, options *Options) string {
+	convertedPixelASCII := converter.Image2ASCIIMatrix(image, options)
+	var buffer bytes.Buffer
+
+	for i := 0; i < len(convertedPixelASCII); i++ {
+		buffer.WriteString(convertedPixelASCII[i])
+	}
+	return buffer.String()
+}
 
 // NewResizeHandler create a new resize handler
 func NewResizeHandler() ResizeHandler {
 	handler := &ImageResizeHandler{
-		terminal: terminal.NewTerminalAccessor(),
+		terminal: NewTerminalAccessor(),
 	}
 
 	initResizeResolver(handler)
@@ -91,7 +226,7 @@ type ResizeHandler interface {
 // ImageResizeHandler implement the ResizeHandler interface and
 // responsible for image resizing
 type ImageResizeHandler struct {
-	terminal           terminal.Terminal
+	terminal           Terminal
 	imageSizeResolvers []imageSizeResolver
 }
 
